@@ -22,10 +22,68 @@ remotes::install_github("mobinapourmoshir/SSFPC")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+Here is a basic example with simulated data:
 
 ```{r example}
 library(SSFPC)
-## basic example code
+
+data_sin <- function(){
+  set.seed(123)
+  t1 <- "p"; t2 <- "l"; n <- 10; m <- 100; sig <- 0.01; alpha1 <- 1; alpha2 <- 0
+  t <- seq(0,2*pi,length=m); 
+  v1 <- sin(t); v1 <- v1/sqrt(sum(v1^2))
+  v2 <- cos(t); v2 <- v2/sqrt(sum(v2^2))
+  u <- sort(rnorm(n)); u <- u/sqrt(sum(u^2)); 
+  ind <- which.max(abs(u)); u <- sign(u[ind])*u
+  X <- u%*%t(v1)+rnorm(length(u)*length(v1),sd=sig)
+  Y <- u%*%t(v2)+rnorm(length(u)*length(v1),sd=0.02)
+  matplot(t(X), type = 'l')
+  matplot(t(Y), type = 'l')
+  
+  
+  argval_simdata <- list(t,t)
+  Simulated_data = list(X, Y)
+  return(Simulated_data)
+}
+
+Simulated_data <- data_sin()
 ```
+
+Let's see the results!
+
+```{r}
+sim_results_sin <- SSMFPCfunc(mvfd_obj = Simulated_data, argval = NULL, centerfns = TRUE,
+                              num_pcs = 1, smooth_tuning =NULL, sparse_tuning_type = "soft", sparse_tuning = NULL)
+
+```
+
+And the Plots:
+```{r}
+t1 <- "p"; t2 <- "l"; n <- 10; m <- 100; sig <- 0.01; alpha1 <- 0; alpha2 <- 0
+t <- seq(0,2*pi,length=m); 
+v1 <- sin(t); v1 <- v1/sqrt(sum(v1^2))
+v2 <- cos(t); v2 <- v2/sqrt(sum(v2^2))
+u <- sort(rnorm(n)); u <- u/sqrt(sum(u^2))
+
+PCss <- sim_results_sin[[1]]
+mvfd_obj = Simulated_data
+par(mfrow = c(1,3))
+# Var 1
+matplot(t(u%*%t(v1)),type="l", main = "TRUE X")
+matplot(t(mvfd_obj[[1]]), type = 'l', main = "Noisy data")
+matplot(t(sim_results_sin$Estimated[[1]][,1:100]), type = 'l', main = "SSMFPC result")
+
+# Var 2
+matplot(t(u%*%t(v2)),type="l", main = "TRUE Y")
+matplot(t(mvfd_obj[[2]]), type = 'l', main = "Noisy data")
+matplot(t(sim_results_sin$Estimated[[1]][,101:200]), type = 'l', main = "SSMFPC result")
+```
+
+
+
+
+
+
+
+
 
