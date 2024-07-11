@@ -19,7 +19,7 @@ remotes::install_github("mobinapourmoshir/SSFPC")
     ## Downloading GitHub repo mobinapourmoshir/SSFPC@HEAD
 
     ## ── R CMD build ─────────────────────────────────────────────────────────────────
-    ##      checking for file ‘/tmp/RtmpxuoZro/remotes1bad1867b62bf5/mobinapourmoshir-SSFPC-4328dc6/DESCRIPTION’ ...  ✔  checking for file ‘/tmp/RtmpxuoZro/remotes1bad1867b62bf5/mobinapourmoshir-SSFPC-4328dc6/DESCRIPTION’
+    ##      checking for file ‘/tmp/Rtmpb4CX8T/remotes1baecf650c7465/mobinapourmoshir-SSFPC-2dca5a2/DESCRIPTION’ ...  ✔  checking for file ‘/tmp/Rtmpb4CX8T/remotes1baecf650c7465/mobinapourmoshir-SSFPC-2dca5a2/DESCRIPTION’
     ##   ─  preparing ‘SSFPC’:
     ##    checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
     ##   ─  checking for LF line-endings in source and make files and shell scripts
@@ -77,17 +77,10 @@ sim_results_sin <- SSMFPCfunc(mvfd_obj = Simulated_data, argval = NULL, centerfn
 And the Plots:
 
 ``` r
-t1 <- "p"; t2 <- "l"; n <- 10; m <- 100; sig <- 0.01; alpha1 <- 0; alpha2 <- 0
-t <- seq(0,2*pi,length=m); 
-v1 <- sin(t); v1 <- v1/sqrt(sum(v1^2))
-v2 <- cos(t); v2 <- v2/sqrt(sum(v2^2))
-u <- sort(rnorm(n)); u <- u/sqrt(sum(u^2))
-
 PCss <- sim_results_sin[[1]]
 mvfd_obj = Simulated_data
-par(mfrow = c(1,3))
+par(mfrow = c(1,2))
 # Var 1
-matplot(t(u%*%t(v1)),type="l", main = "TRUE X")
 matplot(t(mvfd_obj[[1]]), type = 'l', main = "Noisy data")
 matplot(t(sim_results_sin$Estimated[[1]][,1:100]), type = 'l', main = "SSMFPC result")
 ```
@@ -96,7 +89,6 @@ matplot(t(sim_results_sin$Estimated[[1]][,1:100]), type = 'l', main = "SSMFPC re
 
 ``` r
 # Var 2
-matplot(t(u%*%t(v2)),type="l", main = "TRUE Y")
 matplot(t(mvfd_obj[[2]]), type = 'l', main = "Noisy data")
 matplot(t(sim_results_sin$Estimated[[1]][,101:200]), type = 'l', main = "SSMFPC result")
 ```
