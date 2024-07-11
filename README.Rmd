@@ -37,10 +37,6 @@ data_sin <- function(){
   ind <- which.max(abs(u)); u <- sign(u[ind])*u
   X <- u%*%t(v1)+rnorm(length(u)*length(v1),sd=sig)
   Y <- u%*%t(v2)+rnorm(length(u)*length(v1),sd=0.02)
-  par(mfrow = c(1,2))
-  matplot(t(X), type = 'l')
-  matplot(t(Y), type = 'l')
-  
   
   argval_simdata <- list(t,t)
   Simulated_data = list(X, Y)
@@ -48,6 +44,10 @@ data_sin <- function(){
 }
 
 Simulated_data <- data_sin()
+
+par(mfrow = c(1,2))
+  matplot(t(Simulated_data[[1]]), type = 'l')
+  matplot(t(Simulated_data[[2]]), type = 'l')
 ```
 
 Let's see the results!

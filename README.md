@@ -16,20 +16,8 @@ You can install SSFPC Package from github with the following code:
 remotes::install_github("mobinapourmoshir/SSFPC")
 ```
 
-    ## Downloading GitHub repo mobinapourmoshir/SSFPC@HEAD
-
-    ## ── R CMD build ─────────────────────────────────────────────────────────────────
-    ##      checking for file ‘/tmp/RtmpamkLI0/remotes1bb03f6e63593/mobinapourmoshir-SSFPC-1f406e4/DESCRIPTION’ ...  ✔  checking for file ‘/tmp/RtmpamkLI0/remotes1bb03f6e63593/mobinapourmoshir-SSFPC-1f406e4/DESCRIPTION’
-    ##   ─  preparing ‘SSFPC’:
-    ##    checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
-    ##   ─  checking for LF line-endings in source and make files and shell scripts
-    ##   ─  checking for empty or unneeded directories
-    ##   ─  building ‘SSFPC_0.0.0.9000.tar.gz’
-    ##      
-    ## 
-
-    ## Installing package into '/users/personnel/pmobina/R/x86_64-redhat-linux-gnu-library/4.4'
-    ## (as 'lib' is unspecified)
+    ## Skipping install of 'SSFPC' from a github remote, the SHA1 (8c3212e5) has not changed since last install.
+    ##   Use `force = TRUE` to force installation
 
 ## Example
 
@@ -48,10 +36,6 @@ data_sin <- function(){
   ind <- which.max(abs(u)); u <- sign(u[ind])*u
   X <- u%*%t(v1)+rnorm(length(u)*length(v1),sd=sig)
   Y <- u%*%t(v2)+rnorm(length(u)*length(v1),sd=0.02)
-  par(mfrow = c(1,2))
-  matplot(t(X), type = 'l')
-  matplot(t(Y), type = 'l')
-  
   
   argval_simdata <- list(t,t)
   Simulated_data = list(X, Y)
@@ -59,6 +43,10 @@ data_sin <- function(){
 }
 
 Simulated_data <- data_sin()
+
+par(mfrow = c(1,2))
+  matplot(t(Simulated_data[[1]]), type = 'l')
+  matplot(t(Simulated_data[[2]]), type = 'l')
 ```
 
 ![](README_files/figure-gfm/example-1.png)<!-- -->
