@@ -19,7 +19,7 @@ remotes::install_github("mobinapourmoshir/SSFPC")
     ## Downloading GitHub repo mobinapourmoshir/SSFPC@HEAD
 
     ## ── R CMD build ─────────────────────────────────────────────────────────────────
-    ##      checking for file ‘/tmp/Rtmpb4CX8T/remotes1baecf650c7465/mobinapourmoshir-SSFPC-2dca5a2/DESCRIPTION’ ...  ✔  checking for file ‘/tmp/Rtmpb4CX8T/remotes1baecf650c7465/mobinapourmoshir-SSFPC-2dca5a2/DESCRIPTION’
+    ##      checking for file ‘/tmp/RtmpamkLI0/remotes1bb03f6e63593/mobinapourmoshir-SSFPC-1f406e4/DESCRIPTION’ ...  ✔  checking for file ‘/tmp/RtmpamkLI0/remotes1bb03f6e63593/mobinapourmoshir-SSFPC-1f406e4/DESCRIPTION’
     ##   ─  preparing ‘SSFPC’:
     ##    checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
     ##   ─  checking for LF line-endings in source and make files and shell scripts
@@ -48,6 +48,7 @@ data_sin <- function(){
   ind <- which.max(abs(u)); u <- sign(u[ind])*u
   X <- u%*%t(v1)+rnorm(length(u)*length(v1),sd=sig)
   Y <- u%*%t(v2)+rnorm(length(u)*length(v1),sd=0.02)
+  par(mfrow = c(1,2))
   matplot(t(X), type = 'l')
   matplot(t(Y), type = 'l')
   
@@ -60,7 +61,7 @@ data_sin <- function(){
 Simulated_data <- data_sin()
 ```
 
-![](README_files/figure-gfm/example-1.png)<!-- -->![](README_files/figure-gfm/example-2.png)<!-- -->
+![](README_files/figure-gfm/example-1.png)<!-- -->
 
 Let’s see the results!
 
