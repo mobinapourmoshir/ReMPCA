@@ -1,4 +1,4 @@
-#' SSMFPCfunc Smooth and Sparse Multivariate Functional Principal Component Analysis
+#' ReMPCA Smooth and Sparse Multivariate Functional Principal Component Analysis
 #'
 #' @param mvfd_obj A list of data matrices, where each one is considered of as a variable and observations are stored in the rows, and grid points are in the columns. It is also possible for the timeline or grid points to include the column name.
 #' @param argval A list of grid points corresponding to each variable, where the length of each component matches the number of columns in the related data matrix.
@@ -7,6 +7,7 @@
 #' @param smooth_tuning A data set of different combinations of alphas (smoothness parameters) for all variables.
 #' @param sparse_tuning_type A character string specifying the sparse calculation method. Must be one of "soft" (default), "hard", or "SCAD".
 #' @param sparse_tuning A number that shows the level of sparsity.
+#' @param smoothness_type A character string specifying the method used in smoothing u and/or v, must be one of "Second_order" (default), "First_order" or "Indicator".
 #'
 #' @importFrom utils  txtProgressBar setTxtProgressBar
 #' @importFrom Matrix bdiag
@@ -18,8 +19,9 @@
 
 
 ############################ Smooth and Sparse Multivariate PCA ############################
-SSMFPCfunc <- function(mvfd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
-                       smooth_tuning = NULL, sparse_tuning_type = "soft", sparse_tuning = 0) {
+ReMPCA <- function(mvfd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
+                       smooth_tuning = NULL, sparse_tuning_type = "soft",
+                   sparse_tuning = 0, smoothness_type = "Second_order") {
 
   n_var <- length(mvfd_obj) # Number of variables
   n <- nrow(mvfd_obj[[1]]) # Number of observations
