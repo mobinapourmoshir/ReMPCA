@@ -4,9 +4,9 @@
 #' @param argval A list of grid points corresponding to each variable, where the length of each component matches the number of columns in the related data matrix.
 #' @param centerfns A logical
 #' @param num_pcs Logical: if True, it demeans the data before calculating the principal components.
-#' @param smooth_tuning A data set of different combinations of alphas (smoothness parameters) for all variables.
+#' @param smooth_tuning A vector with p elements that each represent a fixed smoothing parameter alpha for all p variables, OR A matrix with different combinations of alphas for all variables, OR A list of two vectors, one for each variable, that each represents possible alphas. By default, it is null, and it looks at a matrix of all the possible alphas in 2^seq(-30,5, length.out = 15).
 #' @param sparse_tuning_type A character string specifying the sparse calculation method. Must be one of "soft" (default), "hard", or "SCAD".
-#' @param sparse_tuning A number that shows the level of sparsity.
+#' @param sparse_tuning A number that shows the level of sparsity. Set to 0 to have no sparsity (default).
 #' @param smoothness_type A character string specifying the method used in smoothing u and/or v, must be one of "Second_order" (default), "First_order" or "Indicator".
 #'
 #' @importFrom utils  txtProgressBar setTxtProgressBar
