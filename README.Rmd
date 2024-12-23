@@ -29,7 +29,7 @@ library(SSFPC)
 
 data_sin <- function(){
   set.seed(123)
-  t1 <- "p"; t2 <- "l"; n <- 10; m <- 100; sig <- 0.01; alpha1 <- 1; alpha2 <- 0
+  t1 <- "p"; t2 <- "l"; n <- 20; m <- 100; sig <- 0.01; alpha1 <- 1; alpha2 <- 0
   t <- seq(0,2*pi,length=m); 
   v1 <- sin(t); v1 <- v1/sqrt(sum(v1^2))
   v2 <- cos(t); v2 <- v2/sqrt(sum(v2^2))
@@ -64,12 +64,12 @@ PCss <- sim_results_sin[[1]]
 mvfd_obj = Simulated_data
 par(mfrow = c(1,2))
 # Var 1
-matplot(t(mvfd_obj[[1]]), type = 'l', main = "Noisy data")
-matplot(t(sim_results_sin$Estimated[[1]][,1:100]), type = 'l', main = "SSMFPC result")
+matplot(t(mvfd_obj[[1]]), type = 'l', main = "Noisy data", ylab = "Variable #1 - Data")
+matplot(t(sim_results_sin$Estimated[[1]][,1:100]), type = 'l', main = "SSMFPC result", ylab = "Variable #1 - Estimates")
 
 # Var 2
-matplot(t(mvfd_obj[[2]]), type = 'l', main = "Noisy data")
-matplot(t(sim_results_sin$Estimated[[1]][,101:200]), type = 'l', main = "SSMFPC result")
+matplot(t(mvfd_obj[[2]]), type = 'l', main = "Noisy data", ylab = "Variable #2 - Data")
+matplot(t(sim_results_sin$Estimated[[1]][,101:200]), type = 'l', main = "SSMFPC result", ylab = "Variable #2 - Estimates")
 ```
 
 
