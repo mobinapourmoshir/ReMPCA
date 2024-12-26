@@ -6,7 +6,11 @@
 #'
 #' @param argval A list of numeric vectors of argument values at which the `mfd` object is to be evaluated
 #'
-#' @param mvfd_obj List of matrices or arrays (Multivariate Grid Functional Data )
+#' @param mvfd_obj List of matrices or arrays (Multivariate Grid Functional Data)
+#' @param centerfns logical. If TRUE  the input data undergoes centralization or demeaning prior to being processed by the function.
+#' @param num_pcs  The number of PCs. The default is one (The first principal component only). But the user is able to see higher PCs
+#' @description Check for validity of the data in the `mvgfd` object
+#'
 
 
 mfd <- function(argval = NULL, mvgfd_obj, centerfns = TRUE, num_pcs = 1) {
@@ -21,8 +25,7 @@ mfd <- function(argval = NULL, mvgfd_obj, centerfns = TRUE, num_pcs = 1) {
     stop("Input data must be a list of matrices and arrays or just one matrix!")
   }
 
-  #' @param centerfns logical. If TRUE  the input data undergoes centralization or demeaning prior to being processed by the function.
-  #' @param num_pcs  The number of PCs. The default is one (The first principal component only). But the user is able to see higher PCs
+
   structure(
     list(
       argval = argval,
@@ -36,7 +39,7 @@ mfd <- function(argval = NULL, mvgfd_obj, centerfns = TRUE, num_pcs = 1) {
 
 # Check for a valid data
 check_data.mvgfd <- function(object) {
-  #' @description Check for validity of the data in the `mvgfd` object
+
 
   mvfd_obj <- object$mvfd_obj
 
