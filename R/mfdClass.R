@@ -4,18 +4,19 @@
 #' The `mfd` class represents a set of multivariate functional data.
 #' Functional data Objects are constructed using matrices, with columns representing grid points and rows indicating observations.
 #'
+#' @param argval A list of numeric vectors of argument values at which the `mfd` object is to be evaluated
 #'
-#'
+#' @param mvfd_obj List of matrices or arrays (Multivariate Grid Functional Data )
 
 
 mfd <- function(argval = NULL, mvgfd_obj, centerfns = TRUE, num_pcs = 1) {
 
-  #' @param argval A list of numeric vectors of argument values at which the `mfd` object is to be evaluated
+
   if (!is.list(argval) && !is.null(argval)) {
     stop("`argval` must be a list of numeric vectors or NULL")
   }
 
-  #' @param mvfd_obj List of matrices or arrays (Multivariate Grid Functional Data )
+
   if (!(is.list(mvgfd_obj) || is.matrix(mvgfd_obj))) {
     stop("Input data must be a list of matrices and arrays or just one matrix!")
   }
