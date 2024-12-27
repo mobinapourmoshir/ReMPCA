@@ -1,6 +1,8 @@
 #' ReMPCA Smooth and Sparse Multivariate Functional Principal Component Analysis
 #'
-#' @param mvfd_obj A list of data matrices, where each one is considered of as a variable and observations are stored in the rows, and grid points are in the columns. It is also possible for the timeline or grid points to include the column name.
+#' @param mhd_obj Two lists of data matrices exist: one for functional data (fd_matrices) and another for non-functional data (nfd_matrices).
+#' Each matrix is regarded as a variable, with observations organized in the rows and grid points in the columns for functional data.
+#'  The timeline or grid points may also incorporate the column name.
 #' @param argval A list of grid points corresponding to each variable, where the length of each component matches the number of columns in the related data matrix.
 #' @param centerfns A logical
 #' @param num_pcs Logical: if True, it demeans the data before calculating the principal components.
@@ -19,13 +21,13 @@
 
 
 ############################ Smooth and Sparse Multivariate PCA ############################
-ReMPCA <- function(mvfd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
+ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
                        smooth_tuning = NULL, sparse_tuning_type = "soft",
                    sparse_tuning = 0, smoothness_type = "Second_order") {
 
-  n_var <- length(mvfd_obj) # Number of variables
-  n <- nrow(mvfd_obj[[1]]) # Number of observations
-  n_cols <- as.vector(as.data.frame(sapply(mvfd_obj, dim))[2,])
+  n_var <- length(mhd_obj) # Number of variables
+  n <- nrow(mhd_obj[[1]]) # Number of observations
+  n_cols <- as.vector(as.data.frame(sapply(mhd_obj, dim))[2,])
 
 
   ####### Smoothing Parameter ##########
@@ -47,10 +49,10 @@ ReMPCA <- function(mvfd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
   X <- c()
   if (centerfns) {
     for (p in 1:n_var) {
-      c <-  apply(mvfd_obj[[p]], 2, function(x) x - mean(x))
+      c <-  apply(mhd_obj[[p]], 2, function(x) x - mean(x))
       X <- cbind(X,c)
     }
-  }else{X <- do.call(cbind, mvfd_obj)}
+  }else{X <- do.call(cbind, mhd_obj)}
 
 
   # Grid Points (input or assigning)
@@ -59,7 +61,7 @@ ReMPCA <- function(mvfd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
     GridPoints <- argval
   } else {
     for (i in 1:n_var) {
-      cycle <- seq(1:ncol(mvfd_obj[[i]])) / ncol(mvfd_obj[[i]])
+      cycle <- seq(1:ncol(mhd_obj[[i]])) / ncol(mhd_obj[[i]])
 
       GridPoints[[i]] <- cycle
     }

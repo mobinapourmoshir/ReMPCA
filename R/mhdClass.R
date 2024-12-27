@@ -26,19 +26,18 @@ hd <- function(fd_matrices = list(), nfd_matrices = list()) {
   }
 
   # Combine functional data matrices side by side
-  combined_fd <- do.call(cbind, fd_matrices)
-
+  #combined_fd <- do.call(cbind, fd_matrices)
   # Combine non-functional data matrices side by side
-  combined_nfd <- do.call(cbind, nfd_matrices)
+  #combined_nfd <- do.call(cbind, nfd_matrices)
 
   # Add attributes to the data
-  attr(combined_fd, "label") <- "fd"
-  attr(combined_nfd, "label") <- "nfd"
+  attr(fd_matrices, "label") <- "fd"
+  attr(nfd_matrices, "label") <- "nfd"
 
   # Create the object
   obj <- list(
-    fd = combined_fd,
-    nfd = combined_nfd
+    fd = fd_matrices,
+    nfd = nfd_matrices
   )
 
   # Assign a class attribute
