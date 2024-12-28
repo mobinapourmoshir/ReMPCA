@@ -7,8 +7,9 @@
 #' @param centerfns A logical; if True, it demeans the data before calculating the principal components.
 #' @param num_pcs An integer. The number of principal components.
 #' @param smooth_tuning A vector with p elements that each represent a fixed smoothing parameter alpha for all p variables,
-#' OR A matrix with different combinations of alphas for all variables, OR A list of p vectors, one for each variable,
-#' that each represents possible alphas. By default, it is null, and it looks at a matrix of all the possible alphas in 2^seq(-30,5, length.out = 15).
+#' OR A matrix with different combinations of alphas for all variables, it should have p columns for p variables!
+#' By default, it is null, and it looks at a matrix of all the possible alphas in 2^seq(-30,5, length.out = 15).
+#' Set to 0 to have no smoothness.
 #' @param sparse_tuning_type A character string specifying the sparse calculation method. Must be one of "soft" (default), "hard", or "SCAD".
 #' @param sparse_tuning A number that shows the level of sparsity. Set to 0 to have no sparsity (default). Tune it automatically by setting it to NULL.
 #' @param smoothness_type A character string specifying the method used in smoothing u and/or v, must be one of "Second_order" (default), "First_order" or "Indicator".
@@ -23,28 +24,57 @@
 
 
 ############################ Smooth and Sparse Multivariate PCA ############################
+
 ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
                       smooth_tuning = NULL, smoothness_type = "Second_order",
                       sparse_tuning_type = "soft", sparse_tuning = 0) {
 
-  n_var <- length(mhd_obj) # Number of variables
-  n <- nrow(mhd_obj[[1]]) # Number of observations
-  n_cols <- as.vector(as.data.frame(sapply(mhd_obj, dim))[2,])
+
+  if(sparse_tuning = 0 & smooth_tuning = 0){ # No penalty, just PCs
+    mhd_obj <- c(mhd_obj$fd, mhd_obj$nfd)
+    n_var <- length(mhd_obj) # Number of variables
+    n <- nrow(mhd_obj[[1]]) # Number of observations
+
+  }else{ # Penalty is added
+
+    # If penalty is added, just implement it for the functional part of data!
+    mfd <- mhd_obj$fd
+    mnfd <- mhd_obj$nfd
+    n_var <- length(mfd) # Number of variables
+    n <- nrow(mfd[[1]]) # Number of observations
+    n_cols <- as.vector(as.data.frame(sapply(mfd, dim))[2,])
 
 
-  ####### Smoothing Parameter ##########
-  if (is.null(smooth_tuning)) {
-    for (i in 1:n_var) {
-      smooth_tuning <- c(smooth_tuning, list(2^seq(-30,5, length.out = 15)))
+    ####### Smoothing Parameter ##########
+
+    # If smooth_tuning is a vector of p alphas (fixed and pre-defined)
+    if (length(smooth_tuning) != n_var) {
+      warning("The length of 'smooth_tuning' does not match 'p'. Setting 'smooth_tuning' to NULL.")
+      smooth_tuning <- NULL
+    } else {
+      smooth_tuning <- data.frame(matrix(smooth_tuning, nrow = 1))
+      colnames(smooth_tuning) <- paste0("var", seq_along(smooth_tuning))
     }
-  }
-  smooth_tuning <- expand.grid(smooth_tuning)
 
-  # sparse_tuning is the level of sparsity
-  # It can be either 0 or any number between 1 through the length of u (Coefficients)
-  if (is.null(sparse_tuning)) {
-    sparse_tuning <- seq(0:floor(n-1))
-  }
+
+    if (is.null(smooth_tuning)) {
+      for (i in 1:n_var) {
+        smooth_tuning <- c(smooth_tuning, list(2^seq(-30,5, length.out = 15)))# 15 alphas for each variable
+      }
+    }
+    smooth_tuning <- expand.grid(smooth_tuning) # Matrix of all possible alphas for p variables
+
+
+
+    # sparse_tuning is the level of sparsity - functional data only!
+    # It can be either 0 or any number between 1 through the length of u (Coefficients)
+    if (is.null(sparse_tuning)) {
+      sparse_tuning <- seq(0:floor(n-1))}
+
+    } # Penalty is added
+
+
+
 
 
   # Pre-processing: Centralizing the data
@@ -55,6 +85,8 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
       X <- cbind(X,c)
     }
   }else{X <- do.call(cbind, mhd_obj)}
+
+
 
 
   # Grid Points (input or assigning)
