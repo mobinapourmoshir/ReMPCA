@@ -120,7 +120,7 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
 
     # S_alpha for all alphas
     alphas <- smooth_tuning
-    S_alpha_list <- list()
+    S_alpha_list_u <- S_alpha_list_v <- list()
     index <- 0
     cat("Preprocessing ...\n")
     n_iter1 <- dim(smooth_tuning)[1]
@@ -135,9 +135,11 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
       S <- list()
       for (i in 1:n_var) {
         alpha <- as.numeric(smooth_tuning[alpha_index,i])
-        S[[i]] <- get.pen(td = GridPoints[[i]], alpha = alpha)
+        S_v[[i]] <- get.pen(td = GridPoints_v[[i]], alpha = alpha)
+        S_u[[i]] <- get.pen(td = GridPoints_u[[i]], alpha = alpha)
       }
-      S_alpha_list[[index]] <- as.matrix(bdiag(S))
+      S_alpha_list_v[[index]] <- as.matrix(bdiag(S_v))
+      S_alpha_list_u[[index]] <- as.matrix(bdiag(S_u))
       setTxtProgressBar(pb, index)
     }
     close(pb)
