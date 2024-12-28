@@ -35,6 +35,16 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
     n_var <- length(mhd_obj) # Number of variables
     n <- nrow(mhd_obj[[1]]) # Number of observations
 
+    # Pre-processing: Centralizing the data
+    Y <- c()
+    if (centerfns) {
+      for (p in 1:n_var) {
+        c <-  apply(mhd_obj[[p]], 2, function(x) x - mean(x))
+        Y <- cbind(Y,c)
+      }
+    }else{Y <- do.call(cbind, mhd_obj)}
+
+
   }else{ # Penalty is added
 
     # If penalty is added, just implement it for the functional part of data!
@@ -71,73 +81,85 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
     if (is.null(sparse_tuning)) {
       sparse_tuning <- seq(0:floor(n-1))}
 
+
+    # Pre-processing: Centralizing the data
+    X <- c()
+    if (centerfns) {
+      for (p in 1:n_var) {
+        c <-  apply(mfd[[p]], 2, function(x) x - mean(x))
+        X <- cbind(X,c)
+      }
+    }else{X <- do.call(cbind, mfd)}
+
+    Y <- c()
+    n_var_nfd <- length(mnfd)
+    if (centerfns) {
+      for (p in 1:n_var_nfd) {
+        c <-  apply(mnfd[[p]], 2, function(x) x - mean(x))
+        Y <- cbind(Y,c)
+      }
+    }else{Y <- do.call(cbind, mnfd)}
+
+
+
+
+    # Grid Points (input or assigning)
+    GridPoints_v <- GridPoints_u <- list()
+    if (!is.null(argval)) {
+      GridPoints <- argval
+    } else {
+      for (i in 1:n_var) {
+        cycle_v <- seq(1:ncol(mfd[[i]])) / ncol(mfd[[i]])
+        cycle_u <- seq(1:nrow(mfd[[i]])) / nrow(mfd[[i]])
+
+        GridPoints_v[[i]] <- cycle_v
+        GridPoints_u[[i]] <- cycle_u
+      }
+    }
+
+
+    # S_alpha for all alphas
+    alphas <- smooth_tuning
+    S_alpha_list <- list()
+    index <- 0
+    cat("Preprocessing ...\n")
+    n_iter1 <- dim(smooth_tuning)[1]
+    pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
+                         max = n_iter1, # Maximum value of the progress bar
+                         style = 3,    # Progress bar style (also available style = 1 and style = 2)
+                         width = 50,   # Progress bar width. Defaults to getOption("width")
+                         char = "=")   # Character used to create the bar
+
+    for (alpha_index in 1:nrow(smooth_tuning)) {
+      index <- index + 1
+      S <- list()
+      for (i in 1:n_var) {
+        alpha <- as.numeric(smooth_tuning[alpha_index,i])
+        S[[i]] <- get.pen(td = GridPoints[[i]], alpha = alpha)
+      }
+      S_alpha_list[[index]] <- as.matrix(bdiag(S))
+      setTxtProgressBar(pb, index)
+    }
+    close(pb)
+
+
+    smooth_tuning_result  <- sparse_tuning_result <- list()
+    gcv <- opt_S  <- funcs <- GCVdf <- list()
+
     } # Penalty is added
 
 
 
 
-
-  # Pre-processing: Centralizing the data
-  X <- c()
-  if (centerfns) {
-    for (p in 1:n_var) {
-      c <-  apply(mhd_obj[[p]], 2, function(x) x - mean(x))
-      X <- cbind(X,c)
-    }
-  }else{X <- do.call(cbind, mhd_obj)}
-
-
-
-
-  # Grid Points (input or assigning)
-  GridPoints <- list()
-  if (!is.null(argval)) {
-    GridPoints <- argval
-  } else {
-    for (i in 1:n_var) {
-      cycle <- seq(1:ncol(mhd_obj[[i]])) / ncol(mhd_obj[[i]])
-
-      GridPoints[[i]] <- cycle
-    }
-  }
-
-
-  # S_alpha for all alphas
-  alphas <- smooth_tuning
-  S_alpha_list <- list()
-  index <- 0
-  cat("Preprocessing ...\n")
-  n_iter1 <- dim(smooth_tuning)[1]
-  pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
-                       max = n_iter1, # Maximum value of the progress bar
-                       style = 3,    # Progress bar style (also available style = 1 and style = 2)
-                       width = 50,   # Progress bar width. Defaults to getOption("width")
-                       char = "=")   # Character used to create the bar
-
-  for (alpha_index in 1:nrow(smooth_tuning)) {
-    index <- index + 1
-    S <- list()
-    for (i in 1:n_var) {
-      alpha <- as.numeric(smooth_tuning[alpha_index,i])
-      S[[i]] <- get.pen(td = GridPoints[[i]], alpha = alpha)
-    }
-    S_alpha_list[[index]] <- as.matrix(bdiag(S))
-    setTxtProgressBar(pb, index)
-  }
-  close(pb)
-
-
-
   lsv <- lsu <- c() # List for storing v's  and u's
   variance <- vector() # % of variability explained by PC
-  smooth_tuning_result  <- sparse_tuning_result <- list()
-  gcv <- opt_S  <- funcs <- GCVdf <- list()
+
 
 
   for (j in 1:num_pcs) {
     cat(sprintf("Computing the %s PC ...\n", ordinal(j)))
     if (j == 1) {
-      X_temp = X
+      X_temp = X # Penalty added
 
     } else{
       SVD_result = svd(X_temp)
