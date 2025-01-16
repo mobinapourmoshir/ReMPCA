@@ -1,7 +1,7 @@
 #' @title  Define a Set of Multivariate Hybrid Data objects
 #'
 #' #' @description
-#' The `mfd` class represents a set of multivariate hybrid data.
+#' The `mhd` class represents a set of multivariate hybrid data.
 #' Functional data Objects are constructed using matrices, with columns representing grid points and rows indicating observations.
 #'
 #' @param argval A list of numeric vectors of argument values at which the `mfd` object is to be evaluated
