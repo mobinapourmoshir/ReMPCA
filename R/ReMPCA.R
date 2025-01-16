@@ -14,6 +14,12 @@
 #' @param sparse_tuning A number that shows the level of sparsity. Set to 0 to have no sparsity (default). Tune it automatically by setting it to NULL.
 #' @param smoothness_type A character string specifying the method used in smoothing u and/or v, must be one of "Second_order" (default), "First_order" or "Indicator".
 #'
+#' @param two_way_smoothness A logical; if True, the function implements the two-way smoothness on both u and v and
+#' if False (default) it only implement the smoothness on the functions (v).
+#' @param two_way_sparsity A logical; if True, the function implements the two-way sparsity on both u and v and
+#' if False (default) it only implement the sparsity on the coefficients (u).
+#' @param non_functional_penalty A logical; if True, the function implements the sparsity penalty for non-functional data
+#'
 #' @importFrom utils  txtProgressBar setTxtProgressBar
 #' @importFrom Matrix bdiag
 #' @importFrom stats var
@@ -27,7 +33,9 @@
 
 ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
                       smooth_tuning = NULL, smoothness_type = "Second_order",
-                      sparse_tuning_type = "soft", sparse_tuning = 0) {
+                      sparse_tuning_type = "soft", sparse_tuning = 0,
+                      two_way_smoothness = FALSE, two_way_sparsity = FALSE,
+                      non_functional_penalty = FALSE) {
 
 
   if(sparse_tuning = 0 & smooth_tuning = 0){ # No penalty, just PCs
