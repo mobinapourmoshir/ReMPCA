@@ -11,7 +11,19 @@
 #' @param num_pcs  The number of PCs. The default is one (The first principal component only). But the user is able to see higher PCs
 #' @description Check for validity of the data in the `mvgfd` object
 #'
-
+#' @examples
+#'
+#' # Create some example matrices
+#' fd1 <- matrix(1:9, nrow = 3)
+#' fd2 <- matrix(10:18, nrow = 3)
+#' nfd1 <- matrix(19:27, nrow = 3)
+#' nfd2 <- matrix(28:36, nrow = 3)
+#' # Create an `hd` object
+#' hd_obj <- hd(fd_matrices = list(fd1, fd2), nfd_matrices = list(nfd1, nfd2))
+#' # Print the object
+#' print(hd_obj)
+#'
+#' @export
 
 ####################### Define an S3 Class for Hybrid Data #######################
 
@@ -63,16 +75,4 @@ print.hd <- function(object) {
   }
 }
 
-# Example
-# Create some example matrices
-fd1 <- matrix(1:9, nrow = 3)
-fd2 <- matrix(10:18, nrow = 3)
-nfd1 <- matrix(19:27, nrow = 3)
-nfd2 <- matrix(28:36, nrow = 3)
-
-# Create an `hd` object
-hd_obj <- hd(fd_matrices = list(fd1, fd2), nfd_matrices = list(nfd1, nfd2))
-
-# Print the object
-print(hd_obj)
 
