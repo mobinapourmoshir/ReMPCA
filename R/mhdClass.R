@@ -19,7 +19,7 @@
 #' nfd1 <- matrix(19:27, nrow = 3)
 #' nfd2 <- matrix(28:36, nrow = 3)
 #' # Create an `hd` object
-#' hd_obj <- hd(fd_matrices = list(fd1, fd2), nfd_matrices = list(nfd1, nfd2))
+#' hd_obj <- hd(fd_matrices = list(fd1, fd2), nfd_matrices = list(nfd1))
 #' # Print the object
 #' print(hd_obj)
 #'

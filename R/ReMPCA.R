@@ -40,146 +40,120 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
                       sparse_tuning_nfd = 0) {
 
 
-  if(smooth_tuning = 0){ # No smoothness penalty
-    mhd_obj <- c(mhd_obj$fd, mhd_obj$nfd) # All the f and nf matrices in one list
-    n_var <- length(mhd_obj) # Number of variables
-    n <- nrow(mhd_obj[[1]]) # Number of observations
 
-    # Pre-processing: Centralizing the data
-    Y <- c()
-    if (centerfns) {
-      for (p in 1:n_var) {
-        c <-  apply(mhd_obj[[p]], 2, function(x) x - mean(x))
-        Y <- cbind(Y,c)
-      }
-    }else{Y <- do.call(cbind, mhd_obj)} # Side_by_side data
+  fd <- mhd_obj$fd
+  nfd <- data.frame(mhd_obj$nfd)
+  n <- nrow(mfd[[1]]) # Number of observations (same for both fd, nfd)
+  fd_n_var <- length(fd) # Number of variables (functional data)
+
+  n_cols_fd <- as.data.frame(sapply(fd, dim))[2,] # Number of columns of each variable in fd
+  n_cols_nfd <- ncol(nfd) # Number of variables in nfd
 
 
+  ####### Smoothing Parameter (for functional data only) ##########
+
+  if (length(smooth_tuning) != n_var) { # For a given vector (fixed and pre-defined)
+    warning("The length of 'smooth_tuning' does not match 'p'. Setting 'smooth_tuning' to NULL.")
+    smooth_tuning <- NULL
+  } else if(smooth_tuning == 0){
+    smooth_tuning <- 0
+  }else {
+    smooth_tuning <- data.frame(matrix(smooth_tuning, nrow = 1)) # For a given matrix
+    colnames(smooth_tuning) <- paste0("var", seq_along(smooth_tuning))
+  }
 
 
-
-
-  }else{ # Penalty is added
-
-    # If penalty is added, just implement it for the functional part of data!
-    mfd <- mhd_obj$fd
-    mnfd <- mhd_obj$nfd
-    n_var <- length(mfd) # Number of variables
-    n <- nrow(mfd[[1]]) # Number of observations
-    n_cols_fd <- as.data.frame(sapply(mfd, dim))[2,]
-    n_cols_nfd <- as.data.frame(sapply(mnfd, dim))[2,]
-
-    ####### Smoothing Parameter ##########
-
-    # If smooth_tuning is a vector of p alphas (fixed and pre-defined)
-    if (length(smooth_tuning) != n_var) {
-      warning("The length of 'smooth_tuning' does not match 'p'. Setting 'smooth_tuning' to NULL.")
-      smooth_tuning <- NULL
-    } else {
-      smooth_tuning <- data.frame(matrix(smooth_tuning, nrow = 1))
-      colnames(smooth_tuning) <- paste0("var", seq_along(smooth_tuning))
+  # smooth_tuning = NUll
+  if (is.null(smooth_tuning)) {
+    for (i in 1:n_var) {
+      smooth_tuning <- c(smooth_tuning, list(2^seq(-30,5, length.out = 15)))# 15 alphas for each variable
     }
+  }
+  smooth_tuning <- expand.grid(smooth_tuning) # Matrix of all possible alphas for p variables
 
 
-    if (is.null(smooth_tuning)) {
-      for (i in 1:n_var) {
-        smooth_tuning <- c(smooth_tuning, list(2^seq(-30,5, length.out = 15)))# 15 alphas for each variable
-      }
+
+  ####### level of sparsity (for both functional and non-functional data) #######
+
+  # level of sparsity for u can be either 0 or any number between 1 through the length of u (Coefficients - # of observations)
+  if (is.null(sparse_tuning_fd) | is.null(sparse_tuning_nfd) | sparse_tuning_fd > n | sparse_tuning_nfd > n) {
+    sparse_tuning_u_fd <- sparse_tuning_u_nfd <- seq(0:floor(n-1))} else{
+      sparse_tuning_u_fd <- sparse_tuning_fd
+      sparse_tuning_u_nfd <- sparse_tuning_nfd}
+
+  # level of sparsity for v can be  either 0 or any number between 1 through the length of v (# of columns)
+  if(two_way_sparsity == TRUE){
+
+    if(is.null(sparse_tuning_fd) | is.null(sparse_tuning_nfd) | sparse_tuning_fd > sum(n_cols_fd) | sparse_tuning_nfd > n_cols_nfd){
+      sparse_tuning_v_fd <- c(0,seq(1:floor(sum(n_cols_fd))))
+      sparse_tuning_v_nfd <- c(0,seq(1:floor(n_cols_nfd)))
+    }else{
+      sparse_tuning_v_fd <- sparse_tuning_fd
+      sparse_tuning_v_nfd <- sparse_tuning_nfd}
+  }
+
+
+
+  ####### Pre-processing: Centralizing the data #######
+  X <- c()
+  if (centerfns) {
+    for (p in 1:n_var) {
+      c <-  apply(fd[[p]], 2, function(x) x - mean(x))
+      X <- cbind(X,c) # Demeaned Side by side functional data
     }
-    smooth_tuning <- expand.grid(smooth_tuning) # Matrix of all possible alphas for p variables
+  }else{X <- do.call(cbind, fd)}
+
+  Y <- c()
+  n_var_nfd <- length(nfd)
+  if (centerfns) {
+    Y <-  apply(nfd, 2, function(x) x - mean(x)) # Demeaned non-functional data
+    }else{Y <- nfd}
 
 
+  ####### Grid Points (input or assigning) - Smoothness for functional only #######
+  GridPoints_v <- GridPoints_u <- list()
+  if (!is.null(argval)) {
+    GridPoints <- argval
+  } else {
+    for (i in 1:n_var) {
+      cycle_v <- seq(1:ncol(fd[[i]])) / ncol(fd[[i]])
+      cycle_u <- seq(1:nrow(fd[[i]])) / nrow(fd[[i]])
 
-    # level of sparsity
-    # level of sparsity for u can be either 0 or any number between 1 through the length of u (Coefficients - # of observations)
-    if (is.null(sparse_tuning_fd) | is.null(sparse_tuning_nfd) | sparse_tuning_fd > n | sparse_tuning_nfd > n) {
-      sparse_tuning_u_fd <- sparse_tuning_u_nfd <- seq(0:floor(n-1))} else{
-        sparse_tuning_u_fd <- sparse_tuning_fd
-        sparse_tuning_u_nfd <- sparse_tuning_nfd}
-
-    # level of sparsity for v can be  either 0 or any number between 1 through the length of v (# of columns)
-    if(two_way_sparsity == TRUE){
-      if(is.null(sparse_tuning_fd) | is.null(sparse_tuning_nfd) | sparse_tuning_fd > sum(n_cols_fd) | sparse_tuning_nfd > sum(n_cols_nfd)){
-        sparse_tuning_v_fd <- seq(0:floor(sum(n_cols_fd)-1))
-        sparse_tuning_v_nfd <- seq(0:floor(sum(n_cols_nfd)-1))
-      }else{
-        sparse_tuning_v_fd <- sparse_tuning_fd
-        sparse_tuning_v_nfd <- sparse_tuning_nfd}
+      GridPoints_v[[i]] <- cycle_v
+      GridPoints_u[[i]] <- cycle_u
     }
+  }
 
 
+  ####### S_alpha for all alphas #######
+  alphas <- smooth_tuning
+  S_alpha_list_u <- S_alpha_list_v <- list()
+  index <- 0
+  cat("Preprocessing ...\n")
+  n_iter1 <- dim(smooth_tuning)[1]
+  pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
+                       max = n_iter1, # Maximum value of the progress bar
+                       style = 3,    # Progress bar style (also available style = 1 and style = 2)
+                       width = 50,   # Progress bar width. Defaults to getOption("width")
+                       char = "=")   # Character used to create the bar
 
-
-
-    # Pre-processing: Centralizing the data
-    X <- c()
-    if (centerfns) {
-      for (p in 1:n_var) {
-        c <-  apply(mfd[[p]], 2, function(x) x - mean(x))
-        X <- cbind(X,c)
-      }
-    }else{X <- do.call(cbind, mfd)}
-
-    Y <- c()
-    n_var_nfd <- length(mnfd)
-    if (centerfns) {
-      for (p in 1:n_var_nfd) {
-        c <-  apply(mnfd[[p]], 2, function(x) x - mean(x))
-        Y <- cbind(Y,c)
-      }
-    }else{Y <- do.call(cbind, mnfd)}
-
-
-
-
-    # Grid Points (input or assigning)
-    GridPoints_v <- GridPoints_u <- list()
-    if (!is.null(argval)) {
-      GridPoints <- argval
-    } else {
-      for (i in 1:n_var) {
-        cycle_v <- seq(1:ncol(mfd[[i]])) / ncol(mfd[[i]])
-        cycle_u <- seq(1:nrow(mfd[[i]])) / nrow(mfd[[i]])
-
-        GridPoints_v[[i]] <- cycle_v
-        GridPoints_u[[i]] <- cycle_u
-      }
+  for (alpha_index in 1:nrow(smooth_tuning)) {
+    index <- index + 1
+    S <- list()
+    for (i in 1:n_var) {
+      alpha <- as.numeric(smooth_tuning[alpha_index,i])
+      S_v[[i]] <- get.pen(td = GridPoints_v[[i]], alpha = alpha, type = smoothness_type)
+      S_u[[i]] <- get.pen(td = GridPoints_u[[i]], alpha = alpha, type = smoothness_type)
     }
+    S_alpha_list_v[[index]] <- as.matrix(bdiag(S_v))
+    S_alpha_list_u[[index]] <- as.matrix(bdiag(S_u))
+    setTxtProgressBar(pb, index)
+  }
+  close(pb)
 
 
-    # S_alpha for all alphas
-    alphas <- smooth_tuning
-    S_alpha_list_u <- S_alpha_list_v <- list()
-    index <- 0
-    cat("Preprocessing ...\n")
-    n_iter1 <- dim(smooth_tuning)[1]
-    pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
-                         max = n_iter1, # Maximum value of the progress bar
-                         style = 3,    # Progress bar style (also available style = 1 and style = 2)
-                         width = 50,   # Progress bar width. Defaults to getOption("width")
-                         char = "=")   # Character used to create the bar
-
-    for (alpha_index in 1:nrow(smooth_tuning)) {
-      index <- index + 1
-      S <- list()
-      for (i in 1:n_var) {
-        alpha <- as.numeric(smooth_tuning[alpha_index,i])
-        S_v[[i]] <- get.pen(td = GridPoints_v[[i]], alpha = alpha, type = smoothness_type)
-        S_u[[i]] <- get.pen(td = GridPoints_u[[i]], alpha = alpha, type = smoothness_type)
-      }
-      S_alpha_list_v[[index]] <- as.matrix(bdiag(S_v))
-      S_alpha_list_u[[index]] <- as.matrix(bdiag(S_u))
-      setTxtProgressBar(pb, index)
-    }
-    close(pb)
-
-
-    smooth_tuning_result  <- sparse_tuning_result <- list()
-    gcv <- opt_S  <- funcs <- GCVdf <- list()
-
-    } # Penalty is added
-
-
+  smooth_tuning_result  <- sparse_tuning_result <- list()
+  gcv <- opt_S  <- funcs <- GCVdf <- list()
 
 
   lsv <- lsu <- c() # List for storing v's  and u's
@@ -187,10 +161,12 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
 
 
 
+  ####### ReMPCA Implementation #######
+
   for (j in 1:num_pcs) {
     cat(sprintf("Computing the %s PC ...\n", ordinal(j)))
     if (j == 1) {
-      X_temp = X # Penalty added
+      X_temp = X
 
     } else{
       SVD_result = svd(X_temp)
