@@ -77,8 +77,9 @@ opt_alpha <- function(X, nvar, ncol, S_alphas, alphas, CV_sparse_tuning_result ,
 
 ############################ Conditional Tuning Parameters  - CV and GCV ############################
 parameter_selection_conditional <- function(data, nvar, ncol, smooth_tuning, sparse_tuning, sparse_tuning_type, K_fold = 5, S_alpha_List){
-  CV_score_sparse = CV_score_smooth = 10^60
+  CV_score_sparse <- GCV_score_smooth <- 10^60
   result = c()
+
   count = 0
   shuffled_row = sample(nrow(data)) # Grouping the rows of data matrix
   group_size = length(shuffled_row) / K_fold
