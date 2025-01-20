@@ -8,7 +8,7 @@
 #' @param num_pcs An integer. The number of principal components.
 #' @param smooth_tuning A vector with p elements that each represent a fixed smoothing parameter alpha for all p variables,
 #' OR A matrix with different combinations of alphas for all variables, it should have p columns for p variables!
-#' By default, it is null, and it looks at a matrix of all the possible alphas in 2^seq(-30,5, length.out = 15).
+#' By default, it is null, and it looks at a matrix of all the possible alphas in 2^seq(-30,5, length.out = 10).
 #' Set to 0 to have no smoothness.
 #' @param sparse_tuning_type A character string specifying the sparse calculation method. Must be one of "soft" (default), "hard", or "SCAD".
 #' @param sparse_tuning_fd A number that shows the level of sparsity for functional data.
@@ -33,60 +33,86 @@
 
 ############################ Smooth and Sparse Multivariate PCA ############################
 
-ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
-                      smooth_tuning = NULL, smoothness_type = "Second_order",
-                      sparse_tuning_type = "soft", sparse_tuning_fd = 0,
-                      two_way_smoothness = FALSE, two_way_sparsity = FALSE,
-                      sparse_tuning_nfd = 0) {
+ReMPCA <- function(mhd_obj,
+                   argval = NULL,
+                   centerfns = TRUE,
+                   num_pcs = 1,
+                   smooth_tuning = NULL,
+                   smoothness_type = "Second_order",
+                   sparse_tuning_type = "soft",
+                   sparse_tuning_fd = 0,
+                   sparse_tuning_nfd = 0,
+                   two_way_smoothness = FALSE,
+                   two_way_sparsity = FALSE) {
 
 
 
   fd <- mhd_obj$fd
-  nfd <- data.frame(mhd_obj$nfd)
-  n <- nrow(mfd[[1]]) # Number of observations (same for both fd, nfd)
+  nfd <- mhd_obj$nfd
+  n <- nrow(fd[[1]]) # Number of observations (same for both fd, nfd)
   fd_n_var <- length(fd) # Number of variables (functional data)
 
   n_cols_fd <- as.data.frame(sapply(fd, dim))[2,] # Number of columns of each variable in fd
-  n_cols_nfd <- ncol(nfd) # Number of variables in nfd
-
+  n_cols_nfd <- sum(as.data.frame(sapply(nfd, dim))[2,]) # Number of columns of each variable in nfd
 
   ####### Smoothing Parameter (for functional data only) ##########
-
-  if (length(smooth_tuning) != n_var) { # For a given vector (fixed and pre-defined)
-    warning("The length of 'smooth_tuning' does not match 'p'. Setting 'smooth_tuning' to NULL.")
+  if (is.vector(smooth_tuning) & length(smooth_tuning) != fd_n_var) { # For a given vector (fixed and pre-defined)
+    warning("The length of 'smooth_tuning' does not match 'p'. Setting 'smooth_tuning' to NULL!")
     smooth_tuning <- NULL
+
   } else if(smooth_tuning == 0){
     smooth_tuning <- 0
-  }else {
-    smooth_tuning <- data.frame(matrix(smooth_tuning, nrow = 1)) # For a given matrix
+
+  }else if(is.matrix(smooth_tuning)){
+
+    if(ncol(smooth_tuning) > fd_n_var){
+      warning("'smooth_tuning' matrix should have p columns for p variables. Considering the first p columns!")
+      smooth_tuning <- smooth_tuning[,1:p]
+    }
+
+    smooth_tuning <- data.frame(matrix(smooth_tuning)) # For a given matrix
     colnames(smooth_tuning) <- paste0("var", seq_along(smooth_tuning))
+
+  }else{
+    smooth_tuning <- NULL
   }
 
 
-  # smooth_tuning = NUll
+  # smooth_tuning = NUll -> Assigning different combinations of alphas for p variables
   if (is.null(smooth_tuning)) {
-    for (i in 1:n_var) {
-      smooth_tuning <- c(smooth_tuning, list(2^seq(-30,5, length.out = 15)))# 15 alphas for each variable
+
+    for (i in 1:fd_n_var) {
+      smooth_tuning <- c(smooth_tuning, list(2^seq(-30,5, length.out = 10)))# 10 alphas for each variable
     }
   }
   smooth_tuning <- expand.grid(smooth_tuning) # Matrix of all possible alphas for p variables
 
 
-
   ####### level of sparsity (for both functional and non-functional data) #######
-
   # level of sparsity for u can be either 0 or any number between 1 through the length of u (Coefficients - # of observations)
-  if (is.null(sparse_tuning_fd) | is.null(sparse_tuning_nfd) | sparse_tuning_fd > n | sparse_tuning_nfd > n) {
-    sparse_tuning_u_fd <- sparse_tuning_u_nfd <- seq(0:floor(n-1))} else{
+  if (is.null(sparse_tuning_fd) ||
+      is.null(sparse_tuning_nfd) ||
+      sparse_tuning_fd > n ||
+      sparse_tuning_nfd > n) {
+
+    sparse_tuning_u_fd <- sparse_tuning_u_nfd <- seq(from = 0, to = n-1, by = 1)
+
+    } else{
       sparse_tuning_u_fd <- sparse_tuning_fd
-      sparse_tuning_u_nfd <- sparse_tuning_nfd}
+      sparse_tuning_u_nfd <- sparse_tuning_nfd
+      }
 
   # level of sparsity for v can be  either 0 or any number between 1 through the length of v (# of columns)
   if(two_way_sparsity == TRUE){
 
-    if(is.null(sparse_tuning_fd) | is.null(sparse_tuning_nfd) | sparse_tuning_fd > sum(n_cols_fd) | sparse_tuning_nfd > n_cols_nfd){
-      sparse_tuning_v_fd <- c(0,seq(1:floor(sum(n_cols_fd))))
-      sparse_tuning_v_nfd <- c(0,seq(1:floor(n_cols_nfd)))
+    if(is.null(sparse_tuning_fd) |
+       is.null(sparse_tuning_nfd) |
+       sparse_tuning_fd > sum(n_cols_fd) |
+       sparse_tuning_nfd > n_cols_nfd){
+
+      sparse_tuning_v_fd <-  seq(from = 0, to = sum(n_cols_fd)-1, by = 1)
+      sparse_tuning_v_nfd <- seq(from = 0, to = sum(n_cols_nfd)-1, by = 1)
+
     }else{
       sparse_tuning_v_fd <- sparse_tuning_fd
       sparse_tuning_v_nfd <- sparse_tuning_nfd}
@@ -95,27 +121,41 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
 
 
   ####### Pre-processing: Centralizing the data #######
+  # Functional data
   X <- c()
   if (centerfns) {
-    for (p in 1:n_var) {
+    for (p in 1:fd_n_var) {
       c <-  apply(fd[[p]], 2, function(x) x - mean(x))
       X <- cbind(X,c) # Demeaned Side by side functional data
     }
   }else{X <- do.call(cbind, fd)}
 
+  # non-functional data
   Y <- c()
-  n_var_nfd <- length(nfd)
   if (centerfns) {
-    Y <-  apply(nfd, 2, function(x) x - mean(x)) # Demeaned non-functional data
-    }else{Y <- nfd}
+    c <-  apply(nfd[[1]], 2, function(x) x - mean(x)) # Demeaned non-functional data
+    Y <- cbind(Y,c)
+    }else{Y <- do.call(cbind, nfd)}
 
 
-  ####### Grid Points (input or assigning) - Smoothness for functional only #######
+  ####### Grid Points (input or assigning) - Smoothness for functional data only #######
+  if(length(argval) != fd_n_var ||
+     sum(as.data.frame(sapply(argval, length))) != sum(n_cols_fd)){ # if argval is not defined appropriately
+    warning("'argval' is not assigned appropriately!")
+    argval <- NULL
+  }
+
   GridPoints_v <- GridPoints_u <- list()
+
   if (!is.null(argval)) {
-    GridPoints <- argval
+    GridPoints_v <- argval
+    for (i in 1:fd_n_var) {
+      cycle_u <- seq(1:nrow(fd[[i]])) / nrow(fd[[i]])
+      GridPoints_u[[i]] <- cycle_u
+    }
+
   } else {
-    for (i in 1:n_var) {
+    for (i in 1:fd_n_var) {
       cycle_v <- seq(1:ncol(fd[[i]])) / ncol(fd[[i]])
       cycle_u <- seq(1:nrow(fd[[i]])) / nrow(fd[[i]])
 

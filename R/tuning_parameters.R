@@ -1,5 +1,6 @@
 ############################ CV Scores calculators for sparsity and smoothness ############################
-cv_score_sparse <- function(data, S, K_fold, sparse_tuning_single, sparse_tuning_type, shuffled_row, group_size) {
+cv_score_sparse <- function(data, S, K_fold, sparse_tuning_single,
+                            sparse_tuning_type, shuffled_row, group_size) {
   data_tilde <- (data)  # Group the rows of data
   error_score_sparse <- 0
 
@@ -9,7 +10,8 @@ cv_score_sparse <- function(data, S, K_fold, sparse_tuning_single, sparse_tuning
     data_test <- data_tilde[rows_to_remove, ]    # X^k
 
     # Ensure u_test is a column vector with the same number of rows as columns in data_train
-    u_test <- power_algo(t(data_train), sparse_tuning_result = sparse_tuning_single, sparse_tuning_type, S_alpha = S, type = "CV") # Returns u only!
+    u_test <- power_algo(t(data_train), sparse_tuning_result = sparse_tuning_single,
+                         sparse_tuning_type, S_alpha = S, type = "CV") # Returns u only!
 
     # Ensure data_test has the same number of columns as the length of u_test
     v_test <- data_test %*% as.matrix(u_test)
