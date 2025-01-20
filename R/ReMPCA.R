@@ -152,14 +152,6 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
   close(pb)
 
 
-  smooth_tuning_result  <- sparse_tuning_result <- list()
-  gcv <- opt_S  <- funcs <- GCVdf <- list()
-
-
-  lsv <- lsu <- c() # List for storing v's  and u's
-  variance <- vector() # % of variability explained by PC
-
-
 
   ####### ReMPCA Implementation #######
 
@@ -167,57 +159,51 @@ ReMPCA <- function(mhd_obj, argval = NULL, centerfns = TRUE, num_pcs = 1,
     cat(sprintf("Computing the %s PC ...\n", ordinal(j)))
     if (j == 1) {
       X_temp = X
+      Y_temp = Y
 
     } else{
+
+      # Functional data
       SVD_result = svd(X_temp)
       v_original = SVD_result$v[,1]
       u_original = SVD_result$u[,1]
       sigma = SVD_result$d[1]
       X_temp = X_temp - sigma * u_original%*%t(v_original)
+
+
+      # non-Functional data
+      SVD_result_nfd = svd(Y_temp)
+      v_original_nfd = SVD_result_nfd$v[,1]
+      u_original_nfd = SVD_result_nfd$u[,1]
+      sigma_nfd = SVD_result_nfd$d[1]
+      Y_temp = Y_temp - sigma_nfd * u_original_nfd%*%t(v_original_nfd)
     }
 
+    results <- Tuning_Power(X_temp =  X_temp, Y_temp = Y_temp , nvar = n_var, ncol = n_cols, n = n, smooth_tuning = smooth_tuning,
+                             sparse_tuning_u_fd  = sparse_tuning_u_fd, sparse_tuning_v_fd = sparse_tuning_v_fd,
+                             sparse_tuning_u_nfd  = sparse_tuning_u_nfd, sparse_tuning_v_nfd = sparse_tuning_nv_fd,
+                             sparse_tuning_type = sparse_tuning_type, K_fold = K_fold,
+                             S_alpha_List_v = S_alpha_list_v,S_alpha_list_u = S_alpha_list_u ,
+                             two_way_smoothness = two_way_smoothness , two_way_sparsity = two_way_sparsity, j = j)
 
-    # Tuning Parameters
-    opt_parameters_result <- opt_alpha_result <- list()
-    opt_parameters_result <- parameter_selection_conditional(data = X_temp, nvar = n_var, ncol = n_cols, smooth_tuning = smooth_tuning,
-                                                             sparse_tuning = sparse_tuning, sparse_tuning_type = sparse_tuning_type, K_fold = 5, S_alpha_List = S_alpha_list)
-
-
-
-    ################# Take care of sparse_tuning = 0 #################
-    sparse_tuning_result[[j]] <- opt_parameters_result[[1]] # Optimal level of sparsity (CV)
-    opt_alpha_result <- opt_parameters_result[[2]] # Optimal Smoothness (GCV)
-
-    opt_S[[j]] <- opt_alpha_result$opt_s.alpha
-    smooth_tuning_result[[j]] <- opt_alpha_result$opt.alpha
-    gcv[[j]] <- opt_alpha_result$GCV
-    GCVdf[[j]] <- opt_alpha_result$GCVdf
+    result_fd <- results[[1]]  # Functional data results
+    result_nfd <- results[[2]] # Non-Functional data results
 
 
-
-    # Extracting v and u having the optimal parameters
-    test_result <- power_algo(data = X_temp, sparse_tuning_result = sparse_tuning_result[[j]] ,
-                              sparse_tuning_type = sparse_tuning_type, S_alpha = opt_alpha_result$opt_s.alpha, type = "real")
-
-    v <- test_result[[1]]
-    u <- test_result[[2]]
-    lsv <- cbind(lsv, v)
-    lsu <- cbind(lsu, u)
-    funcs[[j]] <- u%*%t(v)
   }
 
 
   # Splitting v for variables
   PCs <- list()
   for (i in 1:n_var) {
-    lsv <- data.frame(lsv)
+    lsv_fd <- data.frame(result_fd$lsv_fd)
     rows_to_extract <- 1:as.integer(n_cols[i])
-    PCs[[i]] <- lsv[rows_to_extract,]
-    lsv <- lsv[-rows_to_extract,]
+    PCs[[i]] <- lsv_fd[rows_to_extract,]
+    lsv_fd <- lsv_fd[-rows_to_extract,]
   }
 
+  result_fd <- c(result_fd, PC_functions = PCs)
 
-  return(list(Estimated = funcs, PC_functions = PCs, PC_Scores = lsu, opt_alpha_for_PC = smooth_tuning_result,
-              opt_gamma_for_PC = sparse_tuning_result, GCV = gcv, GCV_df = GCVdf))
+  return(list(result_fd, result_nfd))
 }
 
