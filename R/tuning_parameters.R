@@ -168,18 +168,5 @@ parameter_selection_conditional <- function(data, nvar, ncol, n , smooth_tuning,
 }
 
 
-############################### Process bar indexing ###############################
-ordinal <- function(i) {
-  if (i == 1) {
-    return(paste0(i, "st"))
-  } else if (i == 2) {
-    return(paste0(i, "nd"))
-  } else if (i == 3) {
-    return(paste0(i, "rd"))
-  }
-  else {
-    return(paste0(i, "th"))
-  }
-}
 
 
