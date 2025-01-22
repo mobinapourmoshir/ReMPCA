@@ -56,12 +56,16 @@ ReMPCA <- function(mhd_obj,
   n_cols_nfd <- sum(as.data.frame(sapply(nfd, dim))[2,]) # Number of columns of each variable in nfd
 
   ####### Smoothing Parameter (for functional data only) ##########
-  if (is.vector(smooth_tuning) & length(smooth_tuning) != fd_n_var) { # For a given vector (fixed and pre-defined)
-    warning("The length of 'smooth_tuning' does not match 'p'. Setting 'smooth_tuning' to NULL!")
-    smooth_tuning <- NULL
+  if (is.vector(smooth_tuning) ) { # For a given vector (fixed and pre-defined)
+    if(length(smooth_tuning) != fd_n_var){
+      warning("The length of 'smooth_tuning' does not match 'p'. Setting 'smooth_tuning' to NULL!")
+      smooth_tuning <- NULL
+    }
+    smooth_tuning <- as.matrix(smooth_tuning)
 
-  } else if(smooth_tuning == 0){
-    smooth_tuning <- 0
+  } else if(smooth_tuning == 0 ||
+            all(smooth_tuning == 0)){
+    smooth_tuning <- matrix(rep(0,fd_n_var), nrow = 1)
 
   }else if(is.matrix(smooth_tuning)){
 
@@ -171,17 +175,18 @@ ReMPCA <- function(mhd_obj,
   S_alpha_list_u <- S_alpha_list_v <- list()
   index <- 0
   cat("Preprocessing ...\n")
-  n_iter1 <- dim(smooth_tuning)[1]   # The number alphas
+  n_iter1 <- nrow(smooth_tuning)     # The number of alphas
   pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
                        max = n_iter1,# Maximum value of the progress bar
                        style = 3,    # Progress bar style (also available style = 1 and style = 2)
                        width = 50,   # Progress bar width. Defaults to getOption("width")
                        char = "=")   # Character used to create the bar
 
+
   for (alpha_index in 1:nrow(smooth_tuning)) {
     index <- index + 1
-    S <- list()
-    for (i in 1:n_var) {
+    S_u <- S_v <- list()
+    for (i in 1:fd_n_var) {
       alpha <- as.numeric(smooth_tuning[alpha_index,i])
       S_v[[i]] <- get.pen(td = GridPoints_v[[i]], alpha = alpha, type = smoothness_type)
       S_u[[i]] <- get.pen(td = GridPoints_u[[i]], alpha = alpha, type = smoothness_type)
@@ -195,7 +200,6 @@ ReMPCA <- function(mhd_obj,
 
 
   ####### ReMPCA Implementation #######
-
   for (j in 1:num_pcs) {
     cat(sprintf("Computing the %s PC ...\n", ordinal(j)))
     if (j == 1) {
