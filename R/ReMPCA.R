@@ -68,6 +68,7 @@ ReMPCA <- function(mhd_obj,
     if(ncol(smooth_tuning) > fd_n_var){
       warning("'smooth_tuning' matrix should have p columns for p variables. Considering the first p columns!")
       smooth_tuning <- smooth_tuning[,1:p]
+
     }
 
     smooth_tuning <- data.frame(matrix(smooth_tuning)) # For a given matrix
@@ -170,9 +171,9 @@ ReMPCA <- function(mhd_obj,
   S_alpha_list_u <- S_alpha_list_v <- list()
   index <- 0
   cat("Preprocessing ...\n")
-  n_iter1 <- dim(smooth_tuning)[1]
+  n_iter1 <- dim(smooth_tuning)[1]   # The number alphas
   pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
-                       max = n_iter1, # Maximum value of the progress bar
+                       max = n_iter1,# Maximum value of the progress bar
                        style = 3,    # Progress bar style (also available style = 1 and style = 2)
                        width = 50,   # Progress bar width. Defaults to getOption("width")
                        char = "=")   # Character used to create the bar
