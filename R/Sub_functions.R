@@ -1,7 +1,6 @@
 ############################### Calculating the norm of a vector ###############################
 norm_vec <- function(x) sqrt(sum(x^2))
 
-
 ############################### Process bar indexing ###############################
 ordinal <- function(i) {
   if (i == 1) {

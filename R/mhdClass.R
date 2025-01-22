@@ -57,7 +57,3 @@ hd <- function(fd_matrices = list(), nfd_matrices = list()) {
 
   return(obj)
 }
-
-
-
-
