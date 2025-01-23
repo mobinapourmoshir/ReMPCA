@@ -3,7 +3,6 @@ data(yeast)
 F <- yeast$y
 S <- yeast$x
 
-
 matplot(t(F[1:5,]), type = 'l')
 
 F1 <- F[1:5, 1:10]

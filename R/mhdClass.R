@@ -25,8 +25,8 @@
 #'
 #' @export
 
-####################### Define an S3 Class for Hybrid Data #######################
 
+####################### Define an S3 Class for Hybrid Data #######################
 # Constructor for `hd` objects (Hybrid Data)
 hd <- function(fd_matrices = list(), nfd_matrices = list()) {
   # Validate inputs

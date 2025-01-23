@@ -6,12 +6,14 @@ get.pen <- function(td, alpha=0, type = "Second_order") {
     h = td[2:m] - td[1:(m-1)];
     Q = matrix(0, m, m-1);
     R = matrix(0, m-1, m-1);
+
     for(k in 2:(m-1))
     {
       Q[k-1,k] = 1/h[k-1];
       Q[k,k] = -1/h[k-1] - 1/h[k];
       Q[k+1,k] = 1/h[k]
     }
+
     for(j in 2:(m-2))
     {
       R[j,j] = 1/3 * (h[j-1] + h[j]);
@@ -23,6 +25,7 @@ get.pen <- function(td, alpha=0, type = "Second_order") {
     OMEGA = Q[1:m, 2:(m-1)] %*% s;
     EIG.O <- eigen(OMEGA); GAMMA=EIG.O$vectors; LAMBDA=diag(EIG.O$values);
     S.alpha <- GAMMA%*%diag((1/(1+alpha*diag(LAMBDA))))%*%t(GAMMA);
+
     return(S.alpha=S.alpha)
 
   } else if(type == "First_order") {
@@ -36,6 +39,7 @@ get.pen <- function(td, alpha=0, type = "Second_order") {
     }
 
     R = matrix(0, m-1, m-1)
+
     for (j in 1:(m-1)) {
       if (j == 1) {
         R[j, j] = h[j] / 3
@@ -71,6 +75,7 @@ get.pen <- function(td, alpha=0, type = "Second_order") {
 
     # R matrix for the integration weights
     R = matrix(0, m-1, m-1)
+
     for (j in 1:(m-1)) {
       if (j == 1) {
         R[j, j] = h[j] / 3
@@ -103,5 +108,4 @@ get.pen <- function(td, alpha=0, type = "Second_order") {
 
     return(S.alpha=S.alpha)
   }
-
 }
