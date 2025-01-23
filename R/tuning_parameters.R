@@ -1,7 +1,14 @@
 ############################ CV Scores calculators for sparsity and smoothness ############################
-cv_score_sparse <- function(data, S, K_fold, sparse_tuning_single,
-                            sparse_tuning_type, shuffled_row, group_size) {
-  data_tilde <- (data)  # Group the rows of data
+cv_score_sparse <- function(data,
+                            S,
+                            K_fold,
+                            sparse_tuning_single,
+                            sparse_tuning_type,
+                            shuffled_row,
+                            group_size,
+                            type) {
+
+  data_tilde <- data  # Group the rows of data
   error_score_sparse <- 0
 
   for (k in 1:K_fold) {
@@ -10,8 +17,11 @@ cv_score_sparse <- function(data, S, K_fold, sparse_tuning_single,
     data_test <- data_tilde[rows_to_remove, ]    # X^k
 
     # Ensure u_test is a column vector with the same number of rows as columns in data_train
-    u_test <- power_algo(t(data_train), sparse_tuning_result = sparse_tuning_single,
-                         sparse_tuning_type, S_alpha = S, type = "CV") # Returns u only!
+    u_test <- power_algo(t(data_train),
+                         sparse_tuning_result = sparse_tuning_single,
+                         sparse_tuning_type,
+                         S_alpha = S,
+                         type = type) # Returns u or v only!
 
     # Ensure data_test has the same number of columns as the length of u_test
     v_test <- data_test %*% as.matrix(u_test)
@@ -81,24 +91,23 @@ opt_alpha <- function(X, nvar, ncol, S_alphas, alphas, CV_sparse_tuning_result ,
 parameter_selection_conditional <- function(data,
                                             n_var,
                                             ncol,
-                                            n ,
+                                            n,
                                             smooth_tuning,
-                                            sparse_tuning,
+                                            sparse_tuning_u,
+                                            sparse_tuning_v,
                                             sparse_tuning_type,
                                             K_fold,
                                             S_alpha_List_v ,
                                             S_alpha_list_u ,
                                             two_way_smoothness,
-                                            two_way_sparsity,
-                                            sparse_tuning_u,
-                                            sparse_tuning_v){
+                                            two_way_sparsity){
 
   CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- 10^60
   result = c()
 
   count = 0
 
-  n_iter <- nrow(smooth_tuning) + length(sparse_tuning)
+  n_iter <- nrow(smooth_tuning) + length(sparse_tuning_u) + length(sparse_tuning_v)
   pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
                        max = n_iter, # Maximum value of the progress bar
                        style = 3,    # Progress bar style (also available style = 1 and style = 2)
@@ -108,18 +117,25 @@ parameter_selection_conditional <- function(data,
 
   ######  Sparsity on u  ######
   shuffled_row = sample(nrow(data)) # Grouping the rows of data matrix
-  group_size = length(shuffled_row) / K_fold
-
+  group_size <- ifelse(round(length(shuffled_row)/ K_fold,
+                             digits = 0) == 0, 1,
+                       round(length(shuffled_row)/ K_fold, digits = 0))
 
   # Sparsity tuning parameter using CV
   for (sparse_tuning_single in sparse_tuning_u) {
     count = count +1
     setTxtProgressBar(pb, count)
-    if (sparse_tuning_single == 0) {
-      sparse_score = 0
-    } else{
-      sparse_score = cv_score_sparse(data=data,K_fold,sparse_tuning_single,sparse_tuning_type,shuffled_row,group_size,S = diag(ncol(data)))
-    }
+
+    sparse_score = cv_score_sparse(data=data,
+                                   K_fold,
+                                   sparse_tuning_single,
+                                   sparse_tuning_type,
+                                   shuffled_row,
+                                   group_size,
+                                   S = diag(ncol(data)), # No Smoothness
+                                   type = "CV") # Returns u only in the power func!
+
+
     if (sparse_score <= CV_score_sparse_u) {
       CV_score_sparse_u = sparse_score
       sparse_tuning_selection_u = sparse_tuning_single

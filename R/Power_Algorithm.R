@@ -31,6 +31,9 @@ power_algo = function(data,
   if (type == "CV") {
     return(u_new)
   }
+  if (type == "CV-two-way") {
+    return(v_new)
+  }
   else{
     # v_new = v_new %*% solve(sqrt(t(v_new) %*% solve(S_alpha) %*% v_new))
     return(list(v_new,u_new))
