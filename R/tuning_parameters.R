@@ -78,9 +78,20 @@ opt_alpha <- function(X, nvar, ncol, S_alphas, alphas, CV_sparse_tuning_result ,
 
 
 ############################ Conditional Tuning Parameters  - CV and GCV ############################
-parameter_selection_conditional <- function(data, nvar, ncol, n , smooth_tuning, sparse_tuning, sparse_tuning_type, K_fold = 5,
-                                            S_alpha_List_v ,S_alpha_list_u , two_way_smoothness, two_way_sparsity,
-                                            sparse_tuning_u, sparse_tuning_v){
+parameter_selection_conditional <- function(data,
+                                            n_var,
+                                            ncol,
+                                            n ,
+                                            smooth_tuning,
+                                            sparse_tuning,
+                                            sparse_tuning_type,
+                                            K_fold,
+                                            S_alpha_List_v ,
+                                            S_alpha_list_u ,
+                                            two_way_smoothness,
+                                            two_way_sparsity,
+                                            sparse_tuning_u,
+                                            sparse_tuning_v){
 
   CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- 10^60
   result = c()

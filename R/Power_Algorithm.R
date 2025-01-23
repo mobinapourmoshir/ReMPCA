@@ -1,5 +1,9 @@
 ############################### Power Algorithm ###############################
-power_algo = function(data,sparse_tuning_result,sparse_tuning_type,S_alpha = NULL,type = "real"){
+power_algo = function(data,
+                      sparse_tuning_result,
+                      sparse_tuning_type,
+                      S_alpha = NULL,
+                      type = "real"){
 
   v_old = svd(data)$v[,1]
   errors = 10^60; thresh <- 1e-10
@@ -34,35 +38,50 @@ power_algo = function(data,sparse_tuning_result,sparse_tuning_type,S_alpha = NUL
 }
 
 
-
 ############################### Power Algorithm with tuning Parameters ###############################
 
-Tuning_Power <- function(X_temp =  X_temp, Y_temp = Y_temp , nvar = n_var, ncol = n_cols, n = n, smooth_tuning = smooth_tuning,
-                         sparse_tuning_u_fd  = sparse_tuning_u_fd, sparse_tuning_v_fd = sparse_tuning_v_fd,
-                         sparse_tuning_u_nfd  = sparse_tuning_u_nfd, sparse_tuning_v_nfd = sparse_tuning_nv_fd,
-                         sparse_tuning_type = sparse_tuning_type, K_fold = K_fold,
-                         S_alpha_List_v = S_alpha_list_v,S_alpha_list_u = S_alpha_list_u ,
-                         two_way_smoothness = two_way_smoothness , two_way_sparsity = two_way_sparsity, j = j){
+Tuning_Power <- function(X_temp,
+                         Y_temp,
+                         n_var,
+                         ncol,
+                         n,
+                         smooth_tuning,
+                         sparse_tuning_u_fd,
+                         sparse_tuning_v_fd,
+                         sparse_tuning_u_nfd,
+                         sparse_tuning_v_nfd,
+                         sparse_tuning_type,
+                         K_fold,
+                         S_alpha_List_v,
+                         S_alpha_list_u,
+                         two_way_smoothness,
+                         two_way_sparsity,
+                         j){
 
 
   # Functional data only!
   if(!(is.null(X_temp))){
     smooth_tuning_result_fd  <- sparse_tuning_result_fd <- list()
     gcv_fd <- opt_S_fd  <- funcs_fd <- GCVdf_fd <- list()
-
-
     lsv_fd <- lsu_fd <- c() # List for storing v's  and u's
     variance_fd <- vector() # % of variability explained by PC
 
 
     # Tuning Parameters ########### Functional data ###########
     opt_parameters_result <- opt_alpha_result <- list()
-    opt_parameters_result <- parameter_selection_conditional(data = X_temp, nvar = n_var, ncol = n_cols, n = n, smooth_tuning = smooth_tuning,
-                                                             sparse_tuning_u  = sparse_tuning_u_fd, sparse_tuning_v = sparse_tuning_v_fd,
-                                                             sparse_tuning_type = sparse_tuning_type, K_fold = K_fold,
-                                                             S_alpha_List_v = S_alpha_list_v,S_alpha_list_u = S_alpha_list_u ,
-                                                             two_way_smoothness = two_way_smoothness , two_way_sparsity = two_way_sparsity)
-
+    opt_parameters_result <- parameter_selection_conditional(data = X_temp,
+                                                             n_var = n_var,
+                                                             ncol = n_cols,
+                                                             n = n,
+                                                             smooth_tuning = smooth_tuning,
+                                                             sparse_tuning_u  = sparse_tuning_u_fd,
+                                                             sparse_tuning_v = sparse_tuning_v_fd,
+                                                             sparse_tuning_type = sparse_tuning_type,
+                                                             K_fold = K_fold,
+                                                             S_alpha_List_v = S_alpha_list_v,
+                                                             S_alpha_list_u = S_alpha_list_u ,
+                                                             two_way_smoothness = two_way_smoothness ,
+                                                             two_way_sparsity = two_way_sparsity)
 
 
     ################# Take care of sparse_tuning = 0 #################

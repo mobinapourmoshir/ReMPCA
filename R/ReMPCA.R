@@ -224,12 +224,23 @@ ReMPCA <- function(mhd_obj,
       Y_temp = Y_temp - sigma_nfd * u_original_nfd%*%t(v_original_nfd)
     }
 
-    results <- Tuning_Power(X_temp =  X_temp, Y_temp = Y_temp , nvar = n_var, ncol = n_cols, n = n, smooth_tuning = smooth_tuning,
-                             sparse_tuning_u_fd  = sparse_tuning_u_fd, sparse_tuning_v_fd = sparse_tuning_v_fd,
-                             sparse_tuning_u_nfd  = sparse_tuning_u_nfd, sparse_tuning_v_nfd = sparse_tuning_nv_fd,
-                             sparse_tuning_type = sparse_tuning_type, K_fold = K_fold,
-                             S_alpha_List_v = S_alpha_list_v,S_alpha_list_u = S_alpha_list_u ,
-                             two_way_smoothness = two_way_smoothness , two_way_sparsity = two_way_sparsity, j = j)
+    results <- Tuning_Power(X_temp =  X_temp,
+                            Y_temp = Y_temp,
+                            n_var = fd_n_var,
+                            ncol = n_cols,
+                            n = n,
+                            smooth_tuning = smooth_tuning,
+                            sparse_tuning_u_fd  = sparse_tuning_u_fd,
+                            sparse_tuning_v_fd = sparse_tuning_v_fd,
+                            sparse_tuning_u_nfd  = sparse_tuning_u_nfd,
+                            sparse_tuning_v_nfd = sparse_tuning_nv_fd,
+                            sparse_tuning_type = sparse_tuning_type,
+                            K_fold = K_fold,
+                            S_alpha_List_v = S_alpha_list_v,
+                            S_alpha_list_u = S_alpha_list_u ,
+                            two_way_smoothness = two_way_smoothness ,
+                            two_way_sparsity = two_way_sparsity,
+                            j = j)
 
     result_fd <- results[[1]]  # Functional data results
     result_nfd <- results[[2]] # Non-Functional data results
