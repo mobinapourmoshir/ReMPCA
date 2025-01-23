@@ -1,5 +1,4 @@
 ################# Method for `hd` class #################
-
 # Print
 print.hd <- function(object) {
   cat("Hybrid Data Object:\n")
