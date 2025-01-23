@@ -1,5 +1,6 @@
 ############################### Sparse penalty for coefficients ###############################
 # Lemma 2 (Sparse PCA via regularized low rank matrix approximation by Huang)
+# y is the coefficients (u's)
 
 csparse_pen_fun <- function(y,tuning_parameter, type,alpha = 3.7) {
   y_sorted <- sort(abs(y))
