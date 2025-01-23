@@ -19,16 +19,29 @@ cv_score_sparse <- function(data,
     # Ensure u_test is a column vector with the same number of rows as columns in data_train
     u_test <- power_algo(t(data_train),
                          sparse_tuning_result = sparse_tuning_single,
-                         sparse_tuning_type,
+                         sparse_tuning_type = sparse_tuning_type,
                          S_alpha = S,
-                         type = type) # Returns u or v only!
+                         type = type) # Returns u (CV) or v (CV-two-way) only!
 
-    # Ensure data_test has the same number of columns as the length of u_test
-    v_test <- data_test %*% as.matrix(u_test)
+    rownames(u_test) <- NULL
+    colnames(u_test) <- NULL
 
-    # Ensure the dimensions of data_test and the reconstructed data match
-    reconstructed <- as.matrix(data_test - t(as.matrix(u_test) %*% as.matrix(t(v_test))))
-    error_score_sparse <- error_score_sparse + (norm_vec(reconstructed)^2)
+    if(type == "CV-two-way"){
+      v_test <- u_test # The output is v
+      u_test <- data_test %*% as.matrix(v_test)
+      reconstructed <- as.matrix(data_test - t(as.matrix(u_test) %*% as.matrix(t(v_test))))
+      error_score_sparse <- error_score_sparse + (norm_vec(reconstructed)^2)
+      result <- error_score_sparse / nrow(data)
+
+    }else{
+      # Ensure data_test has the same number of columns as the length of u_test
+      v_test <- data_test %*% as.matrix(u_test)
+
+      # Ensure the dimensions of data_test and the reconstructed data match
+      reconstructed <- as.matrix(data_test - t(as.matrix(u_test) %*% as.matrix(t(v_test))))
+      error_score_sparse <- error_score_sparse + (norm_vec(reconstructed)^2)
+      result <- error_score_sparse / ncol(data)
+    }
   }
 
   return(error_score_sparse / ncol(data))  # Assuming ncol(data) is the number of grid points N
@@ -135,7 +148,6 @@ parameter_selection_conditional <- function(data,
                                    S = diag(ncol(data)), # No Smoothness
                                    type = "CV") # Returns u only in the power func!
 
-
     if (sparse_score <= CV_score_sparse_u) {
       CV_score_sparse_u = sparse_score
       sparse_tuning_selection_u = sparse_tuning_single
@@ -147,18 +159,26 @@ parameter_selection_conditional <- function(data,
   if (two_way_sparsity == TRUE){
 
     shuffled_col = sample(ncol(data)) # Grouping the columns of data matrix
-    group_size_v = length(shuffled_col) / K_fold
+    group_size <- ifelse(round(length(shuffled_col)/ K_fold,
+                               digits = 0) == 0, 1,
+                         round(length(shuffled_col)/ K_fold, digits = 0))
 
 
     # Sparsity tuning parameter using CV
     for (sparse_tuning_single in sparse_tuning_v) {
       count = count +1
       setTxtProgressBar(pb, count)
-      if (sparse_tuning_single == 0) {
-        sparse_score = 0
-      } else{
-        sparse_score = cv_score_sparse(data=data,K_fold,sparse_tuning_single,sparse_tuning_type,shuffled_col,group_size,S = diag(nrow(data)))
-      }
+
+      sparse_score = cv_score_sparse(data=t(data),
+                                     K_fold,
+                                     sparse_tuning_single,
+                                     sparse_tuning_type,
+                                     shuffled_row = shuffled_col,
+                                     group_size,
+                                     S = diag(nrow(data)),
+                                     type = "CV-two-way")
+
+      print(sparse_score)
       if (sparse_score <= CV_score_sparse_v) {
         CV_score_sparse_v = sparse_score
         sparse_tuning_selection_v = sparse_tuning_single

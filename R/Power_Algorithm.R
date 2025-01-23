@@ -11,7 +11,8 @@ power_algo = function(data,
   # Power Algorithm
   while (errors > thresh) {
     u_new = csparse_pen_fun(y = as.vector(data%*%v_old),tuning_parameter = sparse_tuning_result,sparse_tuning_type) # u = h_{gamma} Xv
-    if (type == "CV") {
+    if (type == "CV" ||
+        type == "CV-two-way") {
       v_new = t(data)%*%u_new
     } else{
       v_new = S_alpha %*% t(data) %*% u_new # v = S_{alpha}t(X)u
