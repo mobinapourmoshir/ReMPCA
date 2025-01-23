@@ -52,7 +52,13 @@ get.Alphas = function(n=103,a=2,s=-100) {return(a^seq(s,s+n))}
 
 
 ############################### Calculating the optimal alpha using CV ###############################
-opt_alpha <- function(X, nvar, ncol, S_alphas, alphas, CV_sparse_tuning_result ,sparse_tuning_type) {
+opt_alpha <- function(X,
+                      nvar,
+                      ncol,
+                      S_alphas,
+                      alphas,
+                      CV_sparse_tuning_result ,
+                      sparse_tuning_type) {
 
   n_iter <- nrow(alphas)  # Update to get the number of iterations
   pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
@@ -80,7 +86,10 @@ opt_alpha <- function(X, nvar, ncol, S_alphas, alphas, CV_sparse_tuning_result ,
         Sk <- S[1:m, 1:m]
         S <- S[-(1:m), -(1:m), drop = FALSE]
 
-        power_result <- power_algo(data = Xk, S_alpha = Sk, sparse_tuning_result = CV_sparse_tuning_result ,sparse_tuning_type = sparse_tuning_type)
+        power_result <- power_algo(data = Xk,
+                                   S_alpha = Sk,
+                                   sparse_tuning_result = CV_sparse_tuning_result ,
+                                   sparse_tuning_type = sparse_tuning_type)
         u <- power_result[[2]]
         GCV_alpha <- GCV_alpha + (1/m) * (norm_vec((diag(m) - Sk) %*% (t(Xk) %*% u))^2 / (norm_vec(u)^2 * (1 - (1/m) * sum(diag(Sk)))^2))
 
@@ -190,14 +199,24 @@ parameter_selection_conditional <- function(data,
   ############## For Functional data only! ##############
   ######  Smoothness on v  ######
   # Smoothing tuning parameter using GCV
-  GCV_score_smooth_v = opt_alpha(X = data , nvar = nvar, ncol = ncol, S_alphas = S_alpha_list_v , alphas = smooth_tuning ,
-                                CV_sparse_tuning_result = sparse_tuning_selection_u, sparse_tuning_type = sparse_tuning_type)
+  GCV_score_smooth_v = opt_alpha(X = data ,
+                                 n_var = n_var,
+                                 ncol = ncol,
+                                 S_alphas = S_alpha_list_v ,
+                                 alphas = smooth_tuning ,
+                                 CV_sparse_tuning_result = sparse_tuning_selection_u,
+                                 sparse_tuning_type = sparse_tuning_type)
 
 
   ######  Smoothness on u  ######
   if(two_way_smoothness == TRUE){
-    GCV_score_smooth_u = opt_alpha(X = t(data) , nvar = nvar, ncol = n, S_alphas = S_alpha_list_u , alphas = smooth_tuning ,
-                                   CV_sparse_tuning_result = sparse_tuning_selection_u, sparse_tuning_type = sparse_tuning_type)
+    GCV_score_smooth_u = opt_alpha(X = t(data) ,
+                                   n_var = n_var,
+                                   ncol = n,
+                                   S_alphas = S_alpha_list_u ,
+                                   alphas = smooth_tuning ,
+                                   CV_sparse_tuning_result = sparse_tuning_selection_u,
+                                   sparse_tuning_type = sparse_tuning_type)
   }
 
 
@@ -215,7 +234,4 @@ parameter_selection_conditional <- function(data,
 
   return(result)
 }
-
-
-
 
