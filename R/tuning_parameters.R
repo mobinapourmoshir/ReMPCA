@@ -44,7 +44,7 @@ cv_score_sparse <- function(data,
     }
   }
 
-  return(error_score_sparse / ncol(data))  # Assuming ncol(data) is the number of grid points N
+  return(result)  # Assuming ncol(data) is the number of grid points N
 }
 
 ############################### Considering some values for alpha ###############################
@@ -124,7 +124,7 @@ parameter_selection_conditional <- function(data,
                                             two_way_smoothness,
                                             two_way_sparsity){
 
-  CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- 10^60
+  CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- Inf
   result = c()
 
   count = 0
@@ -137,14 +137,14 @@ parameter_selection_conditional <- function(data,
                        char = "=")   # Character used to create the bar
 
 
-  ######  Sparsity on u  ######
+  ######  Sparsity on v (default)  ######
   shuffled_row = sample(nrow(data)) # Grouping the rows of data matrix
   group_size <- ifelse(round(length(shuffled_row)/ K_fold,
                              digits = 0) == 0, 1,
                        round(length(shuffled_row)/ K_fold, digits = 0))
 
   # Sparsity tuning parameter using CV
-  for (sparse_tuning_single in sparse_tuning_u) {
+  for (sparse_tuning_single in sparse_tuning_v) {
     count = count +1
     setTxtProgressBar(pb, count)
 
@@ -157,14 +157,14 @@ parameter_selection_conditional <- function(data,
                                    S = diag(ncol(data)), # No Smoothness
                                    type = "CV") # Returns u only in the power func!
 
-    if (sparse_score <= CV_score_sparse_u) {
-      CV_score_sparse_u = sparse_score
-      sparse_tuning_selection_u = sparse_tuning_single
+    if (sparse_score <= CV_score_sparse_v) {
+      CV_score_sparse_v = sparse_score
+      sparse_tuning_selection_v = sparse_tuning_single
     }
   }
 
 
-  ###### Sparsity on v  ######
+  ###### Sparsity on u  ######
   if (two_way_sparsity == TRUE){
 
     shuffled_col = sample(ncol(data)) # Grouping the columns of data matrix

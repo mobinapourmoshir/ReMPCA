@@ -63,7 +63,7 @@ Tuning_Power <- function(X_temp,
                          j){
 
 
-  # Functional data only!
+  ########### Functional data ###########
   if(!(is.null(X_temp))){
     smooth_tuning_result_fd  <- sparse_tuning_result_fd <- list()
     gcv_fd <- opt_S_fd  <- funcs_fd <- GCVdf_fd <- list()
@@ -71,7 +71,7 @@ Tuning_Power <- function(X_temp,
     variance_fd <- vector() # % of variability explained by PC
 
 
-    # Tuning Parameters ########### Functional data ###########
+    # Tuning Parameters
     opt_parameters_result <- opt_alpha_result <- list()
     opt_parameters_result <- parameter_selection_conditional(data = X_temp,
                                                              n_var = n_var,

@@ -16,9 +16,9 @@
 #' @param smoothness_type A character string specifying the method used in smoothing u and/or v, must be one of "Second_order" (default), "First_order" or "Indicator".
 #'
 #' @param two_way_smoothness A logical; if True, the function implements the two-way smoothness on both u and v and
-#' if False (default) it only implement the smoothness on the functions (v).
+#' if False (default) it only implement the smoothness on principal components (v).
 #' @param two_way_sparsity A logical; if True, the function implements the two-way sparsity on both u and v and
-#' if False (default) it only implement the sparsity on the coefficients (u).
+#' if False (default) it only implement the sparsity on the principal components (v).
 #' @param sparse_tuning_nfd A number that shows the level of sparsity for non-functional data.
 #'  Set to 0 to have no sparsity (default). Tune it automatically by setting it to NULL.
 #'
