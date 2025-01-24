@@ -45,8 +45,6 @@ ReMPCA <- function(mhd_obj,
                    two_way_smoothness = FALSE,
                    two_way_sparsity = FALSE) {
 
-
-
   fd <- mhd_obj$fd
   nfd <- mhd_obj$nfd
   n <- nrow(fd[[1]]) # Number of observations (same for both fd, nfd)
@@ -188,8 +186,14 @@ ReMPCA <- function(mhd_obj,
     S_u <- S_v <- list()
     for (i in 1:fd_n_var) {
       alpha <- as.numeric(smooth_tuning[alpha_index,i])
-      S_v[[i]] <- get.pen(td = GridPoints_v[[i]], alpha = alpha, type = smoothness_type)
-      S_u[[i]] <- get.pen(td = GridPoints_u[[i]], alpha = alpha, type = smoothness_type)
+
+      S_v[[i]] <- get.pen(td = GridPoints_v[[i]],
+                          alpha = alpha,
+                          type = smoothness_type)
+
+      S_u[[i]] <- get.pen(td = GridPoints_u[[i]],
+                          alpha = alpha,
+                          type = smoothness_type)
     }
     S_alpha_list_v[[index]] <- as.matrix(bdiag(S_v))
     S_alpha_list_u[[index]] <- as.matrix(bdiag(S_u))
@@ -247,7 +251,6 @@ ReMPCA <- function(mhd_obj,
 
 
   }
-
 
   # Splitting v for variables
   PCs <- list()
