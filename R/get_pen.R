@@ -1,5 +1,5 @@
 ############################### get.pen function ###############################
-get.pen <- function(td, alpha=0, type = "Second_order") {
+get.pen <- function(td, alpha, type = "Second_order") {
 
   if(type == "Second_order"){
     m = length(td);
@@ -25,6 +25,9 @@ get.pen <- function(td, alpha=0, type = "Second_order") {
     OMEGA = Q[1:m, 2:(m-1)] %*% s;
     EIG.O <- eigen(OMEGA); GAMMA=EIG.O$vectors; LAMBDA=diag(EIG.O$values);
     S.alpha <- GAMMA%*%diag((1/(1+alpha*diag(LAMBDA))))%*%t(GAMMA);
+
+    if(alpha == 0){
+      S.alpha = diag(nrow(S.alpha))}
 
     return(S.alpha=S.alpha)
 
@@ -58,6 +61,9 @@ get.pen <- function(td, alpha=0, type = "Second_order") {
     GAMMA = EIG.O$vectors
     LAMBDA = diag(EIG.O$values)
     S.alpha = GAMMA %*% diag((1/(1 + alpha * diag(LAMBDA)))) %*% t(GAMMA)
+
+    if(alpha == 0){
+      S.alpha = diag(nrow(S.alpha))}
 
     return(S.alpha=S.alpha)
 
@@ -105,6 +111,9 @@ get.pen <- function(td, alpha=0, type = "Second_order") {
     }
 
     S.alpha = GAMMA %*% penalty %*% t(GAMMA)
+
+    if(alpha == 0){
+      S.alpha = diag(nrow(S.alpha))}
 
     return(S.alpha=S.alpha)
   }
