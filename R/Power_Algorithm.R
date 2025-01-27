@@ -11,8 +11,7 @@ power_algo = function(data,
   # Power Algorithm
   while (errors > thresh) {
     u_new = csparse_pen_fun(y = as.vector(data%*%v_old),tuning_parameter = sparse_tuning_result,sparse_tuning_type) # u = h_{gamma} Xv
-    if (type == "CV" ||
-        type == "CV-two-way") {
+    if (type == "CV") {
       v_new = t(data)%*%u_new
     } else{
       v_new = S_alpha %*% t(data) %*% u_new # v = S_{alpha}t(X)u
@@ -47,13 +46,11 @@ power_algo = function(data,
 Tuning_Power <- function(X_temp,
                          Y_temp,
                          n_var,
-                         ncol,
+                         n_cols_fd,
                          n,
                          smooth_tuning,
-                         sparse_tuning_u_fd,
-                         sparse_tuning_v_fd,
-                         sparse_tuning_u_nfd,
-                         sparse_tuning_v_nfd,
+                         sparse_tuning_u,
+                         sparse_tuning_v,
                          sparse_tuning_type,
                          K_fold,
                          S_alpha_List_v,
@@ -76,11 +73,11 @@ Tuning_Power <- function(X_temp,
     opt_parameters_result <- parameter_selection_conditional(X_temp =  X_temp,
                                                              Y_temp = Y_temp,
                                                              n_var = n_var,
-                                                             ncol = n_cols,
+                                                             n_cols_fd = n_cols_fd,
                                                              n = n,
                                                              smooth_tuning = smooth_tuning,
-                                                             sparse_tuning_u  = sparse_tuning_u_fd,
-                                                             sparse_tuning_v = sparse_tuning_v_fd,
+                                                             sparse_tuning_u  = sparse_tuning_u,
+                                                             sparse_tuning_v = sparse_tuning_v,
                                                              sparse_tuning_type = sparse_tuning_type,
                                                              K_fold = K_fold,
                                                              S_alpha_List_v = S_alpha_list_v,

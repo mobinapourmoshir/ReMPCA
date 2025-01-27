@@ -14,6 +14,7 @@
 #' @param sparse_tuning A number that shows the level of sparsity.
 #'  Set to 0 to have no sparsity (default). Tune it automatically by setting it to NULL.
 #' @param smoothness_type A character string specifying the method used in smoothing u and/or v, must be one of "Second_order" (default), "First_order" or "Indicator".
+#' @param K_fold An integer. It's used in cross validation approach for tuning the level of sparsity.
 #'
 #' @param two_way_smoothness A logical; if True, the function implements the two-way smoothness on both u and v and
 #' if False (default) it only implement the smoothness on principal components (v).
@@ -39,6 +40,7 @@ ReMPCA <- function(mhd_obj,
                    smoothness_type = "Second_order",
                    sparse_tuning_type = "soft",
                    sparse_tuning = 0,
+                   K_fold = 5,
                    two_way_smoothness = FALSE,
                    two_way_sparsity = FALSE) {
 
@@ -51,7 +53,7 @@ ReMPCA <- function(mhd_obj,
   n_cols_nfd <- sum(as.data.frame(sapply(nfd, dim))[2,]) # Number of columns of each variable in nfd
 
   ####### Smoothing Parameter (for functional data only) ##########
-  if (is.vector(smooth_tuning) & smooth_tuning !=0) { # For a given vector (fixed and pre-defined)
+  if (all(is.vector(smooth_tuning)) & all(smooth_tuning !=0)) { # For a given vector (fixed and pre-defined)
     if(length(smooth_tuning) != fd_n_var){
       warning("The length of 'smooth_tuning' does not match 'p'. Setting 'smooth_tuning' to NULL!")
       smooth_tuning <- NULL
@@ -155,11 +157,10 @@ ReMPCA <- function(mhd_obj,
   } else {
     for (i in 1:fd_n_var) {
       cycle_v <- seq(1:ncol(fd[[i]])) / ncol(fd[[i]])
-      cycle_u <- seq(1:nrow(fd[[i]])) / nrow(fd[[i]])
-
       GridPoints_v[[i]] <- cycle_v
-      GridPoints_u[[i]] <- cycle_u
     }
+    cycle_u <- seq(1:nrow(fd[[1]])) / nrow(fd[[1]])
+    GridPoints_u <- cycle_u
   }
 
 
@@ -185,11 +186,12 @@ ReMPCA <- function(mhd_obj,
       S_v[[i]] <- get.pen(td = GridPoints_v[[i]],
                           alpha = alpha,
                           type = smoothness_type)
-
-      S_u[[i]] <- get.pen(td = GridPoints_u[[i]],
-                          alpha = alpha,
-                          type = smoothness_type)
     }
+
+    S_u <- get.pen(td = GridPoints_u,
+                        alpha = alpha,
+                        type = smoothness_type)
+
     S_alpha_list_v[[index]] <- as.matrix(bdiag(S_v))
     S_alpha_list_u[[index]] <- as.matrix(bdiag(S_u))
     setTxtProgressBar(pb, index)
@@ -226,17 +228,15 @@ ReMPCA <- function(mhd_obj,
     results <- Tuning_Power(X_temp =  X_temp,
                             Y_temp = Y_temp,
                             n_var = fd_n_var,
-                            ncol = n_cols,
+                            n_cols_fd = n_cols_fd,
                             n = n,
                             smooth_tuning = smooth_tuning,
-                            sparse_tuning_u_fd  = sparse_tuning_u_fd,
-                            sparse_tuning_v_fd = sparse_tuning_v_fd,
-                            sparse_tuning_u_nfd  = sparse_tuning_u_nfd,
-                            sparse_tuning_v_nfd = sparse_tuning_nv_fd,
+                            sparse_tuning_u  = sparse_tuning_u,
+                            sparse_tuning_v = sparse_tuning_v,
                             sparse_tuning_type = sparse_tuning_type,
                             K_fold = K_fold,
                             S_alpha_List_v = S_alpha_list_v,
-                            S_alpha_list_u = S_alpha_list_u ,
+                            S_alpha_list_u = S_alpha_list_u,
                             two_way_smoothness = two_way_smoothness ,
                             two_way_sparsity = two_way_sparsity,
                             j = j)
