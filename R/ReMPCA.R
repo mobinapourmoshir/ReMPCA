@@ -11,7 +11,7 @@
 #' By default, it is null, and it looks at a matrix of all the possible alphas in 2^seq(-30,5, length.out = 10).
 #' Set to 0 to have no smoothness.
 #' @param sparse_tuning_type A character string specifying the sparse calculation method. Must be one of "soft" (default), "hard", or "SCAD".
-#' @param sparse_tuning_fd A number that shows the level of sparsity for functional data.
+#' @param sparse_tuning A number that shows the level of sparsity.
 #'  Set to 0 to have no sparsity (default). Tune it automatically by setting it to NULL.
 #' @param smoothness_type A character string specifying the method used in smoothing u and/or v, must be one of "Second_order" (default), "First_order" or "Indicator".
 #'
@@ -19,8 +19,6 @@
 #' if False (default) it only implement the smoothness on principal components (v).
 #' @param two_way_sparsity A logical; if True, the function implements the two-way sparsity on both u and v and
 #' if False (default) it only implement the sparsity on the principal components (v).
-#' @param sparse_tuning_nfd A number that shows the level of sparsity for non-functional data.
-#'  Set to 0 to have no sparsity (default). Tune it automatically by setting it to NULL.
 #'
 #' @importFrom utils  txtProgressBar setTxtProgressBar
 #' @importFrom Matrix bdiag
@@ -40,8 +38,7 @@ ReMPCA <- function(mhd_obj,
                    smooth_tuning = NULL,
                    smoothness_type = "Second_order",
                    sparse_tuning_type = "soft",
-                   sparse_tuning_fd = 0,
-                   sparse_tuning_nfd = 0,
+                   sparse_tuning = 0,
                    two_way_smoothness = FALSE,
                    two_way_sparsity = FALSE) {
 
@@ -54,18 +51,19 @@ ReMPCA <- function(mhd_obj,
   n_cols_nfd <- sum(as.data.frame(sapply(nfd, dim))[2,]) # Number of columns of each variable in nfd
 
   ####### Smoothing Parameter (for functional data only) ##########
-  if (is.vector(smooth_tuning) ) { # For a given vector (fixed and pre-defined)
+  if (is.vector(smooth_tuning) & smooth_tuning !=0) { # For a given vector (fixed and pre-defined)
     if(length(smooth_tuning) != fd_n_var){
       warning("The length of 'smooth_tuning' does not match 'p'. Setting 'smooth_tuning' to NULL!")
       smooth_tuning <- NULL
     }
-    smooth_tuning <- as.matrix(smooth_tuning)
+    smooth_tuning <- matrix(smooth_tuning, nrow = 1)
 
-  } else if(smooth_tuning == 0 ||
-            all(smooth_tuning == 0)){
-    smooth_tuning <- matrix(rep(0,fd_n_var), nrow = 1)
+  } else if(!(is.null(smooth_tuning))){
+    if((smooth_tuning == 0 ||
+        all(smooth_tuning == 0))){
+      smooth_tuning <- matrix(rep(0,fd_n_var), nrow = 1)
 
-  }else if(is.matrix(smooth_tuning)){
+  }}else if(is.matrix(smooth_tuning)){
 
     if(ncol(smooth_tuning) > fd_n_var){
       warning("'smooth_tuning' matrix should have p columns for p variables. Considering the first p columns!")
@@ -87,38 +85,32 @@ ReMPCA <- function(mhd_obj,
     for (i in 1:fd_n_var) {
       smooth_tuning <- c(smooth_tuning, list(2^seq(-30,5, length.out = 10)))# 10 alphas for each variable
     }
+    smooth_tuning <- expand.grid(smooth_tuning) # Matrix of all possible alphas for p variables
   }
-  smooth_tuning <- expand.grid(smooth_tuning) # Matrix of all possible alphas for p variables
+
 
 
   ####### level of sparsity (for both functional and non-functional data) #######
   # level of sparsity for u can be either 0 or any number between 1 through the length of u (Coefficients - # of observations)
-  if (is.null(sparse_tuning_fd) ||
-      is.null(sparse_tuning_nfd) ||
-      sparse_tuning_fd > n ||
-      sparse_tuning_nfd > n) {
+  if (is.null(sparse_tuning) ||
+      sparse_tuning > n) {
 
-    sparse_tuning_u_fd <- sparse_tuning_u_nfd <- seq(from = 0, to = n-1, by = 1)
+    sparse_tuning_u <- seq(from = 0, to = n-1, by = 1)
 
     } else{
-      sparse_tuning_u_fd <- sparse_tuning_fd
-      sparse_tuning_u_nfd <- sparse_tuning_nfd
+      sparse_tuning_u <- sparse_tuning
       }
 
   # level of sparsity for v can be  either 0 or any number between 1 through the length of v (# of columns)
   if(two_way_sparsity == TRUE){
 
-    if(is.null(sparse_tuning_fd) |
-       is.null(sparse_tuning_nfd) |
-       sparse_tuning_fd > sum(n_cols_fd) |
-       sparse_tuning_nfd > n_cols_nfd){
+    if(is.null(sparse_tuning) ||
+       sparse_tuning > sum(n_cols_fd) + n_cols_nfd){
 
-      sparse_tuning_v_fd <-  seq(from = 0, to = sum(n_cols_fd)-1, by = 1)
-      sparse_tuning_v_nfd <- seq(from = 0, to = sum(n_cols_nfd)-1, by = 1)
+      sparse_tuning_v <-  seq(from = 0, to = sum(n_cols_fd) + sum(n_cols_nfd) -1, by = 1)
 
     }else{
-      sparse_tuning_v_fd <- sparse_tuning_fd
-      sparse_tuning_v_nfd <- sparse_tuning_nfd}
+      sparse_tuning_v <- sparse_tuning}
   }
 
 
@@ -142,11 +134,14 @@ ReMPCA <- function(mhd_obj,
 
 
   ####### Grid Points (input or assigning) - Smoothness for functional data only #######
-  if(length(argval) != fd_n_var ||
-     sum(as.data.frame(sapply(argval, length))) != sum(n_cols_fd)){ # if argval is not defined appropriately
-    warning("'argval' is not assigned appropriately!")
-    argval <- NULL
+  if(is.null(argval) == FALSE){
+    if(length(argval) != fd_n_var ||
+       sum(as.data.frame(sapply(argval, length))) != sum(n_cols_fd)){ # if argval is not defined appropriately
+      warning("'argval' is not assigned appropriately!")
+      argval <- NULL
+    }
   }
+
 
   GridPoints_v <- GridPoints_u <- list()
 

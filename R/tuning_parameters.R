@@ -115,7 +115,8 @@ opt_alpha <- function(X,
 
 
 ############################ Conditional Tuning Parameters  - CV and GCV ############################
-parameter_selection_conditional <- function(data,
+parameter_selection_conditional <- function(X_temp =  X_temp,
+                                            Y_temp = Y_temp,
                                             n_var,
                                             ncol,
                                             n,

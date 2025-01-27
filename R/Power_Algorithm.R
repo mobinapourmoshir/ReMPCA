@@ -73,7 +73,8 @@ Tuning_Power <- function(X_temp,
 
     # Tuning Parameters
     opt_parameters_result <- opt_alpha_result <- list()
-    opt_parameters_result <- parameter_selection_conditional(data = X_temp,
+    opt_parameters_result <- parameter_selection_conditional(X_temp =  X_temp,
+                                                             Y_temp = Y_temp,
                                                              n_var = n_var,
                                                              ncol = n_cols,
                                                              n = n,
