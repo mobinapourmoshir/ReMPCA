@@ -2,7 +2,10 @@
 # Lemma 2 (Sparse PCA via regularized low rank matrix approximation by Huang)
 # y is either coefficients (u's) or PCs (v's)
 
-sparse_pen_fun <- function(y,tuning_parameter, type,alpha = 3.7) {
+sparse_pen_fun <- function(y,
+                           tuning_parameter,
+                           type,alpha = 3.7) {
+
   y_sorted <- sort(abs(y))
   lambda = y_sorted[tuning_parameter]
   if (tuning_parameter == 0) {
@@ -26,21 +29,30 @@ sparse_pen_fun <- function(y,tuning_parameter, type,alpha = 3.7) {
 
 ############################### Power Algorithm ###############################
 power_algo = function(data,
-                      sparse_tuning_result,
+                      sparse_tuning_result_u,
+                      sparse_tuning_result_v,
+                      S_alpha,
                       sparse_tuning_type,
-                      S_alpha = NULL,
                       type = "real"){
 
-  v_old = svd(data)$v[,1]
-  errors = 10^60; thresh <- 1e-10
+  rownames(data) <- NULL; colnames(data) <- NULL
+  v_old <- svd(data)$v[,1]
+  errors <- 10^60; thresh <- 1e-10
 
   # Power Algorithm
   while (errors > thresh) {
-    u_new = csparse_pen_fun(y = as.vector(data%*%v_old),tuning_parameter = sparse_tuning_result,sparse_tuning_type) # u = h_{gamma} Xv
+    u_new <- sparse_pen_fun(y = as.vector(data%*%v_old),
+                           tuning_parameter = sparse_tuning_result_u,
+                           type = sparse_tuning_type) # u = h_{gamma} Xv
+
     if (type == "CV") {
-      v_new = t(data)%*%u_new
+      v_new = sparse_pen_fun(y = t(data)%*%u_new,
+                             tuning_parameter = sparse_tuning_result_v,
+                             type = sparse_tuning_type)
     } else{
-      v_new = S_alpha %*% t(data) %*% u_new # v = S_{alpha}t(X)u
+      v_new = S_alpha %*% sparse_pen_fun(y = t(data)%*%u_new,
+                                         tuning_parameter = sparse_tuning_result_v,
+                                         type = sparse_tuning_type) # v = S_{alpha} h_{gamma} t(X)u
     }
     v_new = v_new / norm_vec(v_new) # v/||v||
 
@@ -57,9 +69,9 @@ power_algo = function(data,
   if (type == "CV") {
     return(u_new)
   }
-  if (type == "CV-two-way") {
-    return(v_new)
-  }
+  #if (type == "CV-two-way") {
+  #  return(v_new)
+  #}
   else{
     # v_new = v_new %*% solve(sqrt(t(v_new) %*% solve(S_alpha) %*% v_new))
     return(list(v_new,u_new))

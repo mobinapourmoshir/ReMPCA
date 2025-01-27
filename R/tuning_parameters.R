@@ -2,7 +2,8 @@
 cv_score_sparse <- function(data,
                             S,
                             K_fold,
-                            sparse_tuning_single,
+                            sparse_tuning_result_u,
+                            sparse_tuning_result_v,
                             sparse_tuning_type,
                             type) {
 
@@ -20,31 +21,22 @@ cv_score_sparse <- function(data,
     data_test <- data_tilde[rows_to_remove, ]    # X^k
 
     # Ensure u_test is a column vector with the same number of rows as columns in data_train
-    u_test <- power_algo(t(data_train),
-                         sparse_tuning_result = sparse_tuning_single,
+    u_test <- power_algo(data = t(data_train),
+                         sparse_tuning_result_u = sparse_tuning_result_u,
+                         sparse_tuning_result_v = sparse_tuning_result_v,
                          sparse_tuning_type = sparse_tuning_type,
                          S_alpha = S,
-                         type = type) # Returns u (CV) or v (CV-two-way) only!
+                         type = type) # Returns u or v only!
 
     rownames(u_test) <- NULL
     colnames(u_test) <- NULL
+    # Ensure data_test has the same number of columns as the length of u_test
+    v_test <- data_test %*% as.matrix(u_test)
 
-    if(type == "CV-two-way"){
-      v_test <- u_test # The output is v
-      u_test <- data_test %*% as.matrix(v_test)
-      reconstructed <- as.matrix(data_test - t(as.matrix(u_test) %*% as.matrix(t(v_test))))
-      error_score_sparse <- error_score_sparse + (norm_vec(reconstructed)^2)
-      result <- error_score_sparse / nrow(data)
-
-    }else{
-      # Ensure data_test has the same number of columns as the length of u_test
-      v_test <- data_test %*% as.matrix(u_test)
-
-      # Ensure the dimensions of data_test and the reconstructed data match
-      reconstructed <- as.matrix(data_test - t(as.matrix(u_test) %*% as.matrix(t(v_test))))
-      error_score_sparse <- error_score_sparse + (norm_vec(reconstructed)^2)
-      result <- error_score_sparse / ncol(data)
-    }
+    # Ensure the dimensions of data_test and the reconstructed data match
+    reconstructed <- as.matrix(data_test - t(as.matrix(u_test) %*% as.matrix(t(v_test))))
+    error_score_sparse <- error_score_sparse + (norm_vec(reconstructed)^2)
+    result <- error_score_sparse / ncol(data)
   }
 
   return(result)  # Assuming ncol(data) is the number of grid points N
@@ -93,7 +85,8 @@ opt_alpha <- function(X,
 
         power_result <- power_algo(data = Xk,
                                    S_alpha = Sk,
-                                   sparse_tuning_result = CV_sparse_tuning_result ,
+                                   sparse_tuning_result_u = sparse_tuning_result_u,
+                                   sparse_tuning_result_v = sparse_tuning_result_v,
                                    sparse_tuning_type = sparse_tuning_type)
         u <- power_result[[2]]
         GCV_alpha <- GCV_alpha + (1/m) * (norm_vec((diag(m) - Sk) %*% (t(Xk) %*% u))^2 / (norm_vec(u)^2 * (1 - (1/m) * sum(diag(Sk)))^2))
@@ -153,11 +146,14 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
 
     sparse_score = cv_score_sparse(data=hd,
                                    K_fold,
-                                   sparse_tuning_single,
+                                   sparse_tuning_result_v = sparse_tuning_single,
+                                   sparse_tuning_result_u = 0,
                                    sparse_tuning_type,
                                    S = diag(ncol(data)), # No Smoothness
                                    type = "CV") # Returns u only in the power func!
 
+    print(sparse_tuning_single)
+    print(sparse_score)
     if (sparse_score <= CV_score_sparse_v) {
       CV_score_sparse_v = sparse_score
       sparse_tuning_selection_v = sparse_tuning_single
@@ -175,7 +171,8 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
 
       sparse_score = cv_score_sparse(data=t(hd),
                                      K_fold,
-                                     sparse_tuning_single,
+                                     sparse_tuning_result_u = sparse_tuning_single,
+                                     sparse_tuning_result_v = 0,
                                      sparse_tuning_type,
                                      S = diag(ncol(data)), # No Smoothness
                                      type = "CV")
