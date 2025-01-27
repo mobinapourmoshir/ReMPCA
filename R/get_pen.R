@@ -27,7 +27,7 @@ get.pen <- function(td, alpha, type = "Second_order") {
     S.alpha <- GAMMA%*%diag((1/(1+alpha*diag(LAMBDA))))%*%t(GAMMA);
 
     if(alpha == 0){
-      S.alpha = diag(nrow(S.alpha))}
+      S.alpha <- diag(nrow(S.alpha))}
 
     return(S.alpha=S.alpha)
 
