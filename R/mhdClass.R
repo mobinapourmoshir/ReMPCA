@@ -14,46 +14,34 @@
 #' @examples
 #'
 #' # Create some example matrices
-#' fd1 <- matrix(1:9, nrow = 3)
-#' fd2 <- matrix(10:18, nrow = 3)
-#' nfd1 <- matrix(19:27, nrow = 3)
-#' nfd2 <- matrix(28:36, nrow = 3)
-#' # Create an `hd` object
-#' hd_obj <- hd(fd_matrices = list(fd1, fd2), nfd_matrices = list(nfd1))
+#' obj1 <- hdClass(mat, attr = NULL)
+#' obj2 <- hdClass(mat, attr = 0)
+#'
 #' # Print the object
-#' print(hd_obj)
+#' print(obj1)
+#' print(obj2)
 #'
 #' @export
 
 
 ####################### Define an S3 Class for Hybrid Data #######################
-# Constructor for `hd` objects (Hybrid Data)
-hd <- function(fd_matrices = list(), nfd_matrices = list()) {
-  # Validate inputs
-  if (!all(sapply(fd_matrices, is.matrix))) {
-    stop("All elements in `fd_matrices` must be matrices.")
-  }
-  if (!all(sapply(nfd_matrices, is.matrix))) {
-    stop("All elements in `nfd_matrices` must be matrices.")
+hdClass <- function(data, attr = 0) {
+  if (!is.matrix(data)) {
+    stop("Input 'data' must be a matrix.")
   }
 
-  # Combine functional data matrices side by side
-  #combined_fd <- do.call(cbind, fd_matrices)
-  # Combine non-functional data matrices side by side
-  #combined_nfd <- do.call(cbind, nfd_matrices)
+  # Validate 'attr' to be a number, vector, 0, or NULL
+  if (!is.null(attr) && !is.numeric(attr) && !identical(attr, 0)) {
+    stop("Attribute must be a numeric value, numeric vector, 0, or NULL.")
+  }
 
-  # Add attributes to the data
-  attr(fd_matrices, "label") <- "fd"
-  attr(nfd_matrices, "label") <- "nfd"
+  # Assign the attribute to the matrix
+  if(is.null(attr)){
+    attr <- 2^seq(-30,5, length.out = 10)}
+  attr(data, "custom_attr") <- attr
 
-  # Create the object
-  obj <- list(
-    fd = fd_matrices,
-    nfd = nfd_matrices
-  )
+  # Set the class of the object
+  class(data) <- "hd"
 
-  # Assign a class attribute
-  class(obj) <- "hd"
-
-  return(obj)
+  return(data)
 }
