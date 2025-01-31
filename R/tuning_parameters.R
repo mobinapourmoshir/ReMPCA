@@ -6,19 +6,21 @@ cv_score_sparse <- function(data,
                             sparse_tuning_result_v,
                             sparse_tuning_type,
                             type) {
-
-  shuffled_row = sample(nrow(data)) # Grouping the rows of data matrix
+  set.seed(123)
+  shuffled_row <- sample(ncol(data)) # Grouping the rows of data matrix
   group_size <- ifelse(round(length(shuffled_row)/ K_fold,
                              digits = 0) == 0, 1,
                        round(length(shuffled_row)/ K_fold, digits = 0))
 
-  data_tilde <- data  # Group the rows of data
+  data_tilde <- t(data)  # Group the rows of data
   error_score_sparse <- 0
 
+
+
   for (k in 1:K_fold) {
-    rows_to_remove <- shuffled_row[((k - 1) * group_size + 1):(k * group_size)]
-    data_train <- data_tilde[-rows_to_remove, ]  # X^{-k}
-    data_test <- data_tilde[rows_to_remove, ]    # X^k
+    rows_to_remove <- shuffled_row[((k - 1) * group_size + 1):((k) * group_size)]
+    data_train <- data.frame(data_tilde[-rows_to_remove, ])  # X^{-k}
+    data_test <- data.frame(matrix(data_tilde[rows_to_remove, ], nrow = length(rows_to_remove)))    # X^k
 
     # Ensure u_test is a column vector with the same number of rows as columns in data_train
     u_test <- power_algo(data = t(data_train),
@@ -31,15 +33,15 @@ cv_score_sparse <- function(data,
     rownames(u_test) <- NULL
     colnames(u_test) <- NULL
     # Ensure data_test has the same number of columns as the length of u_test
-    v_test <- data_test %*% as.matrix(u_test)
+    v_test <- as.matrix(data_test)%*%as.matrix(u_test)
 
-    # Ensure the dimensions of data_test and the reconstructed data match
-    reconstructed <- as.matrix(data_test - t(as.matrix(u_test) %*% as.matrix(t(v_test))))
-    error_score_sparse <- error_score_sparse + (norm_vec(reconstructed)^2)
-    result <- error_score_sparse / ncol(data)
+
+    data_test_back = t(data_tilde)[, rows_to_remove]
+    error_score_sparse = error_score_sparse + sum((
+      t(data_test_back) - v_test %*% t(u_test)) ^ 2)
   }
 
-  return(result)  # Assuming ncol(data) is the number of grid points N
+  return(error_score_sparse / ncol(data))  # Assuming ncol(data) is the number of grid points N
 }
 
 ############################### Considering some values for alpha ###############################
@@ -152,11 +154,10 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
                                    S = diag(ncol(data)), # No Smoothness
                                    type = "CV") # Returns u only in the power func!
 
-    print(sparse_tuning_single)
-    print(sparse_score)
     if (sparse_score <= CV_score_sparse_v) {
       CV_score_sparse_v = sparse_score
       sparse_tuning_selection_v = sparse_tuning_single
+      sparse_tuning_selection_u = 0
     }
   }
 
@@ -177,6 +178,7 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
                                      S = diag(ncol(data)), # No Smoothness
                                      type = "CV")
 
+      print(sparse_score)
       if (sparse_score <= CV_score_sparse_u) {
         CV_score_sparse_u = sparse_score
         sparse_tuning_selection_u = sparse_tuning_single
@@ -188,7 +190,7 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
   ############## For Functional data only! ##############
   ######  Smoothness on v  ######
   # Smoothing tuning parameter using GCV
-  GCV_score_smooth_v = opt_alpha(X = X_temp ,
+  GCV_score_smooth_v = opt_alpha(X = X_temp,
                                  n_var = n_var,
                                  ncol = n_cols_fd,
                                  S_alphas_v = S_alpha_List_v,

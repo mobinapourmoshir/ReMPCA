@@ -7,8 +7,9 @@ sparse_pen_fun <- function(y,
                            type,alpha = 3.7) {
 
   y_sorted <- sort(abs(y))
-  lambda = y_sorted[tuning_parameter]
-  if (tuning_parameter == 0) {
+  lambda <- y_sorted[tuning_parameter]
+  if (tuning_parameter == 0 ||
+      tuning_parameter > length(y)) {
     return(y)
   }
   if (type == "soft") {
@@ -18,11 +19,15 @@ sparse_pen_fun <- function(y,
     return(ifelse(abs(y) > lambda, y, 0))
   }
   else if (type == "SCAD") {
-    res <- ifelse(abs(y) <= 2 * lambda,
-                  sign(y) * pmax(abs(y) - lambda, 0),
-                  ifelse(abs(y) <= alpha * lambda,
-                         ((alpha - 1) * y - sign(y) * alpha * lambda) / (alpha - 2),
-                         y))
+    res <- ifelse(
+      abs(y) <= 2 * lambda,
+      sign(y) * pmax(abs(y) - lambda, 0),
+      ifelse(
+        abs(y) <= alpha * lambda,
+        ((alpha - 1) * y - sign(y) * alpha * lambda) / (alpha - 2),
+        y
+      )
+    )
     return(res)
   }
 }
@@ -36,23 +41,25 @@ power_algo = function(data,
                       type = "real"){
 
   rownames(data) <- NULL; colnames(data) <- NULL
-  v_old <- svd(data)$v[,1]
+  v_old <- svd(as.matrix(data))$v[, 1]
   errors <- 10^60; thresh <- 1e-10
 
   # Power Algorithm
   while (errors > thresh) {
-    u_new <- sparse_pen_fun(y = as.vector(data%*%v_old),
-                           tuning_parameter = sparse_tuning_result_u,
-                           type = sparse_tuning_type) # u = h_{gamma} Xv
+    u_new <- sparse_pen_fun(y = data%*%v_old,
+                            tuning_parameter = sparse_tuning_result_u,
+                            type = sparse_tuning_type) # u = h_{gamma} Xv
 
     if (type == "CV") {
       v_new = sparse_pen_fun(y = t(data)%*%u_new,
                              tuning_parameter = sparse_tuning_result_v,
                              type = sparse_tuning_type)
+      if(all(v_new == 0)){v_new <- t(data)%*%u_new} # To avoid 0 in the denominator
     } else{
       v_new = S_alpha %*% sparse_pen_fun(y = t(data)%*%u_new,
                                          tuning_parameter = sparse_tuning_result_v,
                                          type = sparse_tuning_type) # v = S_{alpha} h_{gamma} t(X)u
+      if(all(v_new == 0)){v_new <- t(data)%*%u_new}
     }
     v_new = v_new / norm_vec(v_new) # v/||v||
 
