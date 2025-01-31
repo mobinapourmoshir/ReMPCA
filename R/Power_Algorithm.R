@@ -50,6 +50,7 @@ power_algo = function(data,
                             tuning_parameter = sparse_tuning_result_u,
                             type = sparse_tuning_type) # u = h_{gamma} Xv
 
+    if(all(u_new == 0)){u_new <- data%*%v_old}
     if (type == "CV") {
       v_new = sparse_pen_fun(y = t(data)%*%u_new,
                              tuning_parameter = sparse_tuning_result_v,
@@ -60,16 +61,17 @@ power_algo = function(data,
                                          tuning_parameter = sparse_tuning_result_v,
                                          type = sparse_tuning_type) # v = S_{alpha} h_{gamma} t(X)u
       if(all(v_new == 0)){v_new <- t(data)%*%u_new}
+      # Adjust the sign of v based on the direction of maximum variance in the original data
+      max_var_index = which.max(apply(data, 2, var))
+      v_new = v_new * sign(v_new[max_var_index])
     }
     v_new = v_new / norm_vec(v_new) # v/||v||
 
-    # Adjust the sign of v based on the direction of maximum variance in the original data
-    max_var_index = which.max(apply(data, 2, var))
-    v_new = v_new * sign(v_new[max_var_index])
+
 
     # Convergence condition
     errors = sum((v_new - v_old)^2)
-    v_old = v_new
+    v_old <- v_new
   }
 
   u_new = u_new/norm_vec(u_new) # u/||u||

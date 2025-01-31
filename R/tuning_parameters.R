@@ -28,7 +28,7 @@ cv_score_sparse <- function(data,
                          sparse_tuning_result_v = sparse_tuning_result_v,
                          sparse_tuning_type = sparse_tuning_type,
                          S_alpha = S,
-                         type = type) # Returns u or v only!
+                         type = type)
 
     rownames(u_test) <- NULL
     colnames(u_test) <- NULL
@@ -111,22 +111,20 @@ opt_alpha <- function(X,
 
 ############################ Conditional Tuning Parameters  - CV and GCV ############################
 parameter_selection_conditional <- function(X_temp =  X_temp,
-                                            Y_temp = Y_temp,
                                             n_var,
-                                            n_cols_fd,
                                             n,
                                             smooth_tuning,
                                             sparse_tuning_u,
                                             sparse_tuning_v,
                                             sparse_tuning_type,
                                             K_fold,
-                                            S_alpha_List_v ,
+                                            S_alpha_list_v ,
                                             S_alpha_list_u ,
                                             two_way_smoothness,
                                             two_way_sparsity){
 
-  hd <- cbind(X_temp, Y_temp) # fd and nfd side-by-side
 
+  # Step 1: Sparsity (No smoothness)
   CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- Inf
   result = c()
 
@@ -146,12 +144,12 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
     count = count +1
     setTxtProgressBar(pb, count)
 
-    sparse_score = cv_score_sparse(data=hd,
+    sparse_score = cv_score_sparse(data=X_temp,
                                    K_fold,
                                    sparse_tuning_result_v = sparse_tuning_single,
                                    sparse_tuning_result_u = 0,
                                    sparse_tuning_type,
-                                   S = diag(ncol(data)), # No Smoothness
+                                   S = diag(nrow(X_temp)), # No Smoothness
                                    type = "CV") # Returns u only in the power func!
 
     if (sparse_score <= CV_score_sparse_v) {
@@ -178,7 +176,6 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
                                      S = diag(ncol(data)), # No Smoothness
                                      type = "CV")
 
-      print(sparse_score)
       if (sparse_score <= CV_score_sparse_u) {
         CV_score_sparse_u = sparse_score
         sparse_tuning_selection_u = sparse_tuning_single
