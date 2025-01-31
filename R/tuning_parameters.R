@@ -60,18 +60,18 @@ opt_alpha <- function(X,
                       sparse_tuning_type) {
 
   n_iter <- nrow(alphas)  # Update to get the number of iterations
-  pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
-                       max = n_iter, # Maximum value of the progress bar
-                       style = 3,    # Progress bar style (also available style = 1 and style = 2)
-                       width = 50,   # Progress bar width. Defaults to getOption("width")
-                       char = "=")   # Character used to create the bar
+  #pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
+  #                     max = n_iter, # Maximum value of the progress bar
+  #                     style = 3,    # Progress bar style (also available style = 1 and style = 2)
+  #                     width = 50,   # Progress bar width. Defaults to getOption("width")
+  #                     char = "=")   # Character used to create the bar
 
   n <- nrow(X)
   GCV <- numeric(n_iter)
 
   if (all(alphas == 0)) {
-    close(pb)
-    return(list(GCV = Inf, opt.alpha = 0, opt_s.alpha = diag(n), GCVdf = data.frame(alphas, GCV)))
+    #close(pb)
+    return(list(GCV = Inf, opt.alpha = 0, opt_s.alpha = diag(n), GCVdf = data.frame(alphas, rep(Inf, n_iter))))
   } else {
     for (i in 1:n_iter) {
       S <- S_alphas_v[[i]]
@@ -184,7 +184,6 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
   }
 
 
-  ############## For Functional data only! ##############
   ######  Smoothness on v  ######
   # Smoothing tuning parameter using GCV
   GCV_score_smooth_v = opt_alpha(X = X_temp,
@@ -199,7 +198,7 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
 
 
   ######  Smoothness on u  ######
-  if(two_way_smoothness == TRUE){
+  if(two_way_smoothness != 0){
     GCV_score_smooth_u = opt_alpha(X = t(data) ,
                                    n_var = n_var,
                                    ncol = n,
