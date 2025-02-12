@@ -14,9 +14,13 @@
 #' @param Smoothing_parameter A fix number representing the smoothing parameter,
 #' or a vector of numerical values that will undergo generalized cross validation (GCV) to determine the most optimal one.
 #' Set it to 0 for no smoothing.
-#' @param Sparsity_parameter A fix number representing the level of sparsity,
+#' @param Sparsity_parameter_col A fix number representing the level of sparsity for column,
 #' or a vector of numerical values that will undergo cross validation (CV) to determine the most optimal one.
 #' For no sparsity, set it to 0 and tune it automatically by setting it to NULL.
+#' #' @param Sparsity_parameter_row A fix number representing the level of sparsity for rows,
+#' or a vector of numerical values that will undergo cross validation (CV) to determine the most optimal one.
+#' For no sparsity, set it to 0 and tune it automatically by setting it to NULL.
+#'
 #'
 #' @description Check for validity of the data in the `hd` object
 #'
@@ -24,14 +28,19 @@
 #'
 #' # Create some example matrices
 #' mat1 <- matrix(c(1:30), nrow = 5)
-#' mat2 <- matrix(c(1:25), nrow = 5)
+#' mat2 <- matrix(c(31:55), nrow = 5)
 #'
 #' obj1 <- hdClass(mat1,
 #'                 argval = NULL,
 #'                 Smoothing_parameter = 0,
-#'                 Sparsity_parameter = NULL)
+#'                 Sparsity_parameter_col = NULL,
+#'                 Sparsity_parameter_row = NULL)
 #'
-#' obj2 <- hdClass(mat2, attr = 0)
+#' obj2 <- hdClass(mat2,
+#'                argval = NULL,
+#'                Smoothing_parameter = NULL,
+#'                Sparsity_parameter_col = NULL,
+#'                Sparsity_parameter_row = NULL)
 #'
 #' hybrid.data <- list(obj1, obj2)
 #'
@@ -47,7 +56,8 @@
 hdClass <- function(data,
                     argval = NULL,
                     Smoothing_parameter = 0,
-                    Sparsity_parameter = 0) {
+                    Sparsity_parameter_col = 0,
+                    Sparsity_parameter_row = 0) {
 
   if (!is.matrix(data)) {
     stop("Input 'data' must be a matrix.")
@@ -66,22 +76,42 @@ hdClass <- function(data,
   attr(data, "Smoothing_parameter") <- Smoothing_parameter
 
 
-  # Validate 'Sparsity_parameter' to be a number, vector, 0, or NULL
-  if (!is.null(Sparsity_parameter) &&
-      !is.numeric(Sparsity_parameter) &&
-      !identical(Sparsity_parameter, 0)) {
-    stop("Sparsity_parameter must be a numeric value, numeric vector, 0, or NULL.")
+  # Validate 'Sparsity_parameter_col' to be a number, vector, 0, or NULL
+  if (!is.null(Sparsity_parameter_col) &&
+      !is.numeric(Sparsity_parameter_col) &&
+      !identical(Sparsity_parameter_col, 0)) {
+    stop("Sparsity_parameter_col must be a numeric value, numeric vector, 0, or NULL.")
   }
 
-  if(any(Sparsity_parameter > ncol(data))){
-    warning("An integer between 0 and ncol(data) must be used to represent the level of sparsity. Setting the 'Sparsity_parameter' to NULL!")
-    Sparsity_parameter <- NULL
+  if(any(Sparsity_parameter_col > ncol(data))){
+    warning("An integer between 0 and ncol(data) must be used to represent the level of sparsity for columns. Setting the 'Sparsity_parameter_col' to NULL!")
+    Sparsity_parameter_col <- NULL
   }
 
   # Assign the attribute to the matrix
-  if(is.null(Sparsity_parameter)){
-    Sparsity_parameter <- seq(from = 0, to = ncol(data)-1, by = 1)}
-  attr(data, "Sparsity_parameter") <- Sparsity_parameter
+  if(is.null(Sparsity_parameter_col)){
+    Sparsity_parameter_col <- seq(from = 0, to = ncol(data)-1, by = 1)}
+  attr(data, "Sparsity_parameter_col") <- Sparsity_parameter_col
+
+
+  # Validate 'Sparsity_parameter_row' to be a number, vector, 0, or NULL
+  if (!is.null(Sparsity_parameter_row) &&
+      !is.numeric(Sparsity_parameter_row) &&
+      !identical(Sparsity_parameter_row, 0)) {
+    stop("Sparsity_parameter_row must be a numeric value, numeric vector, 0, or NULL.")
+  }
+
+  if(any(Sparsity_parameter_row > nrow(data))){
+    warning("An integer between 0 and nrow(data) must be used to represent the level of sparsity for rows. Setting the 'Sparsity_parameter_row' to NULL!")
+    Sparsity_parameter_row <- NULL
+  }
+
+  # Assign the attribute to the matrix
+  if(is.null(Sparsity_parameter_row)){
+    Sparsity_parameter_row <- seq(from = 0, to = ncol(data)-1, by = 1)}
+  attr(data, "Sparsity_parameter_row") <- Sparsity_parameter_row
+
+
 
 
   # Set the class of the object

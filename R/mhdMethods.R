@@ -13,13 +13,21 @@ print.hd <- function(x, ...) {
     cat(smoothing_param, "\n")
   }
 
-  # Print the Sparsity parameter
-  sparsity_param <- attr(x, "Sparsity_parameter")
-  cat("Sparsity Parameter: ")
-  if (length(sparsity_param) > 5) {
-    cat(head(sparsity_param, 3), "...", tail(sparsity_param, 2), "\n")
+  # Print the Sparsity parameter for column
+  Sparsity_parameter_col <- attr(x, "Sparsity_parameter_col")
+  cat("Columns Sparsity Parameter: ")
+  if (length(Sparsity_parameter_col) > 5) {
+    cat(head(Sparsity_parameter_col, 3), "...", tail(Sparsity_parameter_col, 2), "\n")
   } else {
-    cat(sparsity_param, "\n")
+    cat(Sparsity_parameter_col, "\n")
+  }
+  # Print the Sparsity parameter for row
+  Sparsity_parameter_row <- attr(x, "Sparsity_parameter_row")
+  cat("Rows Sparsity Parameter: ")
+  if (length(Sparsity_parameter_row) > 5) {
+    cat(head(Sparsity_parameter_row, 3), "...", tail(Sparsity_parameter_row, 2), "\n")
+  } else {
+    cat(Sparsity_parameter_row, "\n")
   }
 
   cat("-----------------------------------\n")
