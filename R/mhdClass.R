@@ -12,7 +12,7 @@
 #' Grid poits from 0 to 1 will be assigned if NULL.
 #' @param Smoothing_parameter A fix number representing the smoothing parameter,
 #' or a vector of numerical values that will undergo generalized cross validation (GCV) to determine the most optimal one.
-#' Set it to 0 for no smoothing.
+#' Set it to 0 for no smoothing. If NULL, it analyzes a sequence of 2^seq(-30, 5, length.out = 10) and attempts to tune it.
 #' @param Sparsity_parameter_col A fix number representing the level of sparsity for column,
 #' or a vector of numerical values that will undergo cross validation (CV) to determine the most optimal one.
 #' For no sparsity, set it to 0 and tune it automatically by setting it to NULL.
