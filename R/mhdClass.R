@@ -13,6 +13,8 @@
 #' @param Smoothing_parameter A fix number representing the smoothing parameter,
 #' or a vector of numerical values that will undergo generalized cross validation (GCV) to determine the most optimal one.
 #' Set it to 0 for no smoothing.
+#' @param two_way_smoothness A fix number that denotes the smoothness parameter for u.
+#' or a tuning vector of various alphas. By default, it is set to 0 to have no two-way smoothness.
 #' @param Sparsity_parameter_col A fix number representing the level of sparsity for column,
 #' or a vector of numerical values that will undergo cross validation (CV) to determine the most optimal one.
 #' For no sparsity, set it to 0 and tune it automatically by setting it to NULL.
@@ -32,12 +34,14 @@
 #' obj1 <- hdClass(mat1,
 #'                 argval = NULL,
 #'                 Smoothing_parameter = 0,
+#'                 two_way_smoothness = 0,
 #'                 Sparsity_parameter_col = NULL,
 #'                 Sparsity_parameter_row = NULL)
 #'
 #' obj2 <- hdClass(mat2,
 #'                argval = NULL,
 #'                Smoothing_parameter = NULL,
+#'                two_way_smoothness = NULL,
 #'                Sparsity_parameter_col = NULL,
 #'                Sparsity_parameter_row = NULL)
 #'
@@ -54,6 +58,7 @@
 hdClass <- function(data,
                     argval = NULL,
                     Smoothing_parameter = 0,
+                    two_way_smoothness = 0,
                     Sparsity_parameter_col = 0,
                     Sparsity_parameter_row = 0) {
 
@@ -91,6 +96,20 @@ hdClass <- function(data,
     Smoothing_parameter <- 2^seq(-30, 5, length.out = 10)
   }
   attr(data, "Smoothing_parameter") <- Smoothing_parameter
+
+
+  # Validate 'two_way_smoothness'
+  if (!is.null(two_way_smoothness) &&
+      !is.numeric(two_way_smoothness) &&
+      !identical(two_way_smoothness, 0)) {
+    stop("two_way_smoothness must be a numeric value, numeric vector, 0, or NULL.")
+  }
+
+  if (is.null(two_way_smoothness)) {
+    two_way_smoothness <- 2^seq(-30, 5, length.out = 10)
+  }
+  attr(data, "two_way_smoothness") <- two_way_smoothness
+
 
   # Validate 'Sparsity_parameter_col'
   if (!is.null(Sparsity_parameter_col) &&
