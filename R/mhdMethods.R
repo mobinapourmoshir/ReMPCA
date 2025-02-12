@@ -43,35 +43,42 @@ print.hd <- function(x, ...) {
     cat("NULL\n")
   }
 
-  # Print GridPoints_u (vector)
-  GridPoints_u <- attr(x, "GridPoints_u")
-  cat("GridPoints_u: ")
-  if (!is.null(GridPoints_u)) {
-    if (length(GridPoints_u) > 5) {
-      cat(head(GridPoints_u, 3), "...", tail(GridPoints_u, 2), "\n")
+  # Print GridPoints_u and GridPoints_v only if Smoothing_parameter is not 0
+  if (!identical(smoothing_param, 0)) {
+    # Print GridPoints_u (vector)
+    GridPoints_u <- attr(x, "GridPoints_u")
+    cat("GridPoints_u: ")
+    if (!is.null(GridPoints_u)) {
+      if (length(GridPoints_u) > 5) {
+        cat(head(GridPoints_u, 3), "...", tail(GridPoints_u, 2), "\n")
+      } else {
+        cat(GridPoints_u, "\n")
+      }
     } else {
-      cat(GridPoints_u, "\n")
+      cat("NULL\n")
     }
-  } else {
-    cat("NULL\n")
-  }
 
-  # Print GridPoints_v (vector)
-  GridPoints_v <- attr(x, "GridPoints_v")
-  cat("GridPoints_v: ")
-  if (!is.null(GridPoints_v)) {
-    if (length(GridPoints_v) > 5) {
-      cat(head(GridPoints_v, 3), "...", tail(GridPoints_v, 2), "\n")
+    # Print GridPoints_v (vector)
+    GridPoints_v <- attr(x, "GridPoints_v")
+    cat("GridPoints_v: ")
+    if (!is.null(GridPoints_v)) {
+      if (length(GridPoints_v) > 5) {
+        cat(head(GridPoints_v, 3), "...", tail(GridPoints_v, 2), "\n")
+      } else {
+        cat(GridPoints_v, "\n")
+      }
     } else {
-      cat(GridPoints_v, "\n")
+      cat("NULL\n")
     }
-  } else {
-    cat("NULL\n")
   }
 
   cat("-----------------------------------\n")
-  cat("First few rows of the data:\n")
-  print(head(x))
+  cat("First few rows and columns of the data:\n")
+
+  # Extract and print only the first 5 rows and 10 columns
+  rows_to_show <- min(5, nrow(x))
+  cols_to_show <- min(10, ncol(x))
+  print(x[1:rows_to_show, 1:cols_to_show])
 
   invisible(x)  # Return the object invisibly
 }
