@@ -7,7 +7,6 @@
 #' The smoothness of the data will not be implemented if the value is zero, or user can choose a fix number for smoothing parameter.
 #' Alternatively, a vector of numerical values that will undergo generalized cross validation (GCV) to determine the most optimal one.
 #'
-#'
 #' @param data A matrix which represents the data with rows indicating observations.
 #' @param argval A vector of grid points for functional data, with a length equal to the number of columns in the data.
 #'
@@ -47,7 +46,6 @@
 #' # Print the object
 #' print(obj1)
 #'
-#'
 #' print(obj2)
 #'
 #' @export
@@ -75,7 +73,6 @@ hdClass <- function(data,
     Smoothing_parameter <- 2^seq(-30,5, length.out = 10)}
   attr(data, "Smoothing_parameter") <- Smoothing_parameter
 
-
   # Validate 'Sparsity_parameter_col' to be a number, vector, 0, or NULL
   if (!is.null(Sparsity_parameter_col) &&
       !is.numeric(Sparsity_parameter_col) &&
@@ -93,7 +90,6 @@ hdClass <- function(data,
     Sparsity_parameter_col <- seq(from = 0, to = ncol(data)-1, by = 1)}
   attr(data, "Sparsity_parameter_col") <- Sparsity_parameter_col
 
-
   # Validate 'Sparsity_parameter_row' to be a number, vector, 0, or NULL
   if (!is.null(Sparsity_parameter_row) &&
       !is.numeric(Sparsity_parameter_row) &&
@@ -110,9 +106,6 @@ hdClass <- function(data,
   if(is.null(Sparsity_parameter_row)){
     Sparsity_parameter_row <- seq(from = 0, to = ncol(data)-1, by = 1)}
   attr(data, "Sparsity_parameter_row") <- Sparsity_parameter_row
-
-
-
 
   # Set the class of the object
   class(data) <- "hd"
