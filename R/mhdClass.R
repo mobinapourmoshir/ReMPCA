@@ -9,7 +9,7 @@
 #'
 #' @param data A matrix which represents the data with rows indicating observations.
 #' @param argval A vector of grid points for functional data, with a length equal to the number of columns in the data.
-#'
+#' Grid poits from 0 to 1 will be assigned if NULL.
 #' @param Smoothing_parameter A fix number representing the smoothing parameter,
 #' or a vector of numerical values that will undergo generalized cross validation (GCV) to determine the most optimal one.
 #' Set it to 0 for no smoothing.
@@ -61,51 +61,74 @@ hdClass <- function(data,
     stop("Input 'data' must be a matrix.")
   }
 
-  # Validate 'Smoothing_parameter' to be a number, vector, 0, or NULL
+  ####### Grid Points (input or assigning) - Smoothness for functional data only #######
+  if (!is.null(argval)) {
+    if (length(argval) != ncol(data)) {
+      warning("There should be an equal number of grid points and columns. 'argval' is set to NULL!")
+      argval <- NULL
+    }
+  }
+
+  # Assigning GridPoints for u and v
+  GridPoints_v <- GridPoints_u <- vector()
+
+  if (!is.null(argval)) {
+    GridPoints_v <- argval  # Use provided argval
+  } else {
+    GridPoints_v<- seq(from = 1/ncol(data), to = 1 , length.out =ncol(data)) # Default sequence
+  }
+  GridPoints_u <- seq(from = 1/nrow(data), to = 1 , length.out =nrow(data))
+
+
+  # Validate 'Smoothing_parameter'
   if (!is.null(Smoothing_parameter) &&
       !is.numeric(Smoothing_parameter) &&
       !identical(Smoothing_parameter, 0)) {
     stop("Smoothing_parameter must be a numeric value, numeric vector, 0, or NULL.")
   }
 
-  # Assign the attribute to the matrix
-  if(is.null(Smoothing_parameter)){
-    Smoothing_parameter <- 2^seq(-30,5, length.out = 10)}
+  if (is.null(Smoothing_parameter)) {
+    Smoothing_parameter <- 2^seq(-30, 5, length.out = 10)
+  }
   attr(data, "Smoothing_parameter") <- Smoothing_parameter
 
-  # Validate 'Sparsity_parameter_col' to be a number, vector, 0, or NULL
+  # Validate 'Sparsity_parameter_col'
   if (!is.null(Sparsity_parameter_col) &&
       !is.numeric(Sparsity_parameter_col) &&
       !identical(Sparsity_parameter_col, 0)) {
     stop("Sparsity_parameter_col must be a numeric value, numeric vector, 0, or NULL.")
   }
 
-  if(any(Sparsity_parameter_col > ncol(data))){
-    warning("An integer between 0 and ncol(data) must be used to represent the level of sparsity for columns. Setting the 'Sparsity_parameter_col' to NULL!")
+  if (any(Sparsity_parameter_col > ncol(data))) {
+    warning("An integer between 0 and ncol(data) must be used to represent the level of sparsity for columns. Setting 'Sparsity_parameter_col' to NULL!")
     Sparsity_parameter_col <- NULL
   }
 
-  # Assign the attribute to the matrix
-  if(is.null(Sparsity_parameter_col)){
-    Sparsity_parameter_col <- seq(from = 0, to = ncol(data)-1, by = 1)}
+  if (is.null(Sparsity_parameter_col)) {
+    Sparsity_parameter_col <- seq(from = 0, to = ncol(data) - 1, by = 1)
+  }
   attr(data, "Sparsity_parameter_col") <- Sparsity_parameter_col
 
-  # Validate 'Sparsity_parameter_row' to be a number, vector, 0, or NULL
+  # Validate 'Sparsity_parameter_row'
   if (!is.null(Sparsity_parameter_row) &&
       !is.numeric(Sparsity_parameter_row) &&
       !identical(Sparsity_parameter_row, 0)) {
     stop("Sparsity_parameter_row must be a numeric value, numeric vector, 0, or NULL.")
   }
 
-  if(any(Sparsity_parameter_row > nrow(data))){
-    warning("An integer between 0 and nrow(data) must be used to represent the level of sparsity for rows. Setting the 'Sparsity_parameter_row' to NULL!")
+  if (any(Sparsity_parameter_row > nrow(data))) {
+    warning("An integer between 0 and nrow(data) must be used to represent the level of sparsity for rows. Setting 'Sparsity_parameter_row' to NULL!")
     Sparsity_parameter_row <- NULL
   }
 
-  # Assign the attribute to the matrix
-  if(is.null(Sparsity_parameter_row)){
-    Sparsity_parameter_row <- seq(from = 0, to = ncol(data)-1, by = 1)}
+  if (is.null(Sparsity_parameter_row)) {
+    Sparsity_parameter_row <- seq(from = 0, to = ncol(data) - 1, by = 1)
+  }
   attr(data, "Sparsity_parameter_row") <- Sparsity_parameter_row
+
+  # Assign GridPoints as attributes
+  attr(data, "GridPoints_u") <- GridPoints_u
+  attr(data, "GridPoints_v") <- GridPoints_v
 
   # Set the class of the object
   class(data) <- "hd"
