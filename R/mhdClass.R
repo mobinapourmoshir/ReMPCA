@@ -16,7 +16,7 @@
 #' @param Sparsity_parameter_col A fix number representing the level of sparsity for column,
 #' or a vector of numerical values that will undergo cross validation (CV) to determine the most optimal one.
 #' For no sparsity, set it to 0 and tune it automatically by setting it to NULL.
-#' #' @param Sparsity_parameter_row A fix number representing the level of sparsity for rows,
+#' @param Sparsity_parameter_row A fix number representing the level of sparsity for rows,
 #' or a vector of numerical values that will undergo cross validation (CV) to determine the most optimal one.
 #' For no sparsity, set it to 0 and tune it automatically by setting it to NULL.
 #'
