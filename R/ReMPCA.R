@@ -1,15 +1,9 @@
 #' ReMPCA Smooth and Sparse Multivariate Functional Principal Component Analysis
 #'
-#' @param mhd_obj Two lists of data matrices exist: one for functional data (fd_matrices) and another for non-functional data (nfd_matrices).
-#' Each matrix is regarded as a variable, with observations organized in the rows and grid points in the columns for functional data.
-#'  The timeline or grid points may also incorporate the column name.
-#' @param argval A list of grid points for functional data corresponding to each variable, where the length of each component matches the number of columns in the related data matrix.
+#' @param mhd_obj A list of of all hdClass objects. Each might represent either functional data (including grid points in the columns)
+#' or regular data (characterized by a smoothness attribute of zero). The order of putting functional and regular data does not matter.
 #' @param centerfns A logical; if True, it demeans the data before calculating the principal components.
 #' @param num_pcs An integer. The number of principal components.
-#' @param smooth_tuning A vector with p elements that each represent a fixed smoothing parameter alpha for all p variables,
-#' OR A matrix with different combinations of alphas for all variables, it should have p columns for p variables!
-#' By default, it is null, and it looks at a matrix of all the possible alphas in 2^seq(-30,5, length.out = 10).
-#' Set to 0 to have no smoothness.
 #' @param sparse_tuning_type A character string specifying the sparse calculation method. Must be one of "soft" (default), "hard", or "SCAD".
 #' @param sparse_tuning A number that shows the level of sparsity.
 #'  Set to 0 to have no sparsity (default). Tune it automatically by setting it to NULL.
@@ -17,7 +11,7 @@
 #' @param K_fold An integer. It's used in cross validation approach for tuning the level of sparsity.
 #'
 #' @param two_way_smoothness A fix number that represents the smoothness parameter (alpha) for u. Or a vector of different alphas to be tuned.
-#' Set to 0 (default) to have no smoothness.
+#' Set to 0 (default) to have no smoothness. If NULL, it analyzes a sequence of 2^seq(-30, 5, length.out = 10) and attempts to tune it.
 #' @param two_way_sparsity A logical; if True, the function implements the two-way sparsity on both u and v and
 #' if False (default) it only implement the sparsity on the principal components (v).
 #'
@@ -33,52 +27,43 @@
 ############################ Smooth and Sparse Multivariate PCA ############################
 
 ReMPCA <- function(object_list,
-                   argval = NULL,
                    centerfns = TRUE,
                    num_pcs = 1,
                    smoothness_type = "Second_order",
                    sparse_tuning_type = "soft",
                    sparse_tuning = 0,
-                   K_fold = 5,
                    two_way_smoothness = 0,
+                   K_fold = 5,
                    two_way_sparsity = FALSE) {
+
+  if(!(is.list(object_list))){
+    object_list <- list(object_list)
+  }
 
   # Validate input: Ensure all elements are of class "hdClass"
   if (!all(sapply(object_list, function(obj) inherits(obj, "hd")))) {
     stop("All elements in the list must be of class 'hdClass'.")
   }
 
+  # Make sure that all matrices have the same number of observations
+  nrows <- sapply(object_list, function(obj) nrow(obj))
+  if (!all(nrows == nrows[1])) {
+    stop("Error: Not all matrices have the same number of rows!")
+  }
 
   # Combine matrices side by side
   hd <- do.call(cbind, object_list)
   n <- nrow(hd)
-
   n_var <- length(object_list) # Number of variables (# of matrices in object_list)
-  ncol <- as.data.frame(sapply(object_list, dim))[2,]
+  ncol <- as.data.frame(sapply(object_list, dim))[2,] # Number of columns of each matrix
 
   ####### Smoothing Parameter ##########
   # Generate all combinations alphas (one row per combination)
-  smooth_tuning <- expand.grid(lapply(object_list, function(obj) attr(obj, "custom_attr")))
-
+  smooth_tuning <- expand.grid(lapply(object_list, function(obj) attr(obj, "Smoothing_parameter")))
 
   ####### level of sparsity (for both functional and non-functional data) #######
-  # level of sparsity for u can be either 0 or any number between 1 through the length of u (Coefficients - # of observations)
-  # level of sparsity for v can be  either 0 or any number between 1 through the length of v (# of columns)
-
-  if (is.null(sparse_tuning) ||
-      sparse_tuning > n) {
-    sparse_tuning_u <- seq(from = 0, to = n-1, by = 1)
-    } else{
-      sparse_tuning_u <- sparse_tuning
-    }
-  if(is.null(sparse_tuning) ||
-     sparse_tuning > ncol(hd)){
-
-    sparse_tuning_v <-  seq(from = 0, to = ncol(hd)-1, by = 1)
-
-  }else{
-    sparse_tuning_v <- sparse_tuning}
-
+  sparsity_row_list <- lapply(object_list, function(obj) attr(obj, "Sparsity_parameter_row"))
+  sparsity_col_list <- lapply(object_list, function(obj) attr(obj, "Sparsity_parameter_col"))
 
   ####### Pre-processing: Centralizing the data #######
   X <- data.frame()
@@ -88,27 +73,9 @@ ReMPCA <- function(object_list,
     X <- hd
   }
 
-
-  ####### Grid Points (input or assigning) - Smoothness for functional data only #######
-  if(is.null(argval) == FALSE){
-    if(length(argval) != n_var ||
-       sum(as.data.frame(sapply(argval, length))) != sum(n_cols_fd)){ # if argval is not defined appropriately
-      warning("'argval' is not assigned appropriately!")
-      argval <- NULL
-    }
-  }
-
-  GridPoints_v <- GridPoints_u <- list()
-
-  if (!is.null(argval)) { # For the given argval for v
-    GridPoints_v <- argval
-  } else {
-    for (i in 1:n_var) {
-      cycle_v <- seq(1:ncol(object_list[[i]])) / ncol(object_list[[i]])
-      GridPoints_v[[i]] <- cycle_v
-    }
-  }
-  GridPoints_u <- seq(1:nrow(object_list[[1]])) / nrow(object_list[[1]])
+  ####### Grid Points #######
+  GridPoints_u <- lapply(object_list, function(obj) attr(obj, "GridPoints_u"))[[1]] # A vector
+  GridPoints_v <- lapply(object_list, function(obj) attr(obj, "GridPoints_v")) # A list
 
   ####### S_alpha for all alphas #######
   S_alpha_list_u <- S_alpha_list_v <- list()
@@ -121,7 +88,7 @@ ReMPCA <- function(object_list,
                        width = 50,   # Progress bar width. Defaults to getOption("width")
                        char = "=")   # Character used to create the bar
 
-
+  # S_alpha for v
   for (alpha_index in 1:nrow(smooth_tuning)) {
     index <- index + 1
     S_u <- S_v <- list()
@@ -136,15 +103,17 @@ ReMPCA <- function(object_list,
     setTxtProgressBar(pb, index)
   }
 
+  # S_alpha for u
+  if(is.null(two_way_smoothness)){
+    two_way_smoothness <- 2^seq(-30,5, length.out = 10)
+  }
   for (alpha_index in 1:length(two_way_smoothness)) {
     alpha <- as.numeric(two_way_smoothness[alpha_index])
     S_alpha_list_u[[alpha_index]] <- get.pen(td = GridPoints_u,
-                                   alpha = two_way_smoothness,
-                                   type = smoothness_type)
+                                             alpha = alpha,
+                                             type = smoothness_type)
   }
-
   close(pb)
-
 
   # Initializing the lists
   opt_S_v <- opt_S_u <- list()
@@ -175,8 +144,8 @@ ReMPCA <- function(object_list,
                                                              ncol = ncol,
                                                              n = n,
                                                              smooth_tuning = smooth_tuning,
-                                                             sparse_tuning_u = sparse_tuning_u,
-                                                             sparse_tuning_v = sparse_tuning_v,
+                                                             sparse_tuning_u = sparsity_row_list,
+                                                             sparse_tuning_v = sparsity_col_list,
                                                              sparse_tuning_type = sparse_tuning_type,
                                                              K_fold,
                                                              S_alpha_list_v ,

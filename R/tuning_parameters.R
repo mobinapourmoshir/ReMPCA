@@ -156,11 +156,23 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
                        char = "=")   # Character used to create the bar
 
 
+
+  # Splitting X_temp
+  start_col <- 1
+  for (i in 1:n_var) {
+    num_cols <- ncol[[i]]  # Get number of columns for the ith matrix
+    sub_matrix <- X_temp[, start_col:(start_col + num_cols - 1)]  # Extract matrix
+    start_col <- start_col + num_cols
+
+  }
+
+
   ######  Sparsity on v (default)  ######
   # Sparsity tuning parameter using CV
   for (sparse_tuning_single in sparse_tuning_v) {
     count = count +1
     setTxtProgressBar(pb, count)
+
 
     sparse_score = cv_score_sparse(data=X_temp,
                                    K_fold,
