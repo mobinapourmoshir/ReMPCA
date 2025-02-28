@@ -1,7 +1,6 @@
 ############################### Sparse penalty for coefficients ###############################
 # Lemma 2 (Sparse PCA via regularized low rank matrix approximation by Huang)
 # y is either coefficients (u's) or PCs (v's)
-
 sparse_pen_fun <- function(y,
                            tuning_parameter,
                            type,alpha = 3.7) {
@@ -32,6 +31,9 @@ sparse_pen_fun <- function(y,
   }
 }
 
+############################### Calculating the norm of a vector ###############################
+norm_vec <- function(x) sqrt(sum(x^2))
+
 ############################### Power Algorithm ###############################
 power_algo = function(data,
                       sparse_tuning_result_u,
@@ -42,13 +44,14 @@ power_algo = function(data,
                       type = "real"){
 
   rownames(data) <- NULL; colnames(data) <- NULL
+  data <- as.matrix(data)
   v_old <- svd(as.matrix(data))$v[, 1]
   errors <- 10^60; thresh <- 1e-10
 
   # Power Algorithm
   while (errors > thresh) {
     if (type == "CV") {
-      u_new <- sparse_pen_fun(y = data%*%v_old,
+      u_new <- sparse_pen_fun(y = data%*%as.matrix(v_old),
                               tuning_parameter = sparse_tuning_result_u,
                               type = sparse_tuning_type) # u = h_{gamma} Xv
 

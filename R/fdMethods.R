@@ -1,4 +1,5 @@
-print.fd <- function(x, ...) {
+##################### Print method for functional data #####################
+print.fdClass <- function(x, ...) {
   cat("Functional Data (fdClass) Object\n")
   cat("-----------------------------------\n")
   cat("Dimensions: ", dim(x)[1], " x ", dim(x)[2], "\n", sep = "")
@@ -46,12 +47,9 @@ print.fd <- function(x, ...) {
 
   cat("-----------------------------------\n")
   cat("First few rows and columns of the data:\n")
-
-  # Extract and print only the first 5 rows and 10 columns
-
   rows_to_show <- min(5, dim(x)[1])
   cols_to_show <- min(5, dim(x)[2])
-  print(as.matrix(x[1:rows_to_show, 1:cols_to_show]))
+  print(x[1:rows_to_show, 1:cols_to_show])
 
   invisible(x)  # Return the object invisibly
 }

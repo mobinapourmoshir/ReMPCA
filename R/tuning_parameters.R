@@ -1,49 +1,3 @@
-############################ CV Scores calculators for sparsity and smoothness ############################
-cv_score_sparse <- function(data,
-                            S,
-                            K_fold,
-                            sparse_tuning_result_u,
-                            sparse_tuning_result_v,
-                            sparse_tuning_type,
-                            type) {
-  set.seed(123)
-  shuffled_row <- sample(ncol(data)) # Grouping the rows of data matrix
-  group_size <- ifelse(round(length(shuffled_row)/ K_fold,
-                             digits = 0) == 0, 1,
-                       round(length(shuffled_row)/ K_fold, digits = 0))
-
-  data_tilde <- t(data)  # Group the rows of data
-  error_score_sparse <- 0
-
-
-
-  for (k in 1:K_fold) {
-    rows_to_remove <- shuffled_row[((k - 1) * group_size + 1):((k) * group_size)]
-    data_train <- data.frame(data_tilde[-rows_to_remove, ])  # X^{-k}
-    data_test <- data.frame(matrix(data_tilde[rows_to_remove, ], nrow = length(rows_to_remove)))    # X^k
-
-    # Ensure u_test is a column vector with the same number of rows as columns in data_train
-    u_test <- power_algo(data = t(data_train),
-                         sparse_tuning_result_u = sparse_tuning_result_u,
-                         sparse_tuning_result_v = sparse_tuning_result_v,
-                         sparse_tuning_type = sparse_tuning_type,
-                         S_alpha = S,
-                         type = type)
-
-    rownames(u_test) <- NULL
-    colnames(u_test) <- NULL
-    # Ensure data_test has the same number of columns as the length of u_test
-    v_test <- as.matrix(data_test)%*%as.matrix(u_test)
-
-
-    data_test_back = t(data_tilde)[, rows_to_remove]
-    error_score_sparse = error_score_sparse + sum((
-      t(data_test_back) - v_test %*% t(u_test)) ^ 2)
-  }
-
-  return(error_score_sparse / ncol(data))  # Assuming ncol(data) is the number of grid points N
-}
-
 ############################### Considering some values for alpha ###############################
 get.Alphas = function(n=103,a=2,s=-100) {return(a^seq(s,s+n))}
 
@@ -128,18 +82,86 @@ opt_alpha <- function(X,
 
 ############################ Conditional Tuning Parameters  - CV and GCV ############################
 parameter_selection_conditional <- function(X_temp =  X_temp,
-                                            n_var,
-                                            ncol,
-                                            n,
-                                            smooth_tuning,
-                                            sparse_tuning_u,
-                                            sparse_tuning_v,
-                                            sparse_tuning_type,
+                                            n_var = n_var,
+                                            ncol = ncol,
+                                            n = n,
+                                            smooth_tuning = smooth_tuning,
+                                            sparse_tuning_u = sparsity_row_list, # vector
+                                            sparse_tuning_v = sparsity_col_list, # list
+                                            sparse_tuning_type = sparse_tuning_type,
                                             K_fold,
                                             S_alpha_list_v ,
-                                            S_alpha_list_u ,
-                                            two_way_smoothness,
-                                            two_way_sparsity){
+                                            S_alpha_list_u,
+                                            tuning_order){
+
+
+
+  # tuning_order = 'Sparsity'
+  if(tuning_order == "Sparsity"){
+    CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- Inf
+    CV_scores_result_u <- CV_scores_result_u <- c()
+    result = c()
+
+    # Step 1: Sparsity on u  with no smoothness
+    for (sparse_tuning_single in sparse_tuning_u) {
+      sparse_score = cv_sparse_row(data=X_temp,
+                                   S_alpha_v = diag(ncol(X_temp)),
+                                   S_alpha_u = diag(nrow(X_temp)),
+                                   K_fold = K_fold,
+                                   sparse_tuning_result_u = sparse_tuning_single,
+                                   sparse_tuning_result_v = 0,
+                                   sparse_tuning_type = sparse_tuning_type,
+                                   type = "CV")
+      CV_scores_result_u <- c(CV_scores_result_u, sparse_score)
+      if (sparse_score <= CV_score_sparse_u) {
+        CV_score_sparse_u = sparse_score
+        sparse_tuning_selection_u = sparse_tuning_single
+      }
+    }
+
+
+    # Step 2: Conditional sparsity on v having sparsity on u with no smoothness
+    for (sparse_tuning_single in sparse_tuning_v) {
+      sparse_score = cv_score_sparse(data=X_temp,
+                                     K_fold,
+                                     sparse_tuning_result_v = sparse_tuning_single,
+                                     sparse_tuning_result_u = sparse_tuning_selection_u,
+                                     sparse_tuning_type,
+                                     S_alpha_v = diag(ncol(X_temp)),
+                                     S_alpha_u = diag(nrow(X_temp)),
+                                     type = "CV") # Returns u only in the power func!
+
+      if (sparse_score <= CV_score_sparse_v) {
+        CV_score_sparse_v = sparse_score
+        sparse_tuning_selection_v = sparse_tuning_single
+        sparse_tuning_selection_u = 0
+      }
+    }
+
+
+
+
+
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   # Step 1: Sparsity (No smoothness)
@@ -156,17 +178,6 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
                        char = "=")   # Character used to create the bar
 
 
-
-  # Splitting X_temp
-  start_col <- 1
-  for (i in 1:n_var) {
-    num_cols <- ncol[[i]]  # Get number of columns for the ith matrix
-    sub_matrix <- X_temp[, start_col:(start_col + num_cols - 1)]  # Extract matrix
-    start_col <- start_col + num_cols
-
-  }
-
-
   ######  Sparsity on v (default)  ######
   # Sparsity tuning parameter using CV
   for (sparse_tuning_single in sparse_tuning_v) {
@@ -179,7 +190,8 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
                                    sparse_tuning_result_v = sparse_tuning_single,
                                    sparse_tuning_result_u = 0,
                                    sparse_tuning_type,
-                                   S = diag(nrow(X_temp)), # No Smoothness
+                                   S_alpha_v = diag(ncol(X_temp)),
+                                   S_alpha_u = diag(nrow(X_temp)),
                                    type = "CV") # Returns u only in the power func!
 
     if (sparse_score <= CV_score_sparse_v) {
@@ -234,4 +246,29 @@ parameter_selection_conditional <- function(X_temp =  X_temp,
                 GCV_score_smooth = GCV_score_smooth)
   return(result)
 }
+
+
+
+############################### Process bar indexing ###############################
+ordinal <- function(i) {
+  if (i == 1) {
+    return(paste0(i, "st"))
+
+  } else if (i == 2) {
+    return(paste0(i, "nd"))
+
+  } else if (i == 3) {
+    return(paste0(i, "rd"))
+
+  }
+  else {
+    return(paste0(i, "th"))
+
+  }
+}
+
+
+
+
+
 
