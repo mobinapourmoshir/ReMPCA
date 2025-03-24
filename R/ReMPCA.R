@@ -35,8 +35,8 @@ ReMPCA <- function(object_list,
 
   ####### Smoothing Parameter ##########
   # Generate all combinations alphas (one row per combination)
-  smooth_tuning_col <- expand.grid(attr(object_list, "Smoothing_parameter_col"))
-  smooth_tuning_row <- attr(object_list, "Smoothing_parameter")
+  smooth_tuning_col <- expand.grid(attr(object_list, "Smoothing_parameter_col")) # A matrix
+  smooth_tuning_row <- attr(object_list, "Smoothing_parameter") # A vector
 
   ####### level of sparsity (for both functional and non-functional data) #######
   sparsity_row_list <- attr(object_list, "Sparsity_parameter")
@@ -58,7 +58,7 @@ ReMPCA <- function(object_list,
   S_alpha_list_u <- S_alpha_list_v <- list()
   index <- 0
   cat("Preprocessing ...\n")
-  n_iter1 <- nrow(smooth_tuning)     # The number of alphas
+  n_iter1 <- nrow(smooth_tuning_col)     # The number of alphas
   pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
                        max = n_iter1,# Maximum value of the progress bar
                        style = 3,    # Progress bar style (also available style = 1 and style = 2)
@@ -66,11 +66,11 @@ ReMPCA <- function(object_list,
                        char = "=")   # Character used to create the bar
 
   # S_alpha for v
-  for (alpha_index in 1:nrow(smooth_tuning)) {
+  for (alpha_index in 1:nrow(smooth_tuning_col)) {
     index <- index + 1
     S_u <- S_v <- list()
     for (i in 1:n_var) {
-      alpha <- as.numeric(smooth_tuning[alpha_index,i])
+      alpha <- as.numeric(smooth_tuning_col[alpha_index,i])
       if(is.null(GridPoints_v[[i]])){
         S_v[[i]] <- diag(ncol[,i])
       }else{
@@ -79,7 +79,7 @@ ReMPCA <- function(object_list,
                             type = smoothness_type)
       }
     }
-    S_alpha_list_v[[index]] <- as.matrix(bdiag(S_v))
+    S_alpha_list_v[[index]] <- S_v #as.matrix(bdiag(S_v))
     setTxtProgressBar(pb, index)
   }
 
@@ -122,7 +122,8 @@ ReMPCA <- function(object_list,
                                                              n_var = n_var,
                                                              ncol = ncol,
                                                              n = n,
-                                                             smooth_tuning = smooth_tuning,
+                                                             smooth_tuning_v = smooth_tuning_col,
+                                                             smooth_tuning_u = smooth_tuning_row,
                                                              sparse_tuning_u = sparsity_row_list,
                                                              sparse_tuning_v = sparsity_col_list,
                                                              sparse_tuning_type = sparse_tuning_type,
