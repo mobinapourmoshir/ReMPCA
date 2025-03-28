@@ -29,7 +29,7 @@ get.pen <- function(td, alpha, type = "Second_order") {
     if(alpha == 0){
       S.alpha <- diag(nrow(S.alpha))}
 
-    return(S.alpha=S.alpha)
+    return(list(S.alpha=S.alpha, Omega = OMEGA))
 
   } else if(type == "First_order") {
     m = length(td)
@@ -65,7 +65,7 @@ get.pen <- function(td, alpha, type = "Second_order") {
     if(alpha == 0){
       S.alpha = diag(nrow(S.alpha))}
 
-    return(S.alpha=S.alpha)
+    return(list(S.alpha=S.alpha, Omega = OMEGA))
 
   } else if (type == "Indicator"){
     m = length(td)
@@ -115,6 +115,6 @@ get.pen <- function(td, alpha, type = "Second_order") {
     if(alpha == 0){
       S.alpha = diag(nrow(S.alpha))}
 
-    return(S.alpha=S.alpha)
+    return(list(S.alpha=S.alpha, Omega = OMEGA))
   }
 }

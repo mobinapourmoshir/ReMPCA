@@ -68,15 +68,17 @@ ReMPCA <- function(object_list,
   # S_alpha for v
   for (alpha_index in 1:nrow(smooth_tuning_col)) {
     index <- index + 1
-    S_u <- S_v <- list()
+    S_u <- S_v <- Omegas_v <- Omegas_u <- list()
     for (i in 1:n_var) {
       alpha <- as.numeric(smooth_tuning_col[alpha_index,i])
       if(is.null(GridPoints_v[[i]])){
         S_v[[i]] <- diag(ncol[,i])
       }else{
-        S_v[[i]] <- get.pen(td = GridPoints_v[[i]],
-                            alpha = alpha,
-                            type = smoothness_type)
+        get.pen.result <- get.pen(td = GridPoints_v[[i]],
+                                  alpha = alpha,
+                                  type = smoothness_type)
+        S_v[[i]] <- get.pen.result$S.alpha
+        Omegas_v[[i]] <- get.pen.result$ Omega
       }
     }
     S_alpha_list_v[[index]] <- S_v #as.matrix(bdiag(S_v))
@@ -84,12 +86,15 @@ ReMPCA <- function(object_list,
   }
 
   # S_alpha for u
-  if(!is.null(Smoothing_parameter)){
+  if(!is.null(smooth_tuning_row)){
     for (alpha_index in 1:length(smooth_tuning_row)) {
       alpha <- as.numeric(smooth_tuning_row[alpha_index])
-      S_alpha_list_u[[alpha_index]] <- get.pen(td = GridPoints_u,
-                                               alpha = alpha,
-                                               type = smoothness_type)
+      get.pen.result <- get.pen(td = GridPoints_u,
+                                alpha = alpha,
+                                type = smoothness_type)
+
+      S_alpha_list_u[[alpha_index]] <- get.pen.result$S.alpha
+      Omegas_u[[alpha_index]] <- get.pen.result$Omega
     }
   }
   close(pb)
@@ -130,6 +135,7 @@ ReMPCA <- function(object_list,
                                                              K_fold,
                                                              S_alpha_list_v ,
                                                              S_alpha_list_u,
+                                                             Omegas_u = Omegas_u,
                                                              tuning_order)
 
 

@@ -11,6 +11,7 @@ parameter_selection_conditional <- function(X_temp,
                                             K_fold,
                                             S_alpha_list_v ,
                                             S_alpha_list_u,
+                                            Omegas_u,
                                             tuning_order){
 
 
