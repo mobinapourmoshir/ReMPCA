@@ -38,14 +38,15 @@ cv_sparse_row <- function(data, # Hybrid data
                          S_alpha_u = S_alpha_u, # A matrix
                          sparse_tuning_type = sparse_tuning_type)
 
-    u_test <- power_train[[2]]
-    v_test <- t(as.matrix(data_test)) %*% as.matrix(u_test)
+    u_train <- power_train[[2]]
+    v_test <- t(as.matrix(data_test)) %*% as.matrix(u_train)
 
     # Calculating CV Score
-    error_score_sparse = error_score_sparse + sum((
-      data_test - u_test %*% t(v_test)) ^ 2)
+    error_score_sparse = error_score_sparse + sum(((
+      data_test - u_train %*% t(v_test))^ 2)/ ncol(data_test))
+
   }
-  return(error_score_sparse / ncol(data))  # Assuming ncol(data) is N in the formula
+  return(error_score_sparse)  # Assuming ncol(data) is N in the formula
 }
 
 
@@ -89,10 +90,10 @@ cv_sparse_col <- function(data,
     u_test <- as.matrix(data_test) %*% as.matrix(v_train)
 
     # Calculating CV Score
-    error_score_sparse = error_score_sparse + sum((
-      data_test - u_test %*% t(v_train)) ^ 2)
+    error_score_sparse = error_score_sparse + sum(((
+      data_test - u_test %*% v_train) ^ 2)/ nrow(data_test))
   }
-  return(error_score_sparse / nrow(data))  # Assuming nrow(data) is N in the formula
+  return(error_score_sparse)
 }
 
 

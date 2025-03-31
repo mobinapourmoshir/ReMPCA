@@ -39,6 +39,7 @@ parameter_selection_conditional <- function(X_temp,
                                    sparse_tuning_result_u = sparse_tuning_single,
                                    sparse_tuning_result_v = rep(0, n_var),
                                    sparse_tuning_type = sparse_tuning_type)
+
       CV_scores_result_u <- c(CV_scores_result_u, sparse_score)
       if (sparse_score <= CV_score_sparse_u) {
         CV_score_sparse_u = sparse_score
@@ -59,7 +60,7 @@ parameter_selection_conditional <- function(X_temp,
                                      S_alpha_v = S_alpha_v,
                                      S_alpha_u = diag(nrow(X_temp)),
                                      K_fold = K_fold,
-                                     sparse_tuning_result_u = gamma_u,
+                                     sparse_tuning_result_u = 0, #gamma_u,
                                      sparse_tuning_result_v = gamma_v,
                                      sparse_tuning_type = sparse_tuning_type)
 
@@ -76,36 +77,29 @@ parameter_selection_conditional <- function(X_temp,
 
   # Step 3: Conditional smoothness on u having sparsity on u and v and no smoothness on v
   GCV_result_u <- opt_alpha_u(X = X_temp,
-                            n_var = n_var,
-                            ncol = ncol,
-                            S_alphas_v = S_alpha_v,
-                            S_alphas_u = S_alpha_list_u,
-                            alphas = smooth_tuning_u,
-                            sparse_tuning_result_u = gamma_u,
-                            sparse_tuning_result_v = gamma_v,
-                            sparse_tuning_type = sparse_tuning_type)
-
-
-
-
-
-
-
-
-
+                              n_var = n_var,
+                              ncol = ncol,
+                              S_alphas_v = S_alpha_v,
+                              S_alphas_u = S_alpha_list_u,
+                              alphas = smooth_tuning_u,
+                              sparse_tuning_result_u = gamma_u,
+                              sparse_tuning_result_v = gamma_v,
+                              sparse_tuning_type = sparse_tuning_type)
 
 
   ###### Smoothing tuning parameter using GCV ######
-  GCV_score_smooth = opt_alpha(X = X_temp,
-                                 n_var = n_var,
-                                 ncol = ncol,
-                                 S_alphas_v = S_alpha_list_v,
-                                 S_alphas_u = S_alpha_list_u,
-                                 alphas = smooth_tuning,
-                                 sparse_tuning_result_u = sparse_tuning_selection_u,
-                                 sparse_tuning_result_v = sparse_tuning_selection_v,
-                                 sparse_tuning_type = sparse_tuning_type,
-                                 two_way_smoothness)
+  GCV_result_v = opt_alpha_v(X = X_temp,
+                             n_var = n_var,
+                             ncol = ncol,
+                             S_alphas_v = S_alpha_list_v, # A list (length = n_var)
+                             S_alphas_u = GCV_result_u$opt_s.alpha_u,
+                             alphas = smooth_tuning_v, # A matrix
+                             alpha_u = GCV_result_u$opt.alpha_u,
+                             sparse_tuning_result_u = gamma_u,
+                             sparse_tuning_result_v = gamma_v,
+                             Omegas_u = Omegas_u,
+                             sparse_tuning_type = sparse_tuning_type)
+
 
 
 

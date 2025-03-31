@@ -30,12 +30,11 @@ opt_alpha_u <- function(X,
                                  sparse_tuning_type)
       u <- power_result[[2]]
       v <- t(X) %*% u
-      GCV_alpha <- ((1/n) * norm_vec(X%*% v /norm_vec(v) - u)^2 ) / ( 1 -  (1/n)* sum(diag(S)))^2
-      #setTxtProgressBar(pb, i + (k - 1) / n_var)
+      GCV_alpha <- ( ((1/n) * (diag(nrow(S) - S))%*% (X %*% v) / norm_vec(v))^2 ) / ( 1 -  (1/n)* sum(diag(S)))^2
       GCV[i] <- GCV_alpha
     }
 
-    opt.alpha <- alphas[which.min(GCV), ]
+    opt.alpha <- alphas[which.min(GCV)]
     opt_s.alpha <- S_alphas_u[[which.min(GCV)]]
     #close(pb)
     result <- list(GCV_u = GCV, opt.alpha_u = opt.alpha, opt_s.alpha_u = opt_s.alpha, GCVdf = data.frame(alphas, GCV))
@@ -51,7 +50,8 @@ opt_alpha_v <- function(X,
                         ncol,
                         S_alphas_v, # A list (length = n_var)
                         S_alphas_u, # A list (length = length(alphas))
-                        alphas, # A vector
+                        alphas, # A matrix
+                        alpha_u,
                         sparse_tuning_result_u,
                         sparse_tuning_result_v,
                         Omegas_u,
@@ -83,7 +83,7 @@ opt_alpha_v <- function(X,
       v <- t(X) %*% u
       R <- (t(u) %*% Omega %*% u) / norm_vec(u)
 
-      GCV_alpha <- ((1/m)*(norm_vec(( t(X)%*%u / norm_vec(u)) - v))^2) / ( 1 - (1/m) * (sum(diag(S)) / (1 + alpha*R) ))^2
+      GCV_alpha <- ((1/m)*(norm_vec(( t(X)%*%u / norm_vec(u)) - v))^2) / ( 1 - (1/m) * (sum(diag(S)) / (1 + alpha_u*R) ))^2
       #setTxtProgressBar(pb, i + (k - 1) / n_var)
       GCV[i] <- GCV_alpha
     }

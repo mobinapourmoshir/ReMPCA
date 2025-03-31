@@ -64,7 +64,7 @@ power_algo = function(data,
                                           tuning_parameter = sparse_tuning_result_u,
                                           type = sparse_tuning_type) # u = h_{gamma} Xv
     if(all(u_new == 0)){ # To avoid 0 in the denominator
-      S_alpha_u %*% u_new <- data%*%v_old
+      u_new <- S_alpha_u %*% data%*%v_old
       }
     v_new <- c()
     for(i in 1:n_var){
@@ -90,3 +90,4 @@ power_algo = function(data,
   u_new = u_new/norm_vec(u_new) # u/||u||
   return(list(v_new,u_new))
 }
+
