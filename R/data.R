@@ -90,3 +90,4 @@ object_list <- hdClass(hdlist = hd_list,
                        Smoothing_parameter = NULL,  # Custom smoothing parameter for rows
                        Sparsity_parameter = round(seq(0,300, length.out = 30)))  # Custom sparsity parameter for rows
 
+
