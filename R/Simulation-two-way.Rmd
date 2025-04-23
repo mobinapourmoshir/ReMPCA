@@ -13,7 +13,15 @@ output: pdf_document
 - 7. Conditional two-way sparsity two-way smoothness
 - 8. Multivariate hybrid data case
 
-
+```{r load-functions, include=FALSE}
+source("Sparsity.R")
+source("Smoothness.R")
+source("fdClass.R")
+source("rdClass.R")
+source("hdClass.R")
+source("Power_Algorithm.R")
+source("get_pen.R")
+```
 
 
 ## 4.1. Sparsity on *u* (1-SE)
@@ -36,7 +44,7 @@ image(noisy_data, main = "Noisy image")
 persp(noisy_data, theta = 40, main = "Noisy persp")
 ```
 Let's start with the sparsity on *v* for this image that we've already tested it!
-```{r, include=FALSE}
+```{r}
 fd_object <- fdClass(data = as.matrix(noisy_data),
                      argval = NULL, 
                      Smoothing_parameter = NULL,  
@@ -50,8 +58,8 @@ object_list <- hdClass(hdlist = hd_list,
                        Sparsity_parameter = round(seq(0,49, length.out = 40)))  # Custom sparsity parameter for rows
 
 # Combine matrices side by side
-hd2 <- object_list
-n <- nrow(hd2); K_fold <- 5; sparse_tuning_type <- "soft"
+hd <- object_list
+n <- nrow(hd); K_fold <- 5; sparse_tuning_type <- "soft"
 n_var <- attr(object_list, "n_var") # Number of variables (# of matrices in object_list)
 ncol <- data.frame(attr(object_list, "ncol")) # Number of columns of each matrix
 
@@ -69,6 +77,52 @@ X_temp <- hd
 S_alpha_v <- list()
 for (i in 1:n_var) {
   S_alpha_v[[i]] <- diag(ncol[,i])
+}
+
+cv_sparse_col_SE <- function(data,
+                             n_var,
+                             ncol,
+                             S_alpha_v,
+                             S_alpha_u,
+                             K_fold,
+                             sparse_tuning_result_u,
+                             sparse_tuning_result_v,
+                             sparse_tuning_type) {
+
+  set.seed(123)
+  shuffled_rows <- sample(nrow(data)) # Grouping rows of data matrix
+  group_size <- ifelse(round(length(shuffled_rows) / K_fold, digits = 0) == 0,
+                       1,
+                       round(length(shuffled_rows) / K_fold, digits = 0))
+
+  data_tilde <- data
+  fold_errors <- numeric(K_fold)  # store errors
+
+  for (k in 1:K_fold) {
+    rows_to_remove <- shuffled_rows[((k - 1) * group_size + 1):min(k * group_size, length(shuffled_rows))]
+    data_train <- data.frame(data_tilde[-rows_to_remove,])
+    data_test <- data.frame(matrix(data_tilde[rows_to_remove,], nrow = length(rows_to_remove)))
+
+    # Power Algorithm
+    power_train <- power_algo(data = data_train,
+                              n_var = n_var,
+                              ncol = ncol,
+                              sparse_tuning_result_u = sparse_tuning_result_u,
+                              sparse_tuning_result_v = sparse_tuning_result_v,
+                              S_alpha_v = S_alpha_v,
+                              S_alpha_u = S_alpha_u[-rows_to_remove, -rows_to_remove],
+                              sparse_tuning_type = sparse_tuning_type)
+
+    v_train <- power_train[[1]]
+    u_test <- as.matrix(data_test) %*% as.matrix(v_train)
+
+    # Fold-wise error
+    fold_errors[k] <- sum((data_test - u_test %*% t(v_train))^2) / nrow(data_test)
+  }
+  CV_mean <- mean(fold_errors)
+  CV_se <- sd(fold_errors) / sqrt(K_fold)
+  
+  return(list(CV_error = CV_mean, SE = CV_se, fold_errors = fold_errors))
 }
 
 # Tuning across sparsity levels using 1-SE rule
@@ -111,15 +165,17 @@ for (i in 1:n_var) {
   sparse_tuning_selection_v <- gamma_Xi[j_1se]
   gamma_v[i] <- sparse_tuning_selection_v
 }
-
 gamma_v
+plot(CV_results[[1]]$cv_means, type = 'l')
 ```
 
-```{r}
-par(mfrow = c(2,2))
-matplot(t(X1), type = 'l', main = 'X1')
-matplot(t(X2), type = 'l', main = 'X2')
-gamma_v
+```{r, fig.height=7, fig.width=5}
+par(mfrow = c(3,2), mar = c(4, 4, 2, 1))
+matplot(svd(z)$v[,1], type = 'l', main ="True V")
+matplot(-svd(z)$u[,1], type = 'l', main ="True U")
+
+matplot(svd(noisy_data)$v[,1], type = 'l', main ="True V")
+matplot(svd(noisy_data)$u[,1], type = 'l', main ="True U")
 
 result <-power_algo(data = X_temp,
                     n_var = n_var,
@@ -130,13 +186,17 @@ result <-power_algo(data = X_temp,
                     S_alpha_u = diag(nrow(X_temp)), # A matrix
                     sparse_tuning_type= sparse_tuning_type)
 
-v <- result[[1]]
-matplot(-v[1:50], type = 'l', main = 'v1')
-matplot(-v[51:100], type = 'l', main = 'v2')
+matplot(-result[[1]], type = 'l', main = 'v')
+matplot(result[[2]], type = 'l', main = 'u')
 ```
+```{r}
+par(mfrow = c(1,4), pin = c(1,1), mar = c(2, 2, 2, 2), pty = "s")
+image(noisy_data, main = "Noisy image")
+image(result[[2]]%*%result[[1]], main = "Reconstructed image")
 
-
-
+persp(noisy_data, theta = 40, main = "Noisy persp")
+persp(result[[2]]%*%result[[1]], theta = 40, main = "Reconstructed persp")
+```
 
 
 Based on the images shown above, level of sparsity for u needs to be 25. Now, we can implement sparsity on u:
@@ -173,6 +233,98 @@ for (sparse_tuning_single in sparse_tuning_u) {
 gamma_u
 plot(CV_scores_result_u, type = 'l')
 ```
+
+```{r, fig.height=7, fig.width=5}
+par(mfrow = c(3,2), mar = c(4, 4, 2, 1))
+matplot(svd(z)$v[,1], type = 'l', main ="True V")
+matplot(-svd(z)$u[,1], type = 'l', main ="True U")
+
+matplot(svd(noisy_data)$v[,1], type = 'l', main ="True V")
+matplot(svd(noisy_data)$u[,1], type = 'l', main ="True U")
+
+result <-power_algo(data = X_temp,
+                    n_var = n_var,
+                    ncol = ncol,
+                    sparse_tuning_result_u = gamma_u, # A fixed number
+                    sparse_tuning_result_v = gamma_v, # A vector (length = p)
+                    S_alpha_v = S_alpha_v, # A list (lenght = p)
+                    S_alpha_u = diag(nrow(X_temp)), # A matrix
+                    sparse_tuning_type= sparse_tuning_type)
+
+matplot(-result[[1]], type = 'l', main = 'v')
+matplot(result[[2]], type = 'l', main = 'u')
+```
+
+```{r}
+par(mfrow = c(1,4), pin = c(1,1), mar = c(2, 2, 2, 2), pty = "s")
+image(noisy_data, main = "Noisy image")
+image(result[[2]]%*%result[[1]], main = "Reconstructed image")
+
+persp(noisy_data, theta = 40, main = "Noisy persp")
+persp(result[[2]]%*%result[[1]], theta = 40, main = "Reconstructed persp")
+```
+
+Now, our goal is to add 1 SE to the CV formula:
+```{r}
+cv_sparse_row_SE <- function(data,           # Hybrid data matrix
+                             n_var,
+                             ncol,
+                             S_alpha_v,
+                             S_alpha_u,
+                             K_fold,
+                             sparse_tuning_result_u,
+                             sparse_tuning_result_v,
+                             sparse_tuning_type) {
+
+  set.seed(123)
+  shuffled_cols <- sample(ncol(data))  # Shuffling columns for CV
+  group_size <- ifelse(round(length(shuffled_cols) / K_fold, digits = 0) == 0,
+                       1,
+                       round(length(shuffled_cols) / K_fold, digits = 0))
+
+  data_tilde <- data
+  fold_errors <- numeric(K_fold)
+
+  for (k in 1:K_fold) {
+    cols_to_remove <- shuffled_cols[((k - 1) * group_size + 1):min(k * group_size, length(shuffled_cols))]
+    
+    # Create train/test sets by removing columns
+    data_train <- data.frame(data_tilde[, -cols_to_remove])
+    data_test <- data.frame(matrix(data_tilde[, cols_to_remove], ncol = length(cols_to_remove)))
+
+    # Update ncol for train set (needed because column structure changes)
+    updated_ncol <- update_ncol(ncol, cols_to_remove)
+
+    # Create identity smoother matrices for columns of train data
+    S_alpha_v_train <- lapply(1:n_var, function(i) diag(updated_ncol[, i]))
+
+    # Power Algorithm
+    power_train <- power_algo(data = data_train,
+                              n_var = n_var,
+                              ncol = updated_ncol,
+                              sparse_tuning_result_u = sparse_tuning_result_u,
+                              sparse_tuning_result_v = sparse_tuning_result_v,
+                              S_alpha_v = S_alpha_v_train,
+                              S_alpha_u = S_alpha_u,
+                              sparse_tuning_type = sparse_tuning_type)
+
+    u_train <- power_train[[2]]
+    v_test <- t(as.matrix(data_test)) %*% as.matrix(u_train)
+
+    # Fold-wise reconstruction error
+    fold_errors[k] <- sum((data_test - u_train %*% t(v_test))^2) / ncol(data_test)
+  }
+
+  CV_mean <- mean(fold_errors)
+  CV_se <- sd(fold_errors) / sqrt(K_fold)
+
+  return(list(CV_error = CV_mean, SE = CV_se, fold_errors = fold_errors))
+}
+
+
+```
+
+
 
 
 

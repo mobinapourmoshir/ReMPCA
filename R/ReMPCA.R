@@ -55,7 +55,7 @@ ReMPCA <- function(object_list,
   GridPoints_v <- attr(object_list, "GridPoints_v")
 
   ####### S_alpha for all alphas #######
-  S_alpha_list_u <- S_alpha_list_v <- list()
+  S_alpha_list_u <- S_alpha_list_v <- Omegas_v <- list()
   index <- 0
   cat("Preprocessing ...\n")
   n_iter1 <- nrow(smooth_tuning_col)     # The number of alphas
@@ -68,7 +68,7 @@ ReMPCA <- function(object_list,
   # S_alpha for v
   for (alpha_index in 1:nrow(smooth_tuning_col)) {
     index <- index + 1
-    S_u <- S_v <- Omegas_v <- Omegas_u <- list()
+    S_u <- S_v <- Omega_v <- Omegas_u <- list()
     for (i in 1:n_var) {
       alpha <- as.numeric(smooth_tuning_col[alpha_index,i])
       if(is.null(GridPoints_v[[i]])){
@@ -78,10 +78,11 @@ ReMPCA <- function(object_list,
                                   alpha = alpha,
                                   type = smoothness_type)
         S_v[[i]] <- get.pen.result$S.alpha
-        Omegas_v[[i]] <- get.pen.result$ Omega
+        Omega_v[[i]] <- get.pen.result$ Omega
       }
     }
     S_alpha_list_v[[index]] <- S_v #as.matrix(bdiag(S_v))
+    Omegas_v[[index]] <- Omega_v
     setTxtProgressBar(pb, index)
   }
 
