@@ -31,7 +31,7 @@ ReMPCA <- function(object_list,
   hd <- object_list
   n <- nrow(hd)
   n_var <- attr(object_list, "n_var") # Number of variables (# of matrices in object_list)
-  ncol <- attr(object_list, "ncol") # Number of columns of each matrix
+  ncol <- data.frame(attr(object_list, "ncol")) # Number of columns of each matrix
 
   ####### Smoothing Parameter ##########
   # Generate all combinations alphas (one row per combination)

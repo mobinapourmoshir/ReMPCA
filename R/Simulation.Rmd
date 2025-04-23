@@ -269,7 +269,7 @@ GridPoints_u <- attr(object_list, "GridPoints_u")
 GridPoints_v <- attr(object_list, "GridPoints_v")
 
 ####### S_alpha for all alphas #######
-S_alpha_list_u <- S_alpha_list_v <- list()
+S_alpha_list_u <- S_alpha_list_v <- Omegas_v <- list()
 index <- 0
 cat("Preprocessing ...\n")
 n_iter1 <- nrow(smooth_tuning_col)     # The number of alphas
@@ -541,7 +541,9 @@ power_algo2 = function(data,
                       sparse_tuning_type,
                       conditional = FALSE, # New parameter for conditional update
                       Omega_u = NULL,      # Needed only if conditional = TRUE
-                      Omega_v = NULL       # Needed only if conditional = TRUE
+                      Omega_v = NULL,      # Needed only if conditional = TRUE
+                      alpha_v = 0,  # A vector
+                      alpha_u = 0   # A number  
                       ){
 
   rownames(data) <- NULL; colnames(data) <- NULL
@@ -550,55 +552,50 @@ power_algo2 = function(data,
   # Splitting data
   start_col <- 1; splitted_data <- list()
   for (i in 1:n_var) {
-    num_cols <- ncol[[i]]
-    splitted_data[[i]] <- data[, start_col:(start_col + num_cols - 1)]
+    num_cols <- ncol[[i]]  # Get number of columns for the ith matrix
+    splitted_data[[i]] <- data[, start_col:(start_col + num_cols - 1)]  # Extract matrix
     start_col <- start_col + num_cols
   }
 
   v_old <- svd(as.matrix(data))$v[, 1]
   errors <- Inf; thresh <- 1e-10
 
+  # Power Algorithm
   while (errors > thresh) {
-    Xv <- data %*% v_old
-    u_raw <- sparse_pen_fun(y = Xv,
-                            tuning_parameter = sparse_tuning_result_u,
-                            type = sparse_tuning_type)
-    if (all(u_raw == 0)) u_raw <- Xv
-
-    if (conditional && !is.null(Omega_v)) {
-      norm_v2 <- as.numeric(norm_vec(v_old)^2)
-      R_v <- as.numeric(t(v_old) %*% Omega_v %*% v_old / norm_v2)
-      u_new <- S_alpha_u %*% u_raw / (1 + R_v)
-    } else {
-      u_new <- S_alpha_u %*% u_raw
-    }
-
-    v_new <- c()
-    for (i in 1:n_var) {
-      sparse_param <- as.integer(sparse_tuning_result_v[i])
-      Xu_i <- t(splitted_data[[i]]) %*% as.matrix(u_new)
-      v_part_raw <- sparse_pen_fun(y = Xu_i,
-                                   tuning_parameter = sparse_param,
-                                   type = sparse_tuning_type)
-      if (all(v_part_raw == 0)) v_part_raw <- Xu_i
-
-      if (conditional && !is.null(Omega_u)) {
-        norm_u2 <- as.numeric(norm_vec(u_new)^2)
-        R_u <- as.numeric(t(u_new) %*% Omega_u %*% u_new / norm_u2)
-        v_part <- S_alpha_v[[i]] %*% v_part_raw / (1 + R_u)
-      } else {
-        v_part <- S_alpha_v[[i]] %*% v_part_raw
+    u_new <- S_alpha_u %*% sparse_pen_fun(y = data%*%as.matrix(v_old),
+                                          tuning_parameter = sparse_tuning_result_u,
+                                          type = sparse_tuning_type) # u = h_{gamma} Xv
+    if(all(u_new == 0)){ # To avoid 0 in the denominator
+      u_new <- S_alpha_u %*% data%*%v_old
       }
-      v_new <- c(v_new, v_part)
-    }
+    v_new <- c()
+    for(i in 1:n_var){
+      sparse_param <- as.integer(sparse_tuning_result_v[i])
+      v <- S_alpha_v[[i]] %*% sparse_pen_fun(y = t(splitted_data[[i]]) %*% as.matrix(u_new),
+                                             tuning_parameter = sparse_param,
+                                             type = sparse_tuning_type) # v = S_{alpha} h_{gamma} t(X)u
 
-    v_new <- v_new / norm_vec(v_new)
-    errors <- sum((v_new - v_old)^2)
+      if(all(v == 0)){ # To avoid 0 in the denominator
+        v <- S_alpha_v[[i]] %*% t(splitted_data[[i]]) %*% as.matrix(u_new)}
+      v_new <- c(v_new, v)
+      }
+
+    v_new = v_new / norm_vec(v_new) # v/||v||
+
+    # Convergence condition
+    errors = sum((v_new - v_old)^2)
     v_old <- v_new
   }
-  u_new <- u_new / norm_vec(u_new)
-  return(list(v_new, u_new))
+  u_new = u_new/norm_vec(u_new) # u/||u||
+  
+  if (conditional && !is.null(Omega_u) && !is.null(Omega_v)) {
+    u_new <- u_new/(t(v_new) %*% (diag(nrow(Omega_v)) + alpha_v * Omega_v) %*% v_new)
+    v_new <- v_new/(t(u_new) %*% (diag(nrow(Omega_u)) + alpha_u * Omega_u) %*% u_new)
+  }
+  return(list(v_new,u_new))
 }
+
+
 
 opt_alpha_v <- function(X,
                         n_var,
@@ -629,14 +626,20 @@ opt_alpha_v <- function(X,
 
       # Get u and v from power algorithm
       power_result <- power_algo2(data = X,
-                                 n_var = n_var,
-                                 ncol = ncol,
-                                 sparse_tuning_result_u = sparse_tuning_result_u,
-                                 sparse_tuning_result_v = sparse_tuning_result_v,
-                                 S_alpha_v = S_alpha_v,
-                                 S_alpha_u = S_alphas_u,
-                                 sparse_tuning_type = sparse_tuning_type,
-                                 conditional = TRUE)
+                                  n_var = n_var,
+                                  ncol = ncol,
+                                  sparse_tuning_result_u = sparse_tuning_result_u,
+                                  sparse_tuning_result_v = sparse_tuning_result_v,
+                                  S_alpha_v = S_alpha_v,
+                                  S_alpha_u = S_alphas_u,
+                                  sparse_tuning_type = sparse_tuning_type,
+                                  conditional = TRUE,
+                                  Omega_u = Omega_u,
+                                  Omega_v = Omega_v,
+                                  alpha_v = alpha_v,
+                                  alpha_u = alpha_u)
+      
+      
 
       v <- power_result[[1]]  # full v vector
       u <- power_result[[2]]  # fixed u
@@ -691,64 +694,5 @@ GCV_result_v = opt_alpha_v(X = X_temp,
 GCV_result_v$opt.alpha_v
 GCV_result_v$GCVdf_v
 ```
-
-
-
-## 4.1. Sparsity on *u* (1-SE)
-
-To test Sparsity and Smoothness on u, we need a set of data that has functional behavior on both sides to be able to incorporating regularization
-on both the left and right singular vectors in the Singular Value Decomposition (SVD) of the data matrix. As a result, we can work with the following data:
-```{r}
-x <- seq(0,2*pi, len = 50)
-y1 <- sin(x); y1[1:26] <- 0 
-y2 <- cos(2*x); y2[32:50] <- 0
-z<- outer(y1,y2)
-  
-par(mfrow = c(1,4), pin = c(1,1), mar = c(2, 2, 2, 2), pty = "s")
-image(z, main = "TRUE")
-persp(z, theta = 40, main = "True persp")
-
-set.seed(123)
-noisy_data <- z + rnorm(length(z), sd = 0.1)
-image(noisy_data, main = "Noisy image")
-persp(noisy_data, theta = 40, main = "Noisy persp")
-```
-
-Based on the images shown above, level of sparsity for u needs to be 25. Now, we can implement sparsity on u:
-```{r}
-sparse_tuning_u <- attr(object_list, "Sparsity_parameter")
-
-S_alpha_v <- list()
-for (i in 1:n_var) {
-  S_alpha_v[[i]] <- diag(ncol[,i])
-}
-
-CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- Inf
-CV_scores_result_u <- CV_scores_result_v <- c()
-result = c()
-
-# Step 1: Sparsity on u  with no smoothness
-for (sparse_tuning_single in sparse_tuning_u) {
-  sparse_score = cv_sparse_row(data=X_temp,
-                               ncol = ncol,
-                               n_var = n_var,
-                               S_alpha_v = S_alpha_v,
-                               S_alpha_u = diag(nrow(X_temp)),
-                               K_fold = K_fold,
-                               sparse_tuning_result_u = sparse_tuning_single,
-                               sparse_tuning_result_v = rep(0, n_var),
-                               sparse_tuning_type = sparse_tuning_type)
-
-  CV_scores_result_u <- c(CV_scores_result_u, sparse_score)
-  if (sparse_score <= CV_score_sparse_u) {
-    CV_score_sparse_u = sparse_score
-    gamma_u = sparse_tuning_single
-  }
-}
-gamma_u
-plot(CV_scores_result_u, type = 'l')
-```
-
-
 
 

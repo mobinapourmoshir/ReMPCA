@@ -1,0 +1,178 @@
+---
+title: "Simulation-two-way"
+output: pdf_document
+---
+
+- 1. Sparsity on *v* (1-SE)
+- 2. Smoothness on *v*
+- 3. Smoothness and Sparsity on *v* 
+- 4.1. Sparsity on *u* (1-SE)
+- 4.2. Smoothness on *u*
+- 5. Two-way conditional sparsity
+- 6. Two-way conditional smoothness
+- 7. Conditional two-way sparsity two-way smoothness
+- 8. Multivariate hybrid data case
+
+
+
+
+## 4.1. Sparsity on *u* (1-SE)
+
+To test Sparsity and Smoothness on u, we need a set of data that has functional behavior on both sides to be able to incorporating regularization
+on both the left and right singular vectors in the Singular Value Decomposition (SVD) of the data matrix. As a result, we can work with the following data:
+```{r}
+x <- seq(0,2*pi, len = 50)
+y1 <- sin(x); y1[1:26] <- 0 
+y2 <- cos(2*x); y2[32:50] <- 0
+z<- outer(y1,y2)
+  
+par(mfrow = c(1,4), pin = c(1,1), mar = c(2, 2, 2, 2), pty = "s")
+image(z, main = "TRUE")
+persp(z, theta = 40, main = "True persp")
+
+set.seed(123)
+noisy_data <- z + rnorm(length(z), sd = 0.1)
+image(noisy_data, main = "Noisy image")
+persp(noisy_data, theta = 40, main = "Noisy persp")
+```
+Let's start with the sparsity on *v* for this image that we've already tested it!
+```{r, include=FALSE}
+fd_object <- fdClass(data = as.matrix(noisy_data),
+                     argval = NULL, 
+                     Smoothing_parameter = NULL,  
+                     Sparsity_parameter = round(seq(0,49, length.out = 30)))  
+
+
+hd_list <- list(fd_object)  # List of fd and rd objects
+object_list <- hdClass(hdlist = hd_list,
+                       argval = NULL,  # Grid points for rows
+                       Smoothing_parameter = NULL,  # Custom smoothing parameter for rows
+                       Sparsity_parameter = round(seq(0,49, length.out = 40)))  # Custom sparsity parameter for rows
+
+# Combine matrices side by side
+hd2 <- object_list
+n <- nrow(hd2); K_fold <- 5; sparse_tuning_type <- "soft"
+n_var <- attr(object_list, "n_var") # Number of variables (# of matrices in object_list)
+ncol <- data.frame(attr(object_list, "ncol")) # Number of columns of each matrix
+
+####### Smoothing Parameter ##########
+# Generate all combinations alphas (one row per combination)
+smooth_tuning_col <- expand.grid(attr(object_list, "Smoothing_parameter_col")) # A matrix
+smooth_tuning_row <- attr(object_list, "Smoothing_parameter") # A vector
+
+####### level of sparsity (for both functional and non-functional data) #######
+sparsity_row_list <- attr(object_list, "Sparsity_parameter")
+sparsity_col_list <- attr(object_list, "Sparsity_parameter_col")
+
+X_temp <- hd
+# No smoothness list:
+S_alpha_v <- list()
+for (i in 1:n_var) {
+  S_alpha_v[[i]] <- diag(ncol[,i])
+}
+
+# Tuning across sparsity levels using 1-SE rule
+CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- Inf
+CV_scores_result_u <- CV_scores_result_v <- list()
+CV_results <- list()
+
+gamma_v <- rep(0, n_var)
+for (i in 1:n_var) {
+  gamma_Xi <- sparsity_col_list[[i]]
+  cv_means <- cv_ses <- fold_errors_vec <- numeric(length(gamma_Xi))
+
+  for (j in seq_along(gamma_Xi)) {
+    gamma_v[i] <- gamma_Xi[j]
+
+    cv_result <- cv_sparse_col_SE(data = X_temp,
+                                  n_var = n_var,
+                                  ncol = ncol,
+                                  S_alpha_v = S_alpha_v,
+                                  S_alpha_u = diag(nrow(X_temp)),
+                                  K_fold = K_fold,
+                                  sparse_tuning_result_u = 0,
+                                  sparse_tuning_result_v = gamma_v,
+                                  sparse_tuning_type = sparse_tuning_type)
+
+    cv_means[j] <- cv_result$CV_error
+    cv_ses[j] <- cv_result$SE
+    #fold_errors_vec <- cv_result$fold_errors
+  }
+  
+  CV_results[[i]] <- data.frame(gamma_Xi, cv_means, cv_ses)
+  
+  # 1-SE rule
+  j_min <- which.min(cv_means)
+  threshold <- cv_means[j_min] + cv_ses[j_min]
+  j_1se <- max(which(cv_means <= threshold))  # Most sparse within 1-SE
+
+  # Store results
+  CV_scores_result_v[[i]] <- list(errors = cv_means, SEs = cv_ses)
+  sparse_tuning_selection_v <- gamma_Xi[j_1se]
+  gamma_v[i] <- sparse_tuning_selection_v
+}
+
+gamma_v
+```
+
+```{r}
+par(mfrow = c(2,2))
+matplot(t(X1), type = 'l', main = 'X1')
+matplot(t(X2), type = 'l', main = 'X2')
+gamma_v
+
+result <-power_algo(data = X_temp,
+                    n_var = n_var,
+                    ncol = ncol,
+                    sparse_tuning_result_u = 0, # A fixed number
+                    sparse_tuning_result_v = gamma_v, # A vector (length = p)
+                    S_alpha_v = S_alpha_v, # A list (lenght = p)
+                    S_alpha_u = diag(nrow(X_temp)), # A matrix
+                    sparse_tuning_type= sparse_tuning_type)
+
+v <- result[[1]]
+matplot(-v[1:50], type = 'l', main = 'v1')
+matplot(-v[51:100], type = 'l', main = 'v2')
+```
+
+
+
+
+
+Based on the images shown above, level of sparsity for u needs to be 25. Now, we can implement sparsity on u:
+```{r}
+sparse_tuning_u <- attr(object_list, "Sparsity_parameter")
+
+S_alpha_v <- list()
+for (i in 1:n_var) {
+  S_alpha_v[[i]] <- diag(ncol[,i])
+}
+
+CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- Inf
+CV_scores_result_u <- CV_scores_result_v <- c()
+result = c()
+
+# Step 1: Sparsity on u  with no smoothness
+for (sparse_tuning_single in sparse_tuning_u) {
+  sparse_score = cv_sparse_row(data=X_temp,
+                               ncol = ncol,
+                               n_var = n_var,
+                               S_alpha_v = S_alpha_v,
+                               S_alpha_u = diag(nrow(X_temp)),
+                               K_fold = K_fold,
+                               sparse_tuning_result_u = sparse_tuning_single,
+                               sparse_tuning_result_v = rep(0, n_var),
+                               sparse_tuning_type = sparse_tuning_type)
+
+  CV_scores_result_u <- c(CV_scores_result_u, sparse_score)
+  if (sparse_score <= CV_score_sparse_u) {
+    CV_score_sparse_u = sparse_score
+    gamma_u = sparse_tuning_single
+  }
+}
+gamma_u
+plot(CV_scores_result_u, type = 'l')
+```
+
+
+
