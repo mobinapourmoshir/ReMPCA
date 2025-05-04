@@ -1,0 +1,218 @@
+---
+title: "Simulation-two-way"
+output: pdf_document
+---
+
+- 1. Sparsity on *v* (1-SE)
+- 2. Smoothness on *v*
+- 3. Smoothness and Sparsity on *v* 
+- 4.1. Sparsity on *u* (1-SE)
+- 4.2. Smoothness on *u*
+- 5. Two-way conditional sparsity
+- 6. Two-way conditional smoothness
+- 7. Conditional two-way sparsity two-way smoothness
+- 8. Multivariate hybrid data case
+
+```{r load-functions, include=FALSE}
+source("Sparsity.R")
+source("Smoothness.R")
+source("fdClass.R")
+source("rdClass.R")
+source("hdClass.R")
+source("Power_Algorithm.R")
+source("get_pen.R")
+source("New Functions.R")
+```
+
+
+# Multivariate hybrid data case
+Let's start with simulating a data with 4 variables (2 functions and 2 regular). 
+
+```{r}
+set.seed(123)
+par(mfrow = c(2, 4), pin = c(1, 1), mar = c(2, 2, 2, 2), pty = "s")
+
+# Common left singular vector u (1 x 50)
+n <- 150
+u <- rnorm(n, sd = 0.5)
+u <- u / sqrt(sum(u^2))
+
+# Variable 1: v1 ~ N(0,1) with random near-zero entries
+m1 <- 20
+v1 <- rnorm(m1, sd = 0.8)
+zero_indices_v1 <- sample(1:m1, 5)  # Select 5 indices
+v1[zero_indices_v1] <- v1[zero_indices_v1] * 1e-2 + rnorm(5, sd = 0.01)
+v1 <- v1 / sqrt(sum(v1^2))
+matplot(v1, type = 'l', main = 'v1, Regular')
+
+X1 <- outer(u, v1)
+image(X1, main = 'X1, Regular')
+
+# Variable 2: structured functional vector (similar to y1)
+m2 <- 40
+x2 <- seq(0, 2 * pi, length.out = m2)
+v2 <- sin(x2)
+v2[1:20] <- rnorm(20, sd = 0.05)  # Replace first 20 values with near-zero noise
+v2 <- v2 / sqrt(sum(v2^2))
+matplot(v2, type = 'l', main = 'v2, Functional')
+
+X2 <- outer(u, v2)
+image(X2, main = 'X2, Functional')
+
+# Variable 3: structured functional vector (similar to y2)
+m3 <- 30
+x3 <- seq(0, 2 * pi, length.out = m3)
+v3 <- cos(2 * x3)
+#v3[21:30] <- rnorm(10, sd = 0.05)  # Replace end with near-zero noise
+v3 <- v3 / sqrt(sum(v3^2))
+matplot(v3, type = 'l', main = 'v3, Functional')
+
+X3 <- outer(u, v3)
+image(X3, main = 'X3, Functional')
+
+# Variable 4: v4 ~ N(0,1) with some added noise
+m4 <- 10
+v4 <- rnorm(m4) + rnorm(m4, sd = 0.05)
+v4 <- v4 / sqrt(sum(v4^2))
+matplot(v4, type = 'l', main = 'v4, Regular')
+
+X4 <- outer(u, v4)
+image(X4, main = 'X4, Regular')
+
+# Combine all into clean and noisy hybrid matrices
+X_hybrid_clean <- cbind(outer(u, v1), outer(u, v2), outer(u, v3), outer(u, v4))
+X_hybrid_noisy <- cbind(X1, X2, X3, X4)
+
+
+# Plot 3D image
+#par(mfrow = c(1, 4), pin = c(1, 1), mar = c(2, 2, 2, 2))
+#image(X_hybrid_clean, main = "True image")
+#persp(X_hybrid_clean, theta = 40, main = "True persp")
+#image(X_hybrid_noisy, main = "Noisy image")
+#persp(X_hybrid_noisy, theta = 40, main = "Noisy persp")
+```
+
+Defining objects:
+```{r}
+fd_object2 <- fdClass(data = as.matrix(X2),
+                     argval = NULL, 
+                     Smoothing_parameter = NULL,  
+                     Sparsity_parameter = round(seq(0,39, length.out = 20)))
+
+rd_object1 <- rdClass(data = as.matrix(X1),
+                     Sparsity_parameter = round(seq(0,19, length.out = 10)))
+
+rd_object4 <- rdClass(data = as.matrix(X4),
+                     Sparsity_parameter = round(seq(0,9, length.out = 5)))
+
+fd_object3 <- fdClass(data = as.matrix(X3),
+                     argval = NULL, 
+                     Smoothing_parameter = NULL,  
+                     Sparsity_parameter = round(seq(0,29, length.out = 15)))
+
+
+hd_list <- list(rd_object1, fd_object2, fd_object3, rd_object4) 
+object_list <- hdClass(hdlist = hd_list,
+                       argval = NULL, 
+                       Smoothing_parameter = NULL,
+                       Sparsity_parameter = round(seq(0,50, length.out = 20)))
+
+# Combine matrices side by side
+hd <- object_list
+n <- nrow(hd); K_fold <- 5; sparse_tuning_type <- "soft"
+n_var <- attr(object_list, "n_var") # Number of variables (# of matrices in object_list)
+ncol <- data.frame(attr(object_list, "ncol")) # Number of columns of each matrix
+
+####### Smoothing Parameter ##########
+# Generate all combinations alphas (one row per combination)
+smooth_tuning_col <- expand.grid(attr(object_list, "Smoothing_parameter_col")) # A matrix
+smooth_tuning_row <- attr(object_list, "Smoothing_parameter") # A vector
+
+####### level of sparsity (for both functional and non-functional data) #######
+sparsity_row_list <- attr(object_list, "Sparsity_parameter")
+sparsity_col_list <- attr(object_list, "Sparsity_parameter_col")
+
+X_temp <- hd
+
+# No smoothness list:
+S_alpha_v <- list()
+for (i in 1:n_var) {
+  S_alpha_v[[i]] <- diag(ncol[,i])
+}
+
+# Tuning across sparsity levels using 1-SE rule
+CV_score_sparse_u <- CV_score_sparse_v <- GCV_score_smooth_u <- GCV_score_smooth_v <- Inf
+CV_scores_result_u <- CV_scores_result_v <- list()
+CV_results <- list()
+
+gamma_v <- rep(0, n_var)
+for (i in 1:n_var) {
+  gamma_Xi <- sparsity_col_list[[i]]
+  cv_means <- cv_ses <- fold_errors_vec <- numeric(length(gamma_Xi))
+
+  for (j in seq_along(gamma_Xi)) {
+    gamma_v[i] <- gamma_Xi[j]
+
+    cv_result <- cv_sparse_col_SE(data = X_temp,
+                                  n_var = n_var,
+                                  ncol = ncol,
+                                  S_alpha_v = S_alpha_v,
+                                  S_alpha_u = diag(nrow(X_temp)),
+                                  K_fold = K_fold,
+                                  sparse_tuning_result_u = 0,
+                                  sparse_tuning_result_v = gamma_v,
+                                  sparse_tuning_type = sparse_tuning_type)
+
+    cv_means[j] <- cv_result$CV_error
+    cv_ses[j] <- cv_result$SE
+    #fold_errors_vec <- cv_result$fold_errors
+  }
+  
+  CV_results[[i]] <- data.frame(gamma_Xi, cv_means, cv_ses)
+  
+  # 1-SE rule
+  j_min <- which.min(cv_means)
+  threshold <- cv_means[j_min] + cv_ses[j_min]
+  j_1se <- max(which(cv_means <= threshold))  # Most sparse within 1-SE
+
+  # Store results
+  CV_scores_result_v[[i]] <- list(errors = cv_means, SEs = cv_ses)
+  sparse_tuning_selection_v <- gamma_Xi[j_1se]
+  gamma_v[i] <- sparse_tuning_selection_v
+}
+gamma_v
+plot(CV_results[[1]]$cv_means, type = 'l')
+
+```
+
+```{r, fig.height=7, fig.width=10}
+result <-power_algo(data = X_temp,
+                    n_var = n_var,
+                    ncol = ncol,
+                    sparse_tuning_result_u = 0, # A fixed number
+                    sparse_tuning_result_v = gamma_v, # A vector (length = p)
+                    S_alpha_v = S_alpha_v, # A list (lenght = p)
+                    S_alpha_u = diag(nrow(X_temp)), # A matrix
+                    sparse_tuning_type= sparse_tuning_type)
+
+par(mfrow = c(2,4), mar = c(4, 4, 2, 1))
+matplot(v1/norm_vec(v1),type = "l", pch = 16, main ="v1")
+points(result[[1]][1:20]/norm_vec(result[[1]][1:20]), type = "p", pch = 16, main = 'v1', col = 'red')
+
+matplot(v2/norm_vec(v2), type = 'l', main ="v2")
+points(result[[1]][21:60]/norm_vec(result[[1]][21:60]), type = 'l', main = 'v2', col = 'red')
+
+matplot(v3/norm_vec(v3), type = 'l', main ="v3")
+points(result[[1]][61:90]/norm_vec(result[[1]][61:90]), type = 'l', main = 'v3', col = 'red')
+
+matplot(v4/norm_vec(v4),type = "p", pch = 16, main ="v4")
+points(result[[1]][91:100]/norm_vec(result[[1]][91:100]), type = 'l', main = 'v2', col = 'red')
+
+matplot(result[[1]][1:20], type = "p", pch = 16, main = 'v1')
+matplot(result[[1]][21:60], type = 'l', main = 'v2')
+matplot(result[[1]][61:90], type = 'l', main = 'v3')
+matplot(result[[1]][91:100], type = "p", pch = 16, main = 'v4')
+```
+
+
+

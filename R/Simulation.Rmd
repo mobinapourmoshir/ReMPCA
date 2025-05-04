@@ -541,8 +541,8 @@ If we use the following formula for conditional GCV when $\alpha_u = 0$, we shou
 
 $$\text{GCV}_v ({\alpha}_v; \alpha_u = 0) =
 \frac{1}{m} \sum_{k = 1}^K
-\frac{ \left\| \frac{\pmb{X}_k^\top u}{\|u\|^2} - v_k \right\|^2 }
-{\left( 1 - \frac{1}{m_k} \cdot \frac{ \operatorname{tr}(\pmb{S}_v(\alpha_k)) }{ 1 + \alpha_u \cdot \mathcal{R}_u(u) } \right)^2}$$
+\frac{ \left\| \frac{{X}_k^\top u}{\|u\|^2} - v_k \right\|^2 }
+{\left( 1 - \frac{1}{m_k} \cdot \frac{ \operatorname{tr}({S}_v(\alpha_k)) }{ 1 + \alpha_u \cdot \mathcal{R}_u(u) } \right)^2}$$
 
 ```{r}
 library(Matrix)
