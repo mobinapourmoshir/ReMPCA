@@ -255,6 +255,7 @@ opt_alpha_v <- function(X,
 
         trace_k <- sum(diag(S_k))
         denom_k <- (1 - (1 / m_k) * (trace_k / (1 + alpha_u * R_u)))^2
+        if(denom_k == 0){denom_k<-1}
         numer_k <- norm_vec(xuk - v_k)^2
 
         GCV_alpha <- GCV_alpha + numer_k / denom_k
@@ -273,7 +274,6 @@ opt_alpha_v <- function(X,
                 GCVdf_v = data.frame(alphas_v, GCV)))
   }
 }
-
 
 
 

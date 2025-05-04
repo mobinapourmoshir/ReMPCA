@@ -73,6 +73,7 @@ ReMPCA <- function(object_list,
       alpha <- as.numeric(smooth_tuning_col[alpha_index,i])
       if(is.null(GridPoints_v[[i]])){
         S_v[[i]] <- diag(ncol[,i])
+        Omega_v[[i]] <- diag(ncol[,i])
       }else{
         get.pen.result <- get.pen(td = GridPoints_v[[i]],
                                   alpha = alpha,
