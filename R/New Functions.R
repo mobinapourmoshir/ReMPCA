@@ -176,9 +176,9 @@ power_algo2 <- function(data,
         norm_u2 <- as.numeric(norm_vec(u_new)^2)
         R_u <- as.numeric(t(u_new) %*% alpha_Omega_u %*% u_new / norm_u2)
         denom_v <- 1 + R_u
-        v_part <- S_alpha_v[[i]] %*% v_part_raw / denom_v
+        v_part <- S_alpha_v[[i]] %*% as.vector(v_part_raw) / denom_v
       } else {
-        v_part <- S_alpha_v[[i]] %*% v_part_raw
+        v_part <- S_alpha_v[[i]] %*% as.vector(v_part_raw)
       }
 
       v_new <- c(v_new, v_part)
@@ -283,8 +283,8 @@ opt_alpha_u <- function(X,
                         S_alphas_v, # A list (length = n_var)
                         S_alphas_u, # A list (length = length(alphas))
                         alphas_u,   # A vector of alpha_u
-                        alpha_v,    # scalar
-                        Omega_v,    # A matrix associated with alpha_v
+                        alpha_v,    # A vector
+                        Omega_v,    # A list associated with alpha_v
                         Omegas_u,   # List of length, each element is matrix
                         sparse_tuning_result_u,
                         sparse_tuning_result_v,
@@ -297,7 +297,7 @@ opt_alpha_u <- function(X,
   if (all(alphas_u == 0)) {
     return(list(GCV_u = Inf, opt.alpha_u = 0, opt_s.alpha_u = diag(n), GCVdf_u = data.frame(alphas_u, rep(Inf, n_iter))))
   } else {
-    alpha_Omega_v <- alpha_v * Omega_v
+    alpha_Omega_v <- bdiag(Map(function(a, M) a * M, alpha_v, Omega_v))
     for (i in 1:n_iter) {
       GCV_alpha <- 0
       S <- S_alphas_u[[i]]
@@ -309,7 +309,7 @@ opt_alpha_u <- function(X,
                                   ncol,
                                   sparse_tuning_result_u, # A fixed number
                                   sparse_tuning_result_v, # A vector (length = p)
-                                  S_alpha_v = list(S_alphas_v), # A list (lenght = p)
+                                  S_alpha_v = S_alphas_v, # A list (lenght = p)
                                   S_alpha_u = S, # A matrix
                                   conditional = TRUE,
                                   alpha_Omega_v = alpha_Omega_v,
@@ -319,13 +319,13 @@ opt_alpha_u <- function(X,
       u <- power_result[[2]]
       v <- t(X) %*% u
       v <- as.vector(v)
-      Omega_v <- as.matrix(Omega_v)
-      storage.mode(Omega_v) <- "numeric"
+      #Omega_v <- as.matrix(Omega_v)
+      #storage.mode(Omega_v) <- "numeric"
 
       norm_v2 <- as.numeric(norm_vec(v)^2)
-      R_v <- as.numeric(t(v) %*% Omega_v %*% v / norm_v2)
+      alphaR_v <- as.numeric(t(v) %*% alpha_Omega_v %*% v / norm_v2)
 
-      GCV_alpha <- ( ((1/n) * ((X %*% v) / norm_vec(v)) - u )^2 ) / ( 1 -  (1/n)* (sum(diag(S)))/(1 + alpha_v*R_v))^2
+      GCV_alpha <- ( (1/n) *(norm_vec(((X %*% v) / norm_vec(v)) - u ))^2 ) / ( 1 -  (1/n)* (sum(diag(S)))/(1 + alphaR_v))^2
       GCV[i] <- GCV_alpha
     }
 
