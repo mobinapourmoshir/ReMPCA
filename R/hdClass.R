@@ -47,9 +47,9 @@
 #'                  Smoothing_parameter = NULL,
 #'                  Sparsity_parameter = round(seq(0, 39, length.out = 20)))
 #'
-#'  # Example for Hybrid Data (dd)
+#'  # Example for Hybrid Data (hd)
 #' hd_list <- list(rd_object, fd_object)
-#' object_list <- hd(hdlist = hd_list,
+#' hd_object <- hd(hdlist = hd_list,
 #'                   argval = NULL,
 #'                   Smoothing_parameter = NULL,
 #'                   Sparsity_parameter = round(seq(0,149, length.out = 20)))
