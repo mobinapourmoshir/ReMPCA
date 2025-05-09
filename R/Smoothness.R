@@ -1,3 +1,6 @@
+#' @importFrom matrix bdaig
+#' @importFrom utils  txtProgressBar setTxtProgressBar
+
 ############################### Calculating the optimal alpha for u using GCV ###############################
 opt_alpha_u <- function(X,
                         n_var,

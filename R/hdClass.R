@@ -1,16 +1,18 @@
-#' @title  Hybrid Data Class
+#' @title Hybrid Data Class
 #'
-#' @description
+#' @description Constructs an object of class `hd`, representing hybrid data
+#' composed of a list of `fd` and/or `rd` objects.
 #'
+#' @details
 #' The `hd` class represents hybrid data.
 #' - It is a list containing any number of `fd` and/or `rd` objects in no specific order.
 #' - Users can assign smoothing and sparsity parameters for the rows, as well as grid points for the rows.
 #' - All `fd` and `rd` objects within the `hd` list must have the same number of observations (rows).
-
 #'
 #' @param hdlist A list of `rd` and/ or `hd` objects.
 #'
-#' @param argval A vector of grid points. For hybrid data (`hd`), it assigns grid points to the rows, with a length equal to the number of rows in the data.
+#' @param argval A vector of grid points. For hybrid data (`hd`), it assigns grid points to
+#' the rows, with a length equal to the number of rows in the data.
 #' - If `NULL`, grid points are automatically assigned from 0 to 1.
 #'
 #' @param Smoothing_parameter : Smoothing parameter for rows It can be:
@@ -20,58 +22,61 @@
 #'   - If `NULL`, it analyzes a sequence of `2^seq(-30, 5, length.out = 10)` and attempts to tune it.
 #'
 #' @param Sparsity_parameter
-#' - A fixed number representing the level of sparsity for rows, or a vector of numerical values that will undergo cross-validation (CV) to determine the optimal value.
+#' - A fixed number representing the level of sparsity for rows, or a vector of
+#' numerical values that will undergo cross-validation (CV) to determine the optimal value.
 #' - For no sparsity, set it to 0.
 #' - If `NULL`, the row sparsity parameter will be tuned automatically.
 #' - This parameter is defined only for `hd` objects.
 #'
-#'
-#'
 #' @example
+#' # Example for Regular Data (rd)
+#' x <- seq(0,2*pi, len = 150); u <- sin(x); u[1:75] <- 0
+#' v1 <- rnorm(m1, sd = 0.8); zero_indices_v1 <- sample(1:m1, 5)
+#' v1[zero_indices_v1] <- v1[zero_indices_v1] * 1e-2 + rnorm(5, sd = 0.01)
+#' X1 <- outer(u, v1) + rnorm(length(outer(u, v1)), sd = 0.03)
+#'
+#' rd_object <- rd(data = as.matrix(X1),Sparsity_parameter = seq(1,19)))
+#'
 #' # Example for Functional Data (fd)
-#' fd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # Example functional data matrix (10 rows, 10 columns)
-#' fd_object <- fdClaa(data = fd_data,
-#'                     argval = seq(0, 1, length.out = 10),  # Grid points for columns
-#'                     Smoothing_parameter = 0.5,  # Custom smoothing parameter
-#'                     Sparsity_parameter = 2)  # Custom sparsity parameter
+#' x2 <- seq(0, 2*pi, length.out = 40)
+#' v2 <- cos(2*x2) ; v2[20:40] <- 0
+#' X2 <- outer(u, v2) + rnorm(length(outer(u, v2)), sd = 0.5)
+#'
+#' fd_object <- fd(data = as.matrix(X2),
+#'                  argval = NULL,
+#'                  Smoothing_parameter = NULL,
+#'                  Sparsity_parameter = round(seq(0, 39, length.out = 20)))
+#'
+#'  # Example for Hybrid Data (dd)
+#' hd_list <- list(rd_object, fd_object)
+#' object_list <- hd(hdlist = hd_list,
+#'                   argval = NULL,
+#'                   Smoothing_parameter = NULL,
+#'                   Sparsity_parameter = round(seq(0,149, length.out = 20)))
+#'
 #'
 #' # Display the created fd object
 #' print(fd_object)
 #' print(attr(fd_object, "GridPoints_v"))  # Display grid points for columns
 #' print(attr(fd_object, "Smoothing_parameter"))  # Display smoothing parameter
 #'
-#' # Example for Regular Data (rd)
-#' rd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # Example regular data matrix (10 rows, 10 columns)
-#' rd_object <- rdClaa(data = rd_data,
-#'                     Sparsity_parameter = 3)  # Custom sparsity parameter
-#'
 #' # Display the created rd object
 #' print(rd_object)
 #' print(attr(rd_object, "Sparsity_parameter"))  # Display sparsity parameter
 #'
-#' # Example for Hybrid Data (hd)
-#' fd_object2 <- fdClaa(data = matrix(rnorm(100), nrow = 10, ncol = 10))  # Another fd object
-#' rd_object2 <- rdClaa(data = matrix(rnorm(100), nrow = 10, ncol = 10))  # Another rd object
-#'
-#' hd_list <- list(fd_object, rd_object)  # List of fd and rd objects
-#' hd_object <- hdClass(hdlist = hd_list,
-#'                      row_argval = seq(0, 1, length.out = 10),  # Grid points for rows
-#'                      row_smoothing_parameter = 0.5,  # Custom smoothing parameter for rows
-#'                      row_sparsity_parameter = 2)  # Custom sparsity parameter for rows
-#'
 #' # Display the created hd object
 #' print(hd_object)
 #' print(attr(hd_object, "GridPoints_u"))  # Display grid points for rows
-#' print(attr(hd_object, "row_smoothing_parameter"))  # Display row smoothing parameter
-#' print(attr(hd_object, "row_sparsity_parameter"))  # Display row sparsity parameter
+#' print(attr(hd_object, "Smoothing_parameter"))  # Display row smoothing parameter
+#' print(attr(hd_object, "Sparsity_parameter"))  # Display row sparsity parameter
 #'
 #' @export
 
 ####################### Define an S3 Class for Hybrid Data #######################
-hdClass <- function(hdlist,
-                    argval = NULL,
-                    Smoothing_parameter = 0,
-                    Sparsity_parameter = 0) {
+hd <- function(hdlist,
+               argval = NULL,
+               Smoothing_parameter = 0,
+               Sparsity_parameter = 0) {
 
   if(!(is.list(hdlist))){
     hdlist <- list(hdlist)
@@ -152,6 +157,6 @@ hdClass <- function(hdlist,
   attr(hd, "Sparsity_parameter_col") <- Sparsity_parameter_col
 
   # Set the class of the object
-  class(hd) <- "hdClass"
+  class(hd) <- "hd"
   return(hd)
 }

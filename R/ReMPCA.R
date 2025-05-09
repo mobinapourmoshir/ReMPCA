@@ -5,7 +5,7 @@
 #' @param num_pcs An integer. The number of principal components.
 #' @param sparse_tuning_type A character string specifying the sparse calculation method. Must be one of "soft" (default), "hard", or "SCAD".
 #' @param smoothness_type A character string specifying the method used in smoothing u and/or v, must be one of "Second_order" (default), "First_order" or "Indicator".
-#' @param K_fold An integer. It's used in cross validation approach for tuning the level of sparsity.
+#' @param nfolds  An integer. It's used in cross validation approach for tuning the level of sparsity.
 #' @param tuning_order A character string representing the tuning order. If set to 'Sparsity', sparsity parameters are tuned first, followed by smoothness. If set to 'Smoothness', the order is reversed.
 #'
 #' @importFrom utils  txtProgressBar setTxtProgressBar
@@ -24,7 +24,8 @@ ReMPCA <- function(object_list,
                    num_pcs = 1,
                    smoothness_type = "Second_order",
                    sparse_tuning_type = "soft",
-                   K_fold = 5,
+                   nfolds_u = 5,
+                   nfolds_v = 5,
                    tuning_order = "Sparsity") {
 
   # Combine matrices side by side
