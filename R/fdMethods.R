@@ -53,3 +53,39 @@ print.fdClass <- function(x, ...) {
 
   invisible(x)  # Return the object invisibly
 }
+
+#' Check if an object is of class 'fdClass'
+#' @param x An object to test.
+#' @return Logical; TRUE if the object inherits from class 'fdClass', FALSE otherwise.
+#' @export
+is.fdClass <- function(x) {
+  inherits(x, "fdClass")
+}
+
+
+#' Coerce an object of class 'rdClass', 'fdClass', or 'hdClass' to class 'fdClass'
+#'
+#' @param x An object of class 'rdClass', 'fdClass', or 'hdClass'
+#' @return An object of class 'fdClass' with \code{Sparsity_parameter} preserved if present,
+#'         and \code{Smoothing_parameter} and \code{argval} reset to default.
+#' @export
+as.fdClass <- function(x) {
+  # Validate class
+  if (!(inherits(x, "rdClass") ||
+        inherits(x, "fdClass") ||
+        inherits(x, "hdClass"))) {
+    stop("Input must be of class 'rdClass', 'fdClass', or 'hdClass'")
+  }
+
+  # Convert input to matrix (if already matrix-like)
+  data <- as.matrix(x)
+
+  # Extract sparsity parameter if available
+  sparsity <- attr(x, "Sparsity_parameter")
+
+  # Construct new fd object
+  fd(data = data,
+     argval = NULL,
+     Smoothing_parameter = NULL,
+     Sparsity_parameter = sparsity)
+}

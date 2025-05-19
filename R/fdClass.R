@@ -27,31 +27,30 @@
 #' @example
 #' # Example for Functional Data (fd)
 #' fd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # 10 rows, 10 columns
-#' fd_object <- fd(data = fd_data,
-#'                 argval = seq(0, 1, length.out = 10),  # Grid points for columns
-#'                 Smoothing_parameter = 0.5,  # Custom smoothing parameter
-#'                 Sparsity_parameter = 2)  # Custom sparsity parameter
+#' fd_object <- fdClass(data = fd_data,
+#'                      argval = seq(0, 1, length.out = 10),  # Grid points for columns
+#'                      Smoothing_parameter = 0.5,  # Custom smoothing parameter
+#'                      Sparsity_parameter = 2)  # Custom sparsity parameter
 #'
 #' # Display the created fd object
 #' print(fd_object)
 #' print(attr(fd_object, "GridPoints_v"))  # Display grid points for columns
 #' print(attr(fd_object, "Smoothing_parameter"))  # Display smoothing parameter
 #'
+#' is.fd(fd_object)
+#'
 #' @export
 
 ####################### Define an S3 Class for Functional Data #######################
-fd <- function(data,
-               argval = NULL,
-               Smoothing_parameter = 0,
-               Sparsity_parameter = 0){
+fdClass <- function(data,
+                    argval = NULL,
+                    Smoothing_parameter = 0,
+                    Sparsity_parameter = 0){
 
   # Validation on the data
   if (!is.matrix(data)) {
     stop("Input 'data' must be a matrix.")
   }
-
-  #obj <- list(data = data)
-  obj = data
 
   ####### Grid Points #######
   if (!is.null(argval)) {
@@ -69,7 +68,7 @@ fd <- function(data,
   } else {
     GridPoints_v <- seq(from = 1/ncol(data), to = 1 , length.out =ncol(data)) # Default sequence
   }
-  attr(obj, "GridPoints_v") <- c(GridPoints_v)
+  attr(data, "GridPoints_v") <- c(GridPoints_v)
 
   ####### Smoothing_parameter #######
   # Validate 'Smoothing_parameter'
@@ -82,7 +81,7 @@ fd <- function(data,
   if (is.null(Smoothing_parameter)) {
     Smoothing_parameter <- 2^seq(-30, 5, length.out = 10)
   }
-  attr(obj, "Smoothing_parameter") <- as.vector(Smoothing_parameter)
+  attr(data, "Smoothing_parameter") <- as.vector(Smoothing_parameter)
 
   ####### Sparsity_parameter #######
   # Validate 'Sparsity_parameter'
@@ -100,9 +99,9 @@ fd <- function(data,
   if (is.null(Sparsity_parameter)) {
     Sparsity_parameter <- seq(from = 0, to = ncol(data) - 1, by = 1)
   }
-  attr(obj, "Sparsity_parameter") <- as.vector(Sparsity_parameter)
+  attr(data, "Sparsity_parameter") <- as.vector(Sparsity_parameter)
 
   # Set the class of the object
-  class(obj) <- "fd"
-  return(obj)
+  class(data) <- "fdClass"
+  return(data)
 }
