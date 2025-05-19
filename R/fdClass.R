@@ -4,7 +4,8 @@
 #' The `fd` class represents an element of functional data.
 #' - Data objects are constructed using matrices, where columns represent grid points (user-defined or NULL) and rows represent observations.
 #' - Users can assign both smoothing and sparsity parameters.
-#' - If the smoothing parameter is set to zero, no smoothing is applied. Otherwise, users can specify a fixed smoothing value or provide a vector of values, which will be optimized using generalized cross-validation (GCV).
+#' - If the smoothing parameter is set to zero, no smoothing is applied. Otherwise,
+#' users can specify a fixed smoothing value or provide a vector of values, which will be optimized using generalized cross-validation (GCV).
 #'
 #' @param data A matrix representing the data, with rows indicating observations and columns representing grid points.
 #'
@@ -25,49 +26,24 @@
 #'
 #' @example
 #' # Example for Functional Data (fd)
-#' fd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # Example functional data matrix (10 rows, 10 columns)
-#' fd_object <- fdClaa(data = fd_data,
-#'                     argval = seq(0, 1, length.out = 10),  # Grid points for columns
-#'                     Smoothing_parameter = 0.5,  # Custom smoothing parameter
-#'                     Sparsity_parameter = 2)  # Custom sparsity parameter
+#' fd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # 10 rows, 10 columns
+#' fd_object <- fd(data = fd_data,
+#'                 argval = seq(0, 1, length.out = 10),  # Grid points for columns
+#'                 Smoothing_parameter = 0.5,  # Custom smoothing parameter
+#'                 Sparsity_parameter = 2)  # Custom sparsity parameter
 #'
 #' # Display the created fd object
 #' print(fd_object)
 #' print(attr(fd_object, "GridPoints_v"))  # Display grid points for columns
 #' print(attr(fd_object, "Smoothing_parameter"))  # Display smoothing parameter
 #'
-#' # Example for Regular Data (rd)
-#' rd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # Example regular data matrix (10 rows, 10 columns)
-#' rd_object <- rdClaa(data = rd_data,
-#'                     Sparsity_parameter = 3)  # Custom sparsity parameter
-#'
-#' # Display the created rd object
-#' print(rd_object)
-#' print(attr(rd_object, "Sparsity_parameter"))  # Display sparsity parameter
-#'
-#' # Example for Hybrid Data (hd)
-#' fd_object2 <- fdClaa(data = matrix(rnorm(100), nrow = 10, ncol = 10))  # Another fd object
-#' rd_object2 <- rdClaa(data = matrix(rnorm(100), nrow = 10, ncol = 10))  # Another rd object
-#'
-#' hd_list <- list(fd_object, rd_object)  # List of fd and rd objects
-#' hd_object <- hdClass(hdlist = hd_list,
-#'                      row_argval = seq(0, 1, length.out = 10),  # Grid points for rows
-#'                      row_smoothing_parameter = 0.5,  # Custom smoothing parameter for rows
-#'                      row_sparsity_parameter = 2)  # Custom sparsity parameter for rows
-#'
-#' # Display the created hd object
-#' print(hd_object)
-#' print(attr(hd_object, "GridPoints_u"))  # Display grid points for rows
-#' print(attr(hd_object, "row_smoothing_parameter"))  # Display row smoothing parameter
-#' print(attr(hd_object, "row_sparsity_parameter"))  # Display row sparsity parameter
-#'
 #' @export
 
 ####################### Define an S3 Class for Functional Data #######################
-fdClass <- function(data,
-                    argval = NULL,
-                    Smoothing_parameter = 0,
-                    Sparsity_parameter = 0){
+fd <- function(data,
+               argval = NULL,
+               Smoothing_parameter = 0,
+               Sparsity_parameter = 0){
 
   # Validation on the data
   if (!is.matrix(data)) {
@@ -127,7 +103,6 @@ fdClass <- function(data,
   attr(obj, "Sparsity_parameter") <- as.vector(Sparsity_parameter)
 
   # Set the class of the object
-  class(obj) <- "fdClass"
+  class(obj) <- "fd"
   return(obj)
-
 }
