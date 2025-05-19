@@ -45,7 +45,10 @@ power_algo <- function(data,
                        sparse_tuning_type,
                        conditional = FALSE,
                        alpha_Omega_v,
-                       alpha_Omega_u) {
+                       alpha_Omega_u,
+                       thresh,
+                       maxit) {
+
   rownames(data) <- NULL; colnames(data) <- NULL
   data <- as.matrix(data)
 
@@ -57,9 +60,12 @@ power_algo <- function(data,
   }
 
   v_old <- svd(data)$v[, 1]
-  errors <- Inf; thresh <- 1e-10
+  errors <- Inf
+  iter <- 0  # initialize iteration counter
 
-  while (errors > thresh) {
+  while (errors > thresh && iter < maxit) {
+    iter <- iter + 1
+
     # Compute u
     Xv <- data %*% v_old
     u_raw <- sparse_pen_fun(y = Xv,
@@ -103,6 +109,13 @@ power_algo <- function(data,
     errors <- sum((v_new - v_old)^2)
     v_old <- v_new
   }
+
+  if (iter == maxit && errors > thresh) {
+    warning("Algorithm did not converge within the maximum number of iterations.")
+  }
+
   if (!conditional) u_new <- u_new / norm_vec(u_new)
-  return(list(v_new, u_new))
+
+  return(list(v_new = v_new, u_new = u_new, iterations = iter, error = errors))
 }
+
