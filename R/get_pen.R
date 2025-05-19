@@ -1,5 +1,5 @@
-############################### get.pen function ###############################
-get.pen <- function(td, alpha, type = "Second_order") {
+########################### get.pen function ###########################
+get.pen <- function(td, alpha, type) {
 
   if(type == "Second_order"){
     m = length(td);
