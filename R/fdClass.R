@@ -1,7 +1,7 @@
 #' @title  Functional Data Class
 #'
 #' @description
-#' The `fd` class represents an element of functional data.
+#' The `fdClass` class represents an element of functional data.
 #' - Data objects are constructed using matrices, where columns represent grid points (user-defined or NULL) and rows represent observations.
 #' - Users can assign both smoothing and sparsity parameters.
 #' - If the smoothing parameter is set to zero, no smoothing is applied. Otherwise,

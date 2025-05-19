@@ -1,11 +1,11 @@
 #' @title  Regular Data Class
 #'
 #' @description
-#' The `rd` class denotes an element of regular data.
+#' The `rdClass` class denotes an element of regular data.
 #' - Data objects are constructed with observations in rows and variables in columns.
 #' - The smoothing parameter is automatically set to zero (no smoothing).
 #' - Users can assign sparsity parameters only!
-#' - No grid points are involved in `rd` objects.
+#' - No grid points are involved in `rdClass` objects.
 #'
 #' @param data A matrix representing the data, with rows indicating observations and columns representing variables.
 #' @param Sparsity_parameter
