@@ -16,18 +16,24 @@
 #' @example
 #' # Example for Regular Data (rd)
 #' rd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # 10 rows, 10 columns
-#' rd_object <- rd(data = rd_data,
-#'                 Sparsity_parameter = 3)  # Custom sparsity parameter
+#' rd_object <- rdClass(data = rd_data,
+#'                      Sparsity_parameter = 3)  # Custom sparsity parameter
 #'
 #' # Display the created rd object
 #' print(rd_object)
 #' print(attr(rd_object, "Sparsity_parameter"))  # Display sparsity parameter
 #'
+#' is.rd(rd_object)
+#' is.fd(rd_object)
+#'
+#' convert2fd <- as.fdClass(rd_object)
+#' convert2rd <- as.rdClass(fd_object)
+#'
 #' @export
 
 ####################### Define an S3 Class for Regular Data #######################
-rd <- function(data,
-               Sparsity_parameter = 0){
+rdClass <- function(data,
+                    Sparsity_parameter = 0){
 
   # Validation on the data
   if (!is.matrix(data)) {
@@ -57,6 +63,6 @@ rd <- function(data,
   attr(data, "Sparsity_parameter") <- Sparsity_parameter
   attr(data, "Smoothing_parameter") <- 0
   # Set the class of the object
-  class(data) <- "rd"
+  class(data) <- "rdClass"
   return(data)
 }

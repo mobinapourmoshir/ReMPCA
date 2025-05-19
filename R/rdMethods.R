@@ -26,3 +26,51 @@ print.rdClass <- function(x, ...) {
   print(as.matrix(x[1:rows_to_show, 1:cols_to_show]))
 
 }
+
+#' Check if an object is of class 'rdClass'
+#' @param x An object to test.
+#' @return Logical; TRUE if the object inherits from class 'rdClass', FALSE otherwise.
+#' @export
+is.rdClass <- function(x) {
+  inherits(x, "rdClass")
+}
+
+#' Coerce an object of class 'fdClass', 'rdClass', or 'hdClass' to class 'rdClass'
+#'
+#' @param x An object of class 'fdClass', 'rdClass', or 'hdClass'
+#' @return An object of class 'rdClass' with only Sparsity_parameter(s) preserved.
+#'         All smoothing-related attributes and grid points are removed.
+#' @export
+as.rdClass <- function(x) {
+  # Validate input class
+  if (!(inherits(x, "fdClass") ||
+        inherits(x, "rdClass") ||
+        inherits(x, "hdClass"))) {
+    stop("Input must be of class 'fdClass', 'rdClass', or 'hdClass'")
+  }
+
+  # Convert to matrix
+  data <- as.matrix(x)
+
+  # Extract and preserve sparsity parameters
+  sparsity_col <- attr(x, "Sparsity_parameter_col")
+  sparsity <- attr(x, "Sparsity_parameter")
+
+  # Strip all smoothing and grid-related attributes
+  attr(data, "Smoothing_parameter") <- NULL
+  attr(data, "Smoothing_parameter_col") <- NULL
+  attr(data, "GridPoints_v") <- NULL
+  attr(data, "GridPoints_u") <- NULL
+
+  # Retain sparsity attribute(s)
+  if (!is.null(sparsity)) {
+    attr(data, "Sparsity_parameter") <- sparsity
+  }
+  if (!is.null(sparsity_col)) {
+    attr(data, "Sparsity_parameter_col") <- sparsity_col
+  }
+
+  # Set class
+  class(data) <- "rdClass"
+  return(data)
+}
