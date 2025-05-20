@@ -35,13 +35,32 @@ is.rdClass <- function(x) {
   inherits(x, "rdClass")
 }
 
+#' Custom `$` operator for rdClass
+#' Allows access to the underlying data matrix via `rd$matrix`
+#'
+#' @param x An object of class 'rdClass'
+#' @param name The name of the element to extract
+#' @export
+`$.rdClass` <- function(x, name) {
+  if (name == "matrix") {
+    return(as.data.frame(unclass(x)))
+  } else {
+    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for rdClass."), call. = FALSE)
+  }
+}
+
+
 #' Coerce an object of class 'fdClass', 'rdClass', or 'hdClass' to class 'rdClass'
 #'
-#' @param x An object of class 'fdClass', 'rdClass', or 'hdClass'
-#' @return An object of class 'rdClass' with only Sparsity_parameter(s) preserved.
-#'         All smoothing-related attributes and grid points are removed.
+#' @param x An object of class 'fdClass', 'rdClass', or 'hdClass'.
+#' @param Sparsity_parameter Optional sparsity parameter to override the original.
+#'
+#' @return An object of class 'rdClass' with smoothing and grid attributes removed,
+#'         and sparsity parameter preserved or overridden.
 #' @export
-as.rdClass <- function(x) {
+
+as.rdClass <- function(x,
+                       Sparsity_parameter = NULL) {
   # Validate input class
   if (!(inherits(x, "fdClass") ||
         inherits(x, "rdClass") ||
@@ -52,25 +71,11 @@ as.rdClass <- function(x) {
   # Convert to matrix
   data <- as.matrix(x)
 
-  # Extract and preserve sparsity parameters
-  sparsity_col <- attr(x, "Sparsity_parameter_col")
-  sparsity <- attr(x, "Sparsity_parameter")
-
-  # Strip all smoothing and grid-related attributes
-  attr(data, "Smoothing_parameter") <- NULL
-  attr(data, "Smoothing_parameter_col") <- NULL
-  attr(data, "GridPoints_v") <- NULL
-  attr(data, "GridPoints_u") <- NULL
-
-  # Retain sparsity attribute(s)
-  if (!is.null(sparsity)) {
-    attr(data, "Sparsity_parameter") <- sparsity
-  }
-  if (!is.null(sparsity_col)) {
-    attr(data, "Sparsity_parameter_col") <- sparsity_col
+  # Determine which sparsity parameter to use
+  if (is.null(Sparsity_parameter)) {
+    Sparsity_parameter <- attr(x, "Sparsity_parameter")
   }
 
-  # Set class
-  class(data) <- "rdClass"
-  return(data)
+  rdClass(data = data,
+          Sparsity_parameter = Sparsity_parameter)
 }

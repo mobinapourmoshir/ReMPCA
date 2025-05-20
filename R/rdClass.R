@@ -32,37 +32,44 @@
 #' @export
 
 ####################### Define an S3 Class for Regular Data #######################
+####################### Define an S3 Class for Regular Data #######################
 rdClass <- function(data,
-                    Sparsity_parameter = 0){
+                    Sparsity_parameter = 0) {
 
   # Validation on the data
   if (!is.matrix(data)) {
     stop("Input 'data' must be a matrix.")
   }
 
-
-  ####### Smoothing_parameter #######
+  ####### Smoothing_parameter (always 0 for rdClass) #######
   attr(data, "Smoothing_parameter") <- 0
 
   ####### Sparsity_parameter #######
-  # Validate 'Sparsity_parameter'
-  if (!is.null(Sparsity_parameter) &&
-      !is.numeric(Sparsity_parameter) &&
-      !identical(Sparsity_parameter, 0)) {
-    stop("Sparsity_parameter must be a numeric value, numeric vector, 0, or NULL.")
+  if (!is.null(Sparsity_parameter)) {
+    # Must be numeric, non-negative integers
+    if (!is.numeric(Sparsity_parameter) ||
+        any(Sparsity_parameter < 0) ||
+        any(Sparsity_parameter != floor(Sparsity_parameter))) {
+      stop("Sparsity_parameter must be a vector of non-negative integers.")
+    }
+
+    # Ensure values are in valid range
+    if (any(Sparsity_parameter > ncol(data) - 1)) {
+      stop("All elements of Sparsity_parameter must be between 0 and ncol(data) - 1.")
+    }
+  } else {
+    # Generate default sequence
+    if (ncol(data) <= 15) {
+      Sparsity_parameter <- 0:(ncol(data) - 1)
+    } else {
+      extra_vals <- unique(c(0:3, 2^(0:floor(log2(ncol(data) - 1))), ncol(data) - 1))
+      Sparsity_parameter <- sort(unique(extra_vals[extra_vals <= (ncol(data) - 1)]))
+    }
   }
 
-  if (any(Sparsity_parameter > ncol(data))) {
-    warning("An integer between 0 and ncol(data) must be used to represent the level of sparsity for columns. Setting 'Sparsity_parameter' to NULL!")
-    Sparsity_parameter <- NULL
-  }
-
-  if (is.null(Sparsity_parameter)) {
-    Sparsity_parameter <- seq(from = 0, to = ncol(data) - 1, by = 1)
-  }
   attr(data, "Sparsity_parameter") <- Sparsity_parameter
-  attr(data, "Smoothing_parameter") <- 0
-  # Set the class of the object
+
+  # Set the class
   class(data) <- "rdClass"
   return(data)
 }

@@ -62,14 +62,33 @@ is.fdClass <- function(x) {
   inherits(x, "fdClass")
 }
 
+#' Custom `$` operator for fdClass
+#' Allows access to the underlying data matrix via `fd$matrix`
+#'
+#' @param x An object of class 'fdClass'
+#' @param name The name of the element to extract
+#' @export
+`$.fdClass` <- function(x, name) {
+  if (name == "matrix") {
+    return(as.data.frame(unclass(x)))
+  } else {
+    stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for fdClass."), call. = FALSE)
+  }
+}
+
 
 #' Coerce an object of class 'rdClass', 'fdClass', or 'hdClass' to class 'fdClass'
 #'
-#' @param x An object of class 'rdClass', 'fdClass', or 'hdClass'
-#' @return An object of class 'fdClass' with \code{Sparsity_parameter} preserved if present,
-#'         and \code{Smoothing_parameter} and \code{argval} reset to default.
+#' @param x An object of class 'rdClass', 'fdClass', or 'hdClass'.
+#' @param Smoothing_parameter Optional smoothing parameter to assign. If \code{NULL}, defaults are used.
+#' @param argval Optional vector of grid points for columns. If \code{NULL}, defaults are used.
+#'
+#' @return An object of class 'fdClass' with user-specified or inherited regularization parameters.
 #' @export
-as.fdClass <- function(x) {
+
+as.fdClass <- function(x,
+                       Smoothing_parameter = NULL,
+                       argval = NULL) {
   # Validate class
   if (!(inherits(x, "rdClass") ||
         inherits(x, "fdClass") ||
@@ -77,15 +96,15 @@ as.fdClass <- function(x) {
     stop("Input must be of class 'rdClass', 'fdClass', or 'hdClass'")
   }
 
-  # Convert input to matrix (if already matrix-like)
+  # Convert to matrix
   data <- as.matrix(x)
 
-  # Extract sparsity parameter if available
+  # Extract sparsity parameter
   sparsity <- attr(x, "Sparsity_parameter")
 
-  # Construct new fd object
-  fd(data = data,
-     argval = NULL,
-     Smoothing_parameter = NULL,
-     Sparsity_parameter = sparsity)
+  # Construct fdClass with overrides
+  fdClass(data = data,
+          argval = argval,
+          Smoothing_parameter = Smoothing_parameter,
+          Sparsity_parameter = sparsity)
 }

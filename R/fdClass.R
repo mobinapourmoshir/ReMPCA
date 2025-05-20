@@ -45,7 +45,7 @@
 fdClass <- function(data,
                     argval = NULL,
                     Smoothing_parameter = 0,
-                    Sparsity_parameter = 0){
+                    Sparsity_parameter = 0) {
 
   # Validation on the data
   if (!is.matrix(data)) {
@@ -60,22 +60,18 @@ fdClass <- function(data,
     }
   }
 
-  # Assigning GridPoints for u and v
-  GridPoints_v <- vector()
-
+  # Assigning GridPoints_v
   if (!is.null(argval)) {
-    GridPoints_v <- argval  # Use provided argval
+    GridPoints_v <- argval
   } else {
-    GridPoints_v <- seq(from = 1/ncol(data), to = 1 , length.out =ncol(data)) # Default sequence
+    GridPoints_v <- seq(from = 1 / ncol(data), to = 1, length.out = ncol(data))
   }
   attr(data, "GridPoints_v") <- c(GridPoints_v)
 
   ####### Smoothing_parameter #######
-  # Validate 'Smoothing_parameter'
   if (!is.null(Smoothing_parameter) &&
-      !is.numeric(Smoothing_parameter) &&
-      !identical(Smoothing_parameter, 0)) {
-    stop("Smoothing_parameter must be a numeric value, numeric vector, 0, or NULL.")
+      (!is.numeric(Smoothing_parameter) || is.na(Smoothing_parameter))) {
+    stop("Smoothing_parameter must be a numeric value, numeric vector, or NULL.")
   }
 
   if (is.null(Smoothing_parameter)) {
@@ -84,21 +80,24 @@ fdClass <- function(data,
   attr(data, "Smoothing_parameter") <- as.vector(Smoothing_parameter)
 
   ####### Sparsity_parameter #######
-  # Validate 'Sparsity_parameter'
-  if (!is.null(Sparsity_parameter) &&
-      !is.numeric(Sparsity_parameter) &&
-      !identical(Sparsity_parameter, 0)) {
-    stop("Sparsity_parameter must be a numeric value, numeric vector, 0, or NULL.")
+  if (!is.null(Sparsity_parameter)) {
+    if (!is.numeric(Sparsity_parameter) ||
+        any(Sparsity_parameter < 0) ||
+        any(Sparsity_parameter != floor(Sparsity_parameter))) {
+      stop("Sparsity_parameter must be a vector of non-negative integers.")
+    }
+    if (any(Sparsity_parameter > ncol(data) - 1)) {
+      stop("All elements of Sparsity_parameter must be between 0 and ncol(data) - 1.")
+    }
+  } else {
+    if (ncol(data) <= 15) {
+      Sparsity_parameter <- 0:(ncol(data) - 1)
+    } else {
+      extra_vals <- unique(c(0:3, 2^(0:floor(log2(ncol(data) - 1))), ncol(data) - 1))
+      Sparsity_parameter <- sort(unique(extra_vals[extra_vals <= (ncol(data) - 1)]))
+    }
   }
 
-  if (any(Sparsity_parameter > ncol(data))) {
-    warning("An integer between 0 and ncol(data) must be used to represent the level of sparsity for columns. Setting 'Sparsity_parameter' to NULL!")
-    Sparsity_parameter <- NULL
-  }
-
-  if (is.null(Sparsity_parameter)) {
-    Sparsity_parameter <- seq(from = 0, to = ncol(data) - 1, by = 1)
-  }
   attr(data, "Sparsity_parameter") <- as.vector(Sparsity_parameter)
 
   # Set the class of the object
