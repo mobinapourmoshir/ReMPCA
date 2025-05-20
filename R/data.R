@@ -10,84 +10,89 @@ F2 <- F[1:5, 11:18]
 S <- S[1:5,1:3]
 
 
+############## Example ##############
+source("fdClass.R")
+source("rdClass.R")
+source("hdClass.R")
+source("imgClass.R")
+source("fdMethods.R")
+source("rdMethods.R")
+source("hdMethods.R")
+
+# Example for Functional Data (fd)
+fd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # 10 rows, 10 columns
+fd_object <- fdClass(data = fd_data,
+                     argval = seq(0, 1, length.out = 10),  # Grid points for columns
+                     Smoothing_parameter = 0.5,  # Custom smoothing parameter
+                     Sparsity_parameter = 2)  # Custom sparsity parameter
+
+# Display the created fd object
+print(fd_object)
+print(attr(fd_object, "GridPoints_v"))  # Display grid points for columns
+print(attr(fd_object, "Smoothing_parameter"))  # Display smoothing parameter
+
+is.fd(fd_object)
+is.rd(fd_object)
 
 
-# Simulated sample data
-### 1. Set basic parameters
-d = 100                   # Length of each sin signal
-t = seq(0, 1, length.out = d)  # Generate 'd' points from 0 to 1
-nn = 300                  # Total number of observations (e.g., rows)
-t_total = d + d           # Here t_total = 200, i.e., two segments each of length d
-
-### 2. Construct two "segmented" sin signals v11, v12
-#    v11: first d points are sin(pi * t), last d points are sin(pi * 0)=0
-#    v12: first d points are 0, last d points are sin(2*pi * t)
-v11 = sin(1 * pi * c(t, rep(0, d)))
-v12 = sin(2 * pi * c(rep(0, d), t))
-
-### 3. Quick plots to inspect signals
-par(mfrow = c(2, 2))
-plot(v11, type = "l", main = "v11")
-plot(v12, type = "l", main = "v12")
 
 
-### 4. Construct matrix U1 (with 'nn' rows and 2 columns)
-#    We split the 60% of 'nn' rows into three groups, each with different means.
-#    U111, U121, U131 -> the first column; U112, U122, U132 -> the second column
-U111 <- matrix(rnorm(nn/3, mean = 2, sd = 0.1), ncol=1)
-U121 <- matrix(rnorm(nn/3, mean = 1, sd = 0.01), ncol=1)
-U131 <- matrix(rnorm(nn/3, mean = 0, sd = 0.1), ncol=1)
+# Example for Regular Data (rd)
+rd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # 10 rows, 10 columns
+rd_object <- rdClass(data = rd_data,
+                     Sparsity_parameter = 3)  # Custom sparsity parameter
 
-U112 <- matrix(rnorm(nn/3, mean = 0, sd = 0.1), ncol=1)
-U122 <- matrix(rnorm(nn/3, mean = 1, sd = 0.1), ncol=1)
-U132 <- matrix(rnorm(nn/3, mean = 2, sd = 0.1), ncol=1)
+# Display the created rd object
+print(rd_object)
+print(attr(rd_object, "Sparsity_parameter"))  # Display sparsity parameter
 
-# Combine them into a (nn) x 2 matrix
-U1_obj = rbind(
-  cbind(U111),
-  cbind(U121),
-  cbind(U131)
-)
+is.rd(rd_object)
+is.fd(rd_object)
 
-U2_obj = rbind(
-  cbind(U112),
-  cbind(U122),
-  cbind(U132)
-)
+convert2fd <- as.fdClass(rd_object)
+convert2rd <- as.rdClass(fd_object)
 
+convert2fd <- as.fdClass(rd_object, Smoothing_parameter = c(0.1,0.2,0.3))
+convert2rd <- as.rdClass(fd_object, Sparsity_parameter = seq(1:9))
 
-### 5. Construct the data matrix X1:
-
-X1 = U1_obj %*% 10 %*% rbind(v11) +
-  matrix(
-    rnorm(t_total * nn, mean = 0, sd = 6),
-    nrow = nn
-  )
-
-matplot(t(X1), type = 'l')
-
-
-X2= U2_obj %*% 3 %*% rbind(v12) +
-  matrix(
-    rnorm(t_total * nn, mean = 0, sd = 6),
-    nrow = nn
-  )
-
-matplot(t(X2), type = 'l')
-
-fd_object <- fdClass(data = X1,
-                     argval = NULL,  # Grid points for columns
-                     Smoothing_parameter = NULL,  # Custom smoothing parameter
-                     Sparsity_parameter = round(seq(0,200, length.out = 30)))  # Custom sparsity parameter
-
-rd_object <- rdClass(data = X2,
-                     Sparsity_parameter = round(seq(0,200, length.out = 30)))
-
+# Example for Hybrid Data (hd)
+fd_object2 <- fdClass(data = matrix(rnorm(100), nrow = 10, ncol = 10))  # Another fd object
+rd_object2 <- rdClass(data = matrix(rnorm(100), nrow = 10, ncol = 10))  # Another rd object
 
 hd_list <- list(fd_object, rd_object)  # List of fd and rd objects
-object_list <- hdClass(hdlist = hd_list,
-                       argval = NULL,  # Grid points for rows
-                       Smoothing_parameter = NULL,  # Custom smoothing parameter for rows
-                       Sparsity_parameter = round(seq(0,300, length.out = 30)))  # Custom sparsity parameter for rows
+hd_object <- hdClass(hdlist = hd_list,
+                     argval = seq(0, 1, length.out = 10),  # Grid points for rows
+                     Smoothing_parameter = 0.5,  # Custom smoothing parameter for rows
+                     Sparsity_parameter = 2)  # Custom sparsity parameter for rows
 
+# Display the created hd object
+print(hd_object)
+print(attr(hd_object, "GridPoints_u"))  # Display grid points for rows
+print(attr(hd_object, "Smoothing_parameter"))  # Display row smoothing parameter
+print(attr(hd_object, "Sparsity_parameter"))  # Display row sparsity parameter
+
+
+is.hdClass(hd_object)
+is.hdClass(fd_object2)
+is.hdClass(rd_object2)
+is.rd(hd_object)
+is.fd(hd_object)
+is.rd(rd_object2)
+
+convert2hd <- as.hdClass(hd_object, Smoothing_parameter = c(0.1,0.2,0.3))
+convert2hd <- as.hdClass(fd_object, Smoothing_parameter = c(0.1,0.3))
+convert2hd <- as.hdClass(rd_object, Smoothing_parameter = seq(0.01,0.1), Sparsity_parameter = seq(0:9))
+
+
+
+# Example for images (imgClass)
+set.seed(123)
+img1 <- matrix(rnorm(64), 8, 8)
+img2 <- matrix(rnorm(64), 8, 8)
+
+# one image
+fd_img <- imgClass(img1, Smoothing_parameter = 0.5, Sparsity_parameter = 2)
+
+# Multiple images
+rd_img <- imgClass(list(img1, img2), Smoothing_parameter = 0, Sparsity_parameter = NULL)
 
