@@ -96,3 +96,70 @@ fd_img <- imgClass(img1, Smoothing_parameter = 0.5, Sparsity_parameter = 2)
 # Multiple images
 rd_img <- imgClass(list(img1, img2), Smoothing_parameter = 0, Sparsity_parameter = NULL)
 
+
+
+
+
+
+##### Example for running ReMPCA ####
+set.seed(123)
+# Common left singular vector u (1 x 50)
+x <- seq(0,2*pi, len = 150);u <- sin(x); u[1:75] <- 0 #u <- u / sqrt(sum(uˆ2))
+# Variable 1
+m1 <- 20 ;v1 <- rnorm(m1, sd = 0.8) ;zero_indices_v1 <- sample(1:m1, 5) # Select 5 indices
+v1[zero_indices_v1] <- v1[zero_indices_v1] * 1e-2 + rnorm(5, sd = 0.01)
+X1 <- outer(u, v1) + rnorm(length(outer(u, v1)), sd = 0.03)
+
+# Variable 2
+x2 <- seq(0, 2*pi, length.out = 40) ;v2 <- cos(2*x2) ;v2[20:40] <- 0
+X2 <- outer(u, v2) ;X2 <- X2 + rnorm(length(X2), sd = 0.5)
+
+# Variable 3
+m3 <- 30; x3 <- seq(0, pi, length.out = m3); v3 <- sin(x3)
+X3 <- outer(u, v3) + rnorm(length(outer(u, v3)), sd = 0.2)
+
+# Variable 4
+m4 <- 10 ;v4 <- rnorm(m4)
+X4 <- outer(u, v4) + rnorm(length(outer(u, v4)), sd = 0.05)
+
+
+X <- cbind(outer(u, v1), outer(u, v2), outer(u, v3), outer(u, v4))
+
+# Object
+rd_object1 <- rdClass(data = as.matrix(X1), Sparsity_parameter = round(seq(1,19, length.out = 10)))
+fd_object2 <- fdClass(data = as.matrix(X2), argval = NULL, Smoothing_parameter = NULL, Sparsity_parameter = round(seq(0, 39, length.out = 20)))
+fd_object3 <- fdClass(data = as.matrix(X3), argval = NULL, Smoothing_parameter = NULL, Sparsity_parameter = 0) #round(seq(0,29, length.out = 15)))
+rd_object4 <- rdClass(data = as.matrix(X4), Sparsity_parameter = 0) #round(seq(0,9, length.out = 5)))
+hd_list <- list(rd_object1, fd_object2, fd_object3, rd_object4)
+object_list <- hdClass(hdlist = hd_list, argval = NULL, Smoothing_parameter = NULL, Sparsity_parameter = round(seq(0,149, length.out = 20)))
+
+# Arguments
+hd = object_list
+centerhds = FALSE
+num_pcs = 1
+smoothness_type = "Second_order"
+sparse_tuning_type = "soft"
+nfolds_u = 5
+nfolds_v = NULL
+thresh = 1e-10
+maxit = 100
+tuning_iter = 1
+parallel = FALSE
+tuning_order = "Sparsity"
+cv.pick = "1se"
+sparse_tuning_u = NULL
+sparse_tuning_v = NULL
+smooth_tuning_u = NULL
+smooth_tuning_v = NULL
+
+
+# Plots
+par(mfrow = c(2, 4), pin = c(1, 1), mar = c(2, 2, 2, 2), pty = "s")
+matplot(v1, type = 'o', main = 'v1, Regular') ;abline(h = 0, col = 'red', lty = 2)
+image(t(X1), main = 'X1, Regular')
+matplot(svd(X2)$v[,1], type = 'l', main = 'v2, Functional')
+image(t(X2), main = 'X2, Functional')
+matplot(v3, type = 'l', main = 'v3, Functional')
+image(t(X3), main = 'X3, Functional')
+matplot(v4, type = 'o', main = 'v4, Regular')
+image(t(X4), main = 'X4, Regular')

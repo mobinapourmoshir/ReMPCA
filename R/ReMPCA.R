@@ -1,12 +1,46 @@
 #' ReMPCA Smooth and Sparse Multivariate Functional Principal Component Analysis
 #'
 #' @param object_list An hdClass object.
-#' @param centerfns A logical; if True, it demeans the data before calculating the principal components.
+#' @param centerhds A logical; if True, it demeans the data before calculating the principal components.
 #' @param num_pcs An integer. The number of principal components.
 #' @param sparse_tuning_type A character string specifying the sparse calculation method. Must be one of "soft" (default), "hard", or "SCAD".
-#' @param smoothness_type A character string specifying the method used in smoothing u and/or v, must be one of "Second_order" (default), "First_order" or "Indicator".
-#' @param nfolds  An integer. It's used in cross validation approach for tuning the level of sparsity.
-#' @param tuning_order A character string representing the tuning order. If set to 'Sparsity', sparsity parameters are tuned first, followed by smoothness. If set to 'Smoothness', the order is reversed.
+#' @param smoothness_type A character string specifying the method used in smoothing u and/or v,
+#' must be one of "Second_order" (default), "First_order" or "Indicator".
+#' @param nfolds_u  An integer. It's used in cross validation approach for tuning the level of sparsity of rows.
+#' @param nfolds_v An integer vector of length \code{p} (the number of variables), where
+#' the \code{i}-th element specifies the number of cross-validation folds to use for the
+#' \code{i}-th variable. If not provided (\code{NULL}), a value of 5 will be assigned to
+#' all variables by default.
+#' @param tuning_order A character string representing the tuning order.
+#' If set to 'Sparsity', sparsity parameters are tuned first, followed by smoothness.
+#'  If set to 'Smoothness', the order is reversed.
+#' @param cv.pick A character string specifying the rule used to select the optimal
+#' tuning parameter during cross-validation for sparsity. If set to `'min'`, the tuning
+#' parameter corresponding to the minimum cross-validation error is chosen. If set to `'1se'`
+#' (the default), the 1-standard-error rule is applied, selecting the most regularized
+#' model whose error is within one standard error of the minimum.
+#' @param parallel Logical; if \code{TRUE}, parallel computation is used to fit models
+#' across different sparsity parameter values. Users must register a parallel backend
+#' beforehand using packages such as \pkg{doParallel}, \pkg{doMC}, or similar.
+#' @param tuning_iter Integer specifying the number of iterations to perform during the tuning process for conditional smoothing and sparsity parameters.
+#' @param sparse_tuning_u Optional. Specifies the sparsity level(s) for rows:
+#' \itemize{
+#'   \item A single non-negative integer for fixed sparsity.
+#'   \item A numeric vector of candidate values, to be selected via cross-validation (CV).
+#'   \item Set to \code{0} for no sparsity.
+#'   \item If \code{NULL}, the function defaults to the \code{Sparsity_parameter} attribute from the \code{hdClass} object.
+#' }
+#' @param sparse_tuning_v Optional. A list of length \code{p} (number of variables), where the \code{i}-th element is either a numeric value or a vector specifying candidate sparsity levels for the \code{i}-th variable.
+#' If set to \code{NULL}, the function will default to using the \code{Sparsity_parameter_col} attribute from the input object of class \code{hdClass}.
+#' @param smooth_tuning_u Optional. Specifies smoothing parameter for rows:
+#' \itemize{
+#'   \item A single number for fixed smoothness.
+#'   \item A numeric vector of candidate values, to be selected via generalized cross-validation (GCV).
+#'   \item Set to \code{0} for no smoothness
+#'   \item If \code{NULL}, the function defaults to the \code{Smoothing_parameter} attribute from the \code{hdClass} object.
+#' }
+#' @param smooth_tuning_v Optional. A list of length \code{p} (number of variables), where the \code{i}-th element is either a numeric value or a vector specifying candidate smoothing parameters for the \code{i}-th variable.
+#' If set to \code{NULL}, the function will default to using the \code{Smoothing_parameter_col} attribute from the input object of class \code{hdClass}.
 #'
 #' @importFrom utils  txtProgressBar setTxtProgressBar
 #' @importFrom Matrix bdiag
@@ -17,35 +51,70 @@
 #'
 
 
-############################ Smooth and Sparse Multivariate PCA ############################
-
-ReMPCA <- function(object_list,
-                   centerfns = TRUE,
+################### Smooth and Sparse Multivariate PCA ###################
+ReMPCA <- function(hd,
+                   centerhds = TRUE,
                    num_pcs = 1,
                    smoothness_type = "Second_order",
                    sparse_tuning_type = "soft",
                    nfolds_u = 5,
-                   nfolds_v = 5,
-                   tuning_order = "Sparsity") {
+                   nfolds_v = NULL,
+                   thresh = 1e-10,
+                   maxit = 100,
+                   tuning_iter = 1,
+                   parallel = FALSE,
+                   tuning_order = "Sparsity",
+                   cv.pick = "1se",
+                   sparse_tuning_u = NULL,
+                   sparse_tuning_v = NULL,
+                   smooth_tuning_u = NULL,
+                   smooth_tuning_v = NULL) {
+
+  # Check if hd is a hd object
+  if (!inherits(hd, "hdClass")) {
+    stop("hd must be of class 'hdClass'!")
+  }
 
   # Combine matrices side by side
-  hd <- object_list
   n <- nrow(hd)
   n_var <- attr(object_list, "n_var") # Number of variables (# of matrices in object_list)
   ncol <- data.frame(attr(object_list, "ncol")) # Number of columns of each matrix
+  # nfolds_v with no default
+  if (is.null(nfolds_v)) {
+    nfolds_v <- rep(5, attr(hd, "n_var"))
+  }
 
   ####### Smoothing Parameter ##########
-  # Generate all combinations alphas (one row per combination)
-  smooth_tuning_col <- expand.grid(attr(object_list, "Smoothing_parameter_col")) # A matrix
-  smooth_tuning_row <- attr(object_list, "Smoothing_parameter") # A vector
+  # Smoothing parameters for column
+  # Generate all combinations alphas (one row per combination): A matrix
+  if(!is.null(smooth_tuning_v)){
+    smooth_tuning_col <- expand.grid(smooth_tuning_v)
+    }else{
+      smooth_tuning_col <- expand.grid(attr(object_list, "Smoothing_parameter_col"))
+    }
 
-  ####### level of sparsity (for both functional and non-functional data) #######
-  sparsity_row_list <- attr(object_list, "Sparsity_parameter")
-  sparsity_col_list <- attr(object_list, "Sparsity_parameter_col")
+  # Smoothing parameters for row: A vector
+  if(!is.null(smooth_tuning_u)){
+    smooth_tuning_row <- smooth_tuning_u
+  }else{
+    smooth_tuning_row <- attr(object_list, "Smoothing_parameter")
+  }
+
+  ####### level of sparsity #######
+  if(!is.null(sparse_tuning_u)){
+    sparsity_row_list <- sparse_tuning_u
+  }else{
+    sparsity_row_list <- attr(object_list, "Sparsity_parameter")
+  }
+  if(!is.null(sparse_tuning_v)){
+    sparsity_col_list <- sparse_tuning_v
+  }else{
+    sparsity_col_list <- attr(object_list, "Sparsity_parameter_col")
+  }
 
   ####### Pre-processing: Centralizing the data #######
   X <- data.frame()
-  if (centerfns) {
+  if (centerhds) {
     X <- apply(hd, 2, function(x) x - mean(x))
   }else{
     X <- hd
@@ -134,8 +203,9 @@ ReMPCA <- function(object_list,
                                                              smooth_tuning_u = smooth_tuning_row,
                                                              sparse_tuning_u = sparsity_row_list,
                                                              sparse_tuning_v = sparsity_col_list,
-                                                             sparse_tuning_type = sparse_tuning_type,
-                                                             K_fold,
+                                                             sparse_tuning_type,
+                                                             nfolds_u,
+                                                             nfolds_v,
                                                              S_alpha_list_v ,
                                                              S_alpha_list_u,
                                                              Omegas_u = Omegas_u,
