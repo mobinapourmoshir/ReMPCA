@@ -3,6 +3,7 @@ cv_sparse_row <- function(data,
                           n_var,
                           ncol,
                           S_alpha_u,
+                          S_alpha_v,
                           K_fold,
                           cv.pick,
                           thresh,
@@ -37,8 +38,23 @@ cv_sparse_row <- function(data,
       # Update column structure
       updated_ncol <- update_ncol(ncol, cols_to_remove)
 
-      # Create identity smoother matrices (no smoothing)
-      S_alpha_v_train <- lapply(1:n_var, function(i) diag(updated_ncol[, i]))
+      # Convert first row of ncol to a vector of column counts per variable
+      ncol_vec <- as.numeric(ncol[1, ])
+      cumulative_ncol <- c(0, cumsum(ncol_vec))
+
+      S_alpha_v_train <- lapply(1:n_var, function(i) {
+        start_idx <- cumulative_ncol[i] + 1
+        end_idx <- cumulative_ncol[i + 1]
+        cols_in_var <- start_idx:end_idx
+
+        # Columns of this variable that are *not* removed
+        retained_cols <- setdiff(cols_in_var, cols_to_remove)
+        local_indices <- match(retained_cols, cols_in_var)
+
+        # Subset the original smoother for this variable
+        S_alpha_v[[i]][local_indices, local_indices, drop = FALSE]
+      })
+
 
       # Run power algorithm
       power_result <- power_algo(data = data_train,

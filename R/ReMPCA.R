@@ -41,6 +41,12 @@
 #' }
 #' @param smooth_tuning_v Optional. A list of length \code{p} (number of variables), where the \code{i}-th element is either a numeric value or a vector specifying candidate smoothing parameters for the \code{i}-th variable.
 #' If set to \code{NULL}, the function will default to using the \code{Smoothing_parameter_col} attribute from the input object of class \code{hdClass}.
+#' @param weights Optional numeric vector of scaling weights.
+#' If `NULL`, the function automatically computes weights based on the inverse square root
+#' of the average variance of each variable. If set to `0`, no scaling is applied.
+#' If a numeric vector is provided, its length must match the number of variables, and
+#' each element is used to scale the corresponding variable.
+#' This is used to adjust for scale differences across variables in the hybrid data object.
 #'
 #' @importFrom utils  txtProgressBar setTxtProgressBar
 #' @importFrom Matrix bdiag
@@ -55,14 +61,15 @@
 ReMPCA <- function(hd,
                    centerhds = TRUE,
                    num_pcs = 1,
-                   smoothness_type = "Second_order",
-                   sparse_tuning_type = "soft",
                    nfolds_u = 5,
                    nfolds_v = NULL,
                    thresh = 1e-10,
                    maxit = 100,
                    tuning_iter = 1,
                    parallel = FALSE,
+                   weights = NULL,
+                   smoothness_type = "Second_order",
+                   sparse_tuning_type = "soft",
                    tuning_order = "Sparsity",
                    cv.pick = "1se",
                    sparse_tuning_u = NULL,
@@ -74,6 +81,34 @@ ReMPCA <- function(hd,
   if (!inherits(hd, "hdClass")) {
     stop("hd must be of class 'hdClass'!")
   }
+
+  # weights
+  if (is.null(weights)) {
+    scale_hd_out <- scale_hd(hd)
+    weights <- scale_hd_out$weights
+    hddata <- scale_hd_out$scaled_hd
+
+  } else if (identical(weights, 0)) {
+    hddata <- hd$matrix
+
+  } else if (is.vector(weights) &&
+             is.numeric(weights) &&
+             length(weights) == n_var) {
+    scaled_matrix <- hd$matrix
+    start_idx <- 1
+
+    for (i in 1:n_var) {
+      end_idx <- as.numeric(start_idx + ncol_vec[i] - 1)
+      mat <- scaled_matrix[, start_idx:end_idx, drop = FALSE]
+      scaled_matrix[, start_idx:end_idx] <- weights[i] * mat
+      start_idx <- end_idx + 1
+    }
+    hddata <- scaled_matrix
+
+  } else {
+    stop("The 'weights' must be NULL, 0, or a numeric vector of length equal to the number of variables.")
+  }
+
 
   # Combine matrices side by side
   n <- nrow(hd)
@@ -115,9 +150,9 @@ ReMPCA <- function(hd,
   ####### Pre-processing: Centralizing the data #######
   X <- data.frame()
   if (centerhds) {
-    X <- apply(hd, 2, function(x) x - mean(x))
+    X <- apply(hddata, 2, function(x) x - mean(x))
   }else{
-    X <- hd
+    X <- hddata
   }
 
   ####### Grid Points #######
@@ -194,28 +229,35 @@ ReMPCA <- function(hd,
     }
 
     # Tuning Parameters
-    opt_parameters_result <- opt_alpha_result <- list()
-    opt_parameters_result <- parameter_selection_conditional(X_temp =  X_temp,
-                                                             n_var = n_var,
-                                                             ncol = ncol,
-                                                             n = n,
-                                                             smooth_tuning_v = smooth_tuning_col,
-                                                             smooth_tuning_u = smooth_tuning_row,
-                                                             sparse_tuning_u = sparsity_row_list,
-                                                             sparse_tuning_v = sparsity_col_list,
-                                                             sparse_tuning_type,
-                                                             nfolds_u,
-                                                             nfolds_v,
-                                                             S_alpha_list_v ,
-                                                             S_alpha_list_u,
-                                                             Omegas_u = Omegas_u,
-                                                             tuning_order)
-
+    param_result <- opt_alpha_result <- list()
+    param_result <- parameter_selection(X_temp =  X_temp,
+                                        n_var = n_var,
+                                        ncol = ncol,
+                                        n = n,
+                                        GridPoints_u = GridPoints_u,
+                                        GridPoints_v = GridPoints_v,
+                                        smooth_tuning_v = smooth_tuning_col,
+                                        smooth_tuning_u = smooth_tuning_row,
+                                        sparse_tuning_u = sparsity_row_list,
+                                        sparse_tuning_v = sparsity_col_list,
+                                        sparse_tuning_type = sparse_tuning_type,
+                                        nfolds_u = nfolds_u,
+                                        nfolds_v = nfolds_v,
+                                        S_alpha_list_v = S_alpha_list_v,
+                                        S_alpha_list_u = S_alpha_list_u,
+                                        Omegas_u = Omegas_u,
+                                        Omegas_v = Omegas_v,
+                                        tuning_iter = tuning_iter,
+                                        tuning_order = tuning_order,
+                                        thresh = thresh,
+                                        maxit = maxit,
+                                        cv.pick = cv.pick,
+                                        smoothness_type = smoothness_type)
 
     # Optimal parameters
-    sparse_tuning_result_u[[j]] <- opt_parameters_result$sparse_tuning_selection_u # Optimal level of sparsity for u (CV)
-    sparse_tuning_result_v[[j]] <- opt_parameters_result$sparse_tuning_selection_v # Optimal level of sparsity for v (CV)
-    opt_alpha_result <- opt_parameters_result$GCV_score_smooth # Optimal Smoothness (GCV)
+    sparse_tuning_result_u[[j]] <- param_result$sparse_tuning_selection_u # Optimal level of sparsity for u (CV)
+    sparse_tuning_result_v[[j]] <- param_result$sparse_tuning_selection_v # Optimal level of sparsity for v (CV)
+    opt_alpha_result <- param_result$GCV_score_smooth # Optimal Smoothness (GCV)
 
     opt_S_v[[j]] <- opt_alpha_result$opt_s.alpha
     smooth_tuning_result_v[[j]] <- opt_alpha_result$opt.alpha
@@ -264,8 +306,11 @@ ReMPCA <- function(hd,
 
 
   return(list(Estimated = funcs, PC_functions = PCs, PC_Scores = lsu,
-              opt_alpha_for_PC = smooth_tuning_result_v, opt_alpha_for_u = smooth_tuning_result_u,
-              opt_gamma_for_PC = sparse_tuning_result_v, opt_gamma_for_u = sparse_tuning_result_u,
-              GCV_v = GCV_v, GCVdf_v = GCVdf_v, GCV_u = GCV_u, GCVdf_u = GCVdf_u))
+              opt_alpha_for_PC = smooth_tuning_result_v,
+              opt_alpha_for_u = smooth_tuning_result_u,
+              opt_gamma_for_PC = sparse_tuning_result_v,
+              opt_gamma_for_u = sparse_tuning_result_u,
+              GCV_v = GCV_v, GCVdf_v = GCVdf_v,
+              GCV_u = GCV_u, GCVdf_u = GCVdf_u))
 }
 

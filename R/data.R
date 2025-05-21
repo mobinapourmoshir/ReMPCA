@@ -126,6 +126,7 @@ X4 <- outer(u, v4) + rnorm(length(outer(u, v4)), sd = 0.05)
 X <- cbind(outer(u, v1), outer(u, v2), outer(u, v3), outer(u, v4))
 
 # Object
+set.seed(123)
 rd_object1 <- rdClass(data = as.matrix(X1), Sparsity_parameter = round(seq(1,19, length.out = 10)))
 fd_object2 <- fdClass(data = as.matrix(X2), argval = NULL, Smoothing_parameter = NULL, Sparsity_parameter = round(seq(0, 39, length.out = 20)))
 fd_object3 <- fdClass(data = as.matrix(X3), argval = NULL, Smoothing_parameter = NULL, Sparsity_parameter = 0) #round(seq(0,29, length.out = 15)))
@@ -151,6 +152,32 @@ sparse_tuning_u = NULL
 sparse_tuning_v = NULL
 smooth_tuning_u = NULL
 smooth_tuning_v = NULL
+weights = 0
+
+# Param_selection function test
+X_temp =  X_temp
+n_var = n_var
+ncol = ncol
+n = n
+GridPoints_u = GridPoints_u
+GridPoints_v = GridPoints_v
+smooth_tuning_v = smooth_tuning_col
+smooth_tuning_u = smooth_tuning_row
+sparse_tuning_u = sparsity_row_list
+sparse_tuning_v = sparsity_col_list
+sparse_tuning_type = sparse_tuning_type
+nfolds_u = nfolds_u
+nfolds_v = nfolds_v
+S_alpha_list_v = S_alpha_list_v
+S_alpha_list_u = S_alpha_list_u
+Omegas_u = Omegas_u
+Omegas_v = Omegas_v
+tuning_iter = tuning_iter
+tuning_order = tuning_order
+thresh = thresh
+maxit = maxit
+cv.pick = cv.pick
+smoothness_type = smoothness_type
 
 
 # Plots
