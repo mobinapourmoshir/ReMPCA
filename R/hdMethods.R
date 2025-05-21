@@ -186,3 +186,35 @@ as.hdClass <- function(x,
             Sparsity_parameter = Sparsity_parameter)
   }
 }
+
+
+#' Compute Scaling Weights for `hdClass` Object
+#'
+#' This function computes scaling weights for each component (column) in a `hdClass` object.
+#' The goal is to normalize the contributions of different functional variables by
+#' accounting for their scale, using the inverse of total variance (integrated over domain).
+#'
+#' @param hd_obj A hybrid data object of class `hdClass`.
+#'
+#' @return A numeric vector of weights (length equals the number of variables in the hybrid data).
+#'
+#' @examples
+#' weights <- get_hd_scaling_weights(hd_obj)
+scale_hd <- function(hd_obj) {
+  if (!inherits(hd_obj, "hdClass")) stop("Input must be of class 'hdClass'")
+
+  n_var <- attr(hd_obj, "n_var")
+  ncol_vec <- attr(hd_obj, "ncol")  # number of columns per variable
+  weights <- numeric(n_var)
+
+  # Compute variance for each variable
+  start_idx <- 1
+  for (i in 1:n_var) {
+    end_idx <- as.numeric(start_idx + ncol_vec[i] - 1)
+    mat <- hd_obj[, start_idx:end_idx, drop = FALSE]
+    weights[i] <- 1 / sqrt(mean(diag(var(mat))))  # inverse sqrt of average variance
+    start_idx <- end_idx + 1
+  }
+
+  return(weights)
+}
