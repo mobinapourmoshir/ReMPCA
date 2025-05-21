@@ -211,18 +211,14 @@ scale_hd <- function(hd_obj) {
   start_idx <- 1
 
   for (i in 1:n_var) {
-    end_idx <- start_idx + ncol_vec[i] - 1
+    end_idx <- as.numeric(start_idx + ncol_vec[i] - 1)
     mat <- scaled_matrix[, start_idx:end_idx, drop = FALSE]
     weights[i] <- 1 / sqrt(mean(diag(var(mat))))
     scaled_matrix[, start_idx:end_idx] <- weights[i] * mat
     start_idx <- end_idx + 1
   }
-
-  hd_scaled <- hd_obj
-  hd_scaled$matrix <- scaled_matrix
-
   return(list(
-    scaled_hd = hd_scaled,
+    scaled_hd = scaled_matrix,
     weights = weights
   ))
 }
