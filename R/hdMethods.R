@@ -207,14 +207,22 @@ scale_hd <- function(hd_obj) {
   ncol_vec <- attr(hd_obj, "ncol")  # number of columns per variable
   weights <- numeric(n_var)
 
-  # Compute variance for each variable
+  scaled_matrix <- hd_obj$matrix
   start_idx <- 1
+
   for (i in 1:n_var) {
-    end_idx <- as.numeric(start_idx + ncol_vec[i] - 1)
-    mat <- hd_obj[, start_idx:end_idx, drop = FALSE]
-    weights[i] <- 1 / sqrt(mean(diag(var(mat))))  # inverse sqrt of average variance
+    end_idx <- start_idx + ncol_vec[i] - 1
+    mat <- scaled_matrix[, start_idx:end_idx, drop = FALSE]
+    weights[i] <- 1 / sqrt(mean(diag(var(mat))))
+    scaled_matrix[, start_idx:end_idx] <- weights[i] * mat
     start_idx <- end_idx + 1
   }
 
-  return(weights)
+  hd_scaled <- hd_obj
+  hd_scaled$matrix <- scaled_matrix
+
+  return(list(
+    scaled_hd = hd_scaled,
+    weights = weights
+  ))
 }
