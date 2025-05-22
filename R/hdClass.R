@@ -1,71 +1,71 @@
-#' @title Hybrid Data Class
+#' @title Hybrid Data Constructor (`hdClass`)
 #'
-#' @description Constructs an object of class `hdClass`, representing hybrid data
-#' composed of a list of `fdClass` and/or `rdClass` objects.
+#' @description Constructs an object of class `hdClass`, representing hybrid data composed of multiple functional and/or raw variables.
 #'
 #' @details
-#' The `hdClass` class represents hybrid data.
-#' - It is a list containing any number of `fdClass` and/or `rdClass` objects in no specific order.
-#' - Users can assign smoothing and sparsity parameters for the rows, as well as grid points for the rows.
-#' - All `fdClass` and `rdClass` objects within the `hdClass` list must have the same number of observations (rows).
+#' The `hdClass` is an S3 class for representing *hybrid data*, consisting of a list of functional (`fdClass`), raw (`rdClass`), or image (`imgClass`) data objects.
 #'
-#' @param hdlist A list of `rdClass` and/ or `hdClass` objects.
+#' - The input list (`hdlist`) can contain a mix of `fdClass`, `rdClass`, and `imgClass` objects.
+#' - All objects must have the **same number of observations** (i.e., same number of rows).
+#' - Image objects (`imgClass`) are interpreted as either functional or raw based on their internal class inheritance.
 #'
-#' @param argval A vector of grid points. For hybrid data (`hdClass`), it assigns grid points to
-#' the rows, with a length equal to the number of rows in the data.
-#' - If `NULL`, grid points are automatically assigned from 0 to 1.
+#' The resulting object is a matrix with column-wise concatenation of the input matrices and includes the following attributes:
 #'
-#' @param Smoothing_parameter : Smoothing parameter for rows It can be:
-#'   - A fixed number representing the smoothing parameter.
-#'   - A vector of numerical values, which will undergo generalized cross-validation (GCV) to determine the optimal value.
-#'   - Set to 0 for no smoothing.
-#'   - If `NULL`, it analyzes a sequence of `2^seq(-30, 5, length.out = 10)` and attempts to tune it.
+#' - `GridPoints_u`: Row grid points.
+#' - `Smoothing_parameter`: Row smoothing parameter(s).
+#' - `Sparsity_parameter`: Row sparsity parameter(s).
+#' - `n_var`: Number of variables (i.e., number of objects in `hdlist`).
+#' - `ncol`: Number of columns in each variable.
+#' - `Smoothing_parameter_col`: List of smoothing parameters for each variable.
+#' - `Sparsity_parameter_col`: List of sparsity parameters for each variable.
+#' - `GridPoints_v`: List of grid points (columns) for each variable.
+#' - `variable_types`: Character vector of type labels for each variable: `"hd"` (functional) or `"rd"` (raw).
 #'
-#' @param Sparsity_parameter
-#' - A fixed number representing the level of sparsity for rows, or a vector of
-#' numerical values that will undergo cross-validation (CV) to determine the optimal value.
-#' - For no sparsity, set it to 0.
-#' - If `NULL`, the row sparsity parameter will be tuned automatically.
-#' - This parameter is defined only for `hdClass` objects.
+#' @param hdlist A list of `fdClass`, `rdClass`, or `imgClass` objects.
+#' @param argval Optional numeric vector of grid points along the rows. If `NULL`, it defaults to a uniform grid over [0, 1].
+#' @param Smoothing_parameter Smoothing parameter(s) for the rows:
+#'   - If 0, no smoothing is applied.
+#'   - If a numeric value or vector, it is used directly.
+#'   - If `NULL`, defaults to `2^seq(-30, 5, length.out = 10)` for tuning.
+#' @param Sparsity_parameter Sparsity parameter(s) for the rows:
+#'   - If 0, no sparsity is applied.
+#'   - If a numeric vector, it is used for tuning.
+#'   - If `NULL`, a suitable default sequence is generated.
 #'
-#' @example
-#' Example for Hybrid Data (hd)
-#' fd_object2 <- fdClass(data = matrix(rnorm(100), nrow = 10, ncol = 10))  # Another fd object
-#' rd_object2 <- rdClass(data = matrix(rnorm(100), nrow = 10, ncol = 10))  # Another rd object
+#' @return An object of class `hdClass` (a matrix) with several hybrid-aware attributes.
 #'
-#' hd_list <- list(fd_object, rd_object)  # List of fd and rd objects
-#' hd_object <- hdClass(hdlist = hd_list,
-#'                      argval = seq(0, 1, length.out = 10),  # Grid points for rows
-#'                      Smoothing_parameter = 0.5,  # Custom smoothing parameter for rows
-#'                      Sparsity_parameter = 2)  # Custom sparsity parameter for rows
+#' @examples
+#' fd_obj <- fdClass(matrix(rnorm(100), nrow = 10))
+#' rd_obj <- rdClass(matrix(rnorm(100), nrow = 10))
+#' img_obj <- imgClass(list(matrix(rnorm(100), 10, 10), matrix(rnorm(100), 10, 10)))
 #'
-#' # Display the created hd object
-#' print(hd_object)
-#' print(attr(hd_object, "GridPoints_u"))  # Display grid points for rows
-#' print(attr(hd_object, "Smoothing_parameter"))  # Display row smoothing parameter
-#' print(attr(hd_object, "Sparsity_parameter"))  # Display row sparsity parameter
+#' hd_obj <- hdClass(
+#'   hdlist = list(fd_obj, rd_obj, img_obj),
+#'   argval = seq(0, 1, length.out = 10),
+#'   Smoothing_parameter = 0.5,
+#'   Sparsity_parameter = 2
+#' )
 #'
-#'
-#' is.hdClass(hd_object)
+#' print(hd_obj)
+#' attr(hd_obj, "variable_types")  # Shows "hd", "rd", etc.
 #'
 #' @export
 
-####################### Define an S3 Class for Hybrid Data #######################
 hdClass <- function(hdlist,
                     argval = NULL,
                     Smoothing_parameter = 0,
                     Sparsity_parameter = 0) {
 
-  if(!(is.list(hdlist))){
+  if (!is.list(hdlist)) {
     hdlist <- list(hdlist)
   }
 
-  # Validate input: Ensure all elements are of class "fdClass" or "rdClass"
-  if (!all(sapply(hdlist, function(obj) any(class(obj) %in% c("rdClass", "fdClass"))))) {
-    stop("All elements in the list must be of class 'fdClass' or 'rdClass'.")
+  # Validate input: must be fdClass, rdClass, or imgClass
+  if (!all(sapply(hdlist, function(obj) any(class(obj) %in% c("rdClass", "fdClass", "imgClass"))))) {
+    stop("All elements in the list must be of class 'fdClass', 'rdClass', or 'imgClass'.")
   }
 
-  # Make sure that all matrices have the same number of observations
+  # Ensure all matrices have the same number of observations
   nrows <- sapply(hdlist, function(obj) nrow(obj))
   if (!all(nrows == nrows[1])) {
     stop("Error: Not all matrices have the same number of rows!")
@@ -81,18 +81,10 @@ hdClass <- function(hdlist,
     }
   }
 
-  # Assigning GridPoints for u
-  GridPoints_u <- vector()
-
-  if (!is.null(argval)) {
-    GridPoints_u <- argval  # Use provided argval
-  } else {
-    GridPoints_u <- seq(from = 1/nrow(hd), to = 1 , length.out =nrow(hd))
-  }
+  GridPoints_u <- if (!is.null(argval)) argval else seq(from = 1 / nrow(hd), to = 1, length.out = nrow(hd))
   attr(hd, "GridPoints_u") <- GridPoints_u
 
   ####### Smoothing_parameter #######
-  # Validate 'Smoothing_parameter'
   if (!is.null(Smoothing_parameter) &&
       !is.numeric(Smoothing_parameter) &&
       !identical(Smoothing_parameter, 0)) {
@@ -105,21 +97,16 @@ hdClass <- function(hdlist,
   attr(hd, "Smoothing_parameter") <- Smoothing_parameter
 
   ####### Sparsity_parameter #######
-  # Validate 'Sparsity_parameter'
   if (!is.null(Sparsity_parameter)) {
-    # Check it's numeric and non-negative integers
     if (!is.numeric(Sparsity_parameter) ||
         any(Sparsity_parameter < 0) ||
         any(Sparsity_parameter != floor(Sparsity_parameter))) {
       stop("Sparsity_parameter must be a vector of non-negative integers.")
     }
-
-    # Check that all values are within range
     if (any(Sparsity_parameter > nrow(hd) - 1)) {
       stop("All elements of Sparsity_parameter must be between 0 and nrow(hd) - 1.")
     }
   } else {
-    # If NULL, generate sequence
     if (nrow(hd) <= 15) {
       Sparsity_parameter <- 0:(nrow(hd) - 1)
     } else {
@@ -129,20 +116,33 @@ hdClass <- function(hdlist,
   }
 
   attr(hd, "Sparsity_parameter") <- Sparsity_parameter
-  attr(hd, "n_var") <- length(hdlist) # Number of variables (# of matrices in object_list)
-  attr(hd, "ncol") <- as.data.frame(sapply(hdlist, dim))[2,] # Number of columns of each matrix
+  attr(hd, "n_var") <- length(hdlist)
+  attr(hd, "ncol") <- as.data.frame(sapply(hdlist, dim))[2, ]
 
-  ####### Smoothing parameters on columns #######
-  Smoothing_parameter_col <- lapply(hdlist, function(obj) attr(obj, "Smoothing_parameter"))
-  attr(hd, "Smoothing_parameter_col") <- Smoothing_parameter_col
-  GridPoints_v <- lapply(hdlist, function(obj) attr(obj, "GridPoints_v"))
-  attr(hd, "GridPoints_v") <- GridPoints_v
+  ####### Column-wise parameter attributes #######
+  attr(hd, "Smoothing_parameter_col") <- lapply(hdlist, function(obj) attr(obj, "Smoothing_parameter"))
+  attr(hd, "GridPoints_v") <- lapply(hdlist, function(obj) attr(obj, "GridPoints_v"))
+  attr(hd, "Sparsity_parameter_col") <- lapply(hdlist, function(obj) attr(obj, "Sparsity_parameter"))
 
-  ####### Sparsity parameters on columns #######
-  Sparsity_parameter_col <- lapply(hdlist, function(obj) attr(obj, "Sparsity_parameter"))
-  attr(hd, "Sparsity_parameter_col") <- Sparsity_parameter_col
+  ####### Column type: hd or rd #######
+  column_class <- sapply(hdlist, function(obj) {
+    class_type <- class(obj)
+    if ("imgClass" %in% class_type) {
+      if ("fdClass" %in% class_type) {
+        return("hd")
+      } else if ("rdClass" %in% class_type) {
+        return("rd")
+      } else {
+        stop("imgClass must also inherit either fdClass or rdClass.")
+      }
+    } else if ("fdClass" %in% class_type) {
+      return("hd")
+    } else {
+      return("rd")
+    }
+  })
+  attr(hd, "variable_types") <- column_class  # vector of "hd"/"rd" types
 
-  # Set the class of the object
   class(hd) <- "hdClass"
   return(hd)
 }
