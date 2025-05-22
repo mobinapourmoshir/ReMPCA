@@ -45,24 +45,33 @@ imgClass <- function(image,
 
     # Vectorize each image in row-major order
     data <- t(sapply(image, function(img) c(t(img))))
+    nrow_img <- nrow(image[[1]])
   } else if (is.matrix(image)) {
-    # Single image: keep 2D structure (not vectorized)
     data <- image
+    nrow_img <- NULL
   } else {
     stop("Input must be a matrix or a list of matrices.")
   }
 
-  # Determine class based on smoothing
-  if (is.null(Smoothing_parameter) || any(Smoothing_parameter != 0)) {
+  # Determine whether smoothing is needed
+  if (all(Smoothing_parameter != 0)) {
+    # Smoothing is requested → treat as fdClass and ignore argval
     x <- fdClass(data = data,
-                 argval = argval,
+                 argval = NULL,
                  Smoothing_parameter = Smoothing_parameter,
                  Sparsity_parameter = Sparsity_parameter)
   } else {
+    # No smoothing → treat as regular data class
     x <- rdClass(data = data,
                  Sparsity_parameter = Sparsity_parameter)
   }
-  if(is.list(image)){
-    attr(x,"nrow") <- length(image)}
+
+  # Tag as image-specific object
+  class(x) <- c("imgClass", class(x))
+
+  if (!is.null(nrow_img)) {
+    attr(x, "nrow") <- nrow_img
+  }
+
   return(x)
 }
