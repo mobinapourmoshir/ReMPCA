@@ -28,3 +28,13 @@ is.hdClass <- function(x) {
   inherits(x, "hdClass")
 }
 
+#' Check if an object is of class 'imgClass'
+#'
+#' @param x An object to test.
+#' @return Logical; TRUE if the object inherits from class 'imgClass', FALSE otherwise.
+#'
+#' @export
+is.imgClass <- function(x) {
+  inherits(x, "imgClass")
+}
+
