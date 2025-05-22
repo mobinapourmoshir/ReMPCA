@@ -1,6 +1,6 @@
 #' ReMPCA Smooth and Sparse Multivariate Functional Principal Component Analysis
 #'
-#' @param object_list An hdClass object.
+#' @param hd An hdClass object.
 #' @param centerhds A logical; if True, it demeans the data before calculating the principal components.
 #' @param num_pcs An integer. The number of principal components.
 #' @param sparse_tuning_type A character string specifying the sparse calculation method. Must be one of "soft" (default), "hard", or "SCAD".
@@ -112,8 +112,8 @@ ReMPCA <- function(hd,
 
   # Combine matrices side by side
   n <- nrow(hd)
-  n_var <- attr(object_list, "n_var") # Number of variables (# of matrices in object_list)
-  ncol <- data.frame(attr(object_list, "ncol")) # Number of columns of each matrix
+  n_var <- attr(hd, "n_var") # Number of variables (# of matrices in hd)
+  ncol <- data.frame(attr(hd, "ncol")) # Number of columns of each matrix
   # nfolds_v with no default
   if (is.null(nfolds_v)) {
     nfolds_v <- rep(5, attr(hd, "n_var"))
@@ -125,26 +125,26 @@ ReMPCA <- function(hd,
   if(!is.null(smooth_tuning_v)){
     smooth_tuning_col <- expand.grid(smooth_tuning_v)
     }else{
-      smooth_tuning_col <- expand.grid(attr(object_list, "Smoothing_parameter_col"))
+      smooth_tuning_col <- expand.grid(attr(hd, "Smoothing_parameter_col"))
     }
 
   # Smoothing parameters for row: A vector
   if(!is.null(smooth_tuning_u)){
     smooth_tuning_row <- smooth_tuning_u
   }else{
-    smooth_tuning_row <- attr(object_list, "Smoothing_parameter")
+    smooth_tuning_row <- attr(hd, "Smoothing_parameter")
   }
 
   ####### level of sparsity #######
   if(!is.null(sparse_tuning_u)){
     sparsity_row_list <- sparse_tuning_u
   }else{
-    sparsity_row_list <- attr(object_list, "Sparsity_parameter")
+    sparsity_row_list <- attr(hd, "Sparsity_parameter")
   }
   if(!is.null(sparse_tuning_v)){
     sparsity_col_list <- sparse_tuning_v
   }else{
-    sparsity_col_list <- attr(object_list, "Sparsity_parameter_col")
+    sparsity_col_list <- attr(hd, "Sparsity_parameter_col")
   }
 
   ####### Pre-processing: Centralizing the data #######
@@ -156,8 +156,9 @@ ReMPCA <- function(hd,
   }
 
   ####### Grid Points #######
-  GridPoints_u <- attr(object_list, "GridPoints_u")
-  GridPoints_v <- attr(object_list, "GridPoints_v")
+  GridPoints_u <- attr(hd, "GridPoints_u")
+  GridPoints_v <- attr(hd, "GridPoints_v")
+  variable_types <- attr(hd, "variable_types")
 
   ####### S_alpha for all alphas #######
   S_alpha_list_u <- S_alpha_list_v <- Omegas_v <- list()
@@ -314,7 +315,8 @@ ReMPCA <- function(hd,
     OptimalGammaU = sparse_result_u,           # Selected sparsity parameters (γ_u) for each component
     GCVResultsV = GCV_v,                       # Generalized cross-validation scores for v (per variable/component)
     GCVResultsU = GCV_u,                       # Generalized cross-validation scores for u (per component)
-    CVResultsV = CV_v,                        # Cross-validation scores for v (per variable/component)
-    CVResultsU = CV_u                         # Cross-validation scores for u (per component)
+    CVResultsV = CV_v,                         # Cross-validation scores for v (per variable/component)
+    CVResultsU = CV_u,                         # Cross-validation scores for u (per component)
+    variable_types = variable_types            # Variable types
   ))
 }
