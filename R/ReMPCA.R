@@ -52,7 +52,7 @@
 #' @importFrom Matrix bdiag
 #' @importFrom stats var
 #'
-#' @return PC scores, PC functions, ...
+#' @return ReconstructedData, PCFunctions, PCScores, OptimalAlphaV, OptimalAlphaU, OptimalGammaV, OptimalGammaU, GCVResultsV, GCVResultsU, CVResultsV, CVResultsU
 #' @export
 #'
 
@@ -208,10 +208,9 @@ ReMPCA <- function(hd,
 
   # Initializing the lists
   opt_S_v <- opt_S_u <- list()
-  smooth_tuning_result_v <- smooth_tuning_result_u <- list()
-  GCV_v <- GCV_u <- list()
-  GCVdf_v <- GCVdf_u <- list()
-  sparse_tuning_result_u <- sparse_tuning_result_v <- list()
+  smooth_result_u <- smooth_result_v <- list()
+  sparse_result_u <- sparse_result_v <- list()
+  GCV_v <- GCV_u <- CV_v <- CV_u <- list()
   lsv <- lsu <- c()
   funcs <- list()
 
@@ -229,7 +228,7 @@ ReMPCA <- function(hd,
     }
 
     # Tuning Parameters
-    param_result <- opt_alpha_result <- list()
+    param_result <- list()
     param_result <- parameter_selection(X_temp =  X_temp,
                                         n_var = n_var,
                                         ncol = ncol,
@@ -255,36 +254,38 @@ ReMPCA <- function(hd,
                                         smoothness_type = smoothness_type)
 
     # Optimal parameters
-    sparse_tuning_result_u[[j]] <- param_result$sparse_tuning_selection_u # Optimal level of sparsity for u (CV)
-    sparse_tuning_result_v[[j]] <- param_result$sparse_tuning_selection_v # Optimal level of sparsity for v (CV)
-    opt_alpha_result <- param_result$GCV_score_smooth # Optimal Smoothness (GCV)
+    sparse_result_u[[j]] <- param_result$sparse_tuning_selection_u
+    sparse_result_v[[j]] <- param_result$sparse_tuning_selection_v
+    smooth_result_u[[j]] <- param_result$smooth_tuning_selection_u
+    smooth_result_v[[j]] <- param_result$smooth_tuning_selection_v
 
-    opt_S_v[[j]] <- opt_alpha_result$opt_s.alpha
-    smooth_tuning_result_v[[j]] <- opt_alpha_result$opt.alpha
-    GCV_v[[j]] <- opt_alpha_result$GCV
-    GCVdf_v[[j]] <- opt_alpha_result$GCVdf
+    # Optimal Smoothing Matrices
+    opt_S_u[[j]] <- param_result$last_opt_S_u
+    opt_S_v[[j]] <- param_result$last_opt_S_v
 
-    # Handling two-way smoothness
-    if(two_way_smoothness != 0){
-      opt_S_u[[j]] <- opt_alpha_result$opt_s.alpha_u
-      smooth_tuning_result_u[[j]] <- opt_alpha_result$opt.alpha_u
-      GCV_u[[j]] <- opt_alpha_result$GCV_u
-      GCVdf_u[[j]] <- opt_alpha_result$GCVdf_u
-    }else{
-      opt_S_u[[j]] <- diag(n)
-      smooth_tuning_result_u[[j]] <- 0
-      GCV_u[[j]] <- Inf
-      GCVdf_u[[j]] <- data.frame(0,Inf)
-    }
+    # Generalized cross-validation scores
+    GCV_v[[j]] <- param_result$last_gcv_result_v
+    GCV_u[[j]] <- param_result$last_gcv_result_u
+
+    # Cross-validation scores
+    CV_v[[j]] <- param_result$last_cv_result_v
+    CV_u[[j]] <- param_result$last_cv_result_u
 
     # Extracting v and u having the optimal parameters
     test_result <- power_algo(data = X_temp,
-                              sparse_tuning_result_u = sparse_tuning_result_u[[j]],
-                              sparse_tuning_result_v = sparse_tuning_result_v[[j]],
+                              n_var = n_var,
+                              ncol = ncol,
+                              conditional = FALSE,
+                              thresh = thresh,
+                              maxit = maxit,
+                              sparse_tuning_result_u = sparse_result_u[[j]],
+                              sparse_tuning_result_v = sparse_result_v[[j]],
                               S_alpha_v = opt_S_v[[j]],
                               S_alpha_u = opt_S_u[[j]],
-                              sparse_tuning_type = sparse_tuning_type,
-                              type = "real")
+                              alpha_Omega_v = param_result$last_opt_alpha_omega_v,
+                              alpha_Omega_u = param_result$last_opt_alpha_omega_v,
+                              sparse_tuning_type = sparse_tuning_type)
+
 
     v <- test_result[[1]]
     u <- test_result[[2]]
@@ -303,14 +304,17 @@ ReMPCA <- function(hd,
     lsv <- lsv[-rows_to_extract,]
   }
 
-
-
-  return(list(Estimated = funcs, PC_functions = PCs, PC_Scores = lsu,
-              opt_alpha_for_PC = smooth_tuning_result_v,
-              opt_alpha_for_u = smooth_tuning_result_u,
-              opt_gamma_for_PC = sparse_tuning_result_v,
-              opt_gamma_for_u = sparse_tuning_result_u,
-              GCV_v = GCV_v, GCVdf_v = GCVdf_v,
-              GCV_u = GCV_u, GCVdf_u = GCVdf_u))
+  return(list(
+    ReconstructedData = funcs,                 # Reconstructed hybrid data matrix (X̂)
+    PCFunctions = PCs,                         # List of estimated PC vectors v for each variable and component
+    PCScores = lsu,                            # Matrix of principal component scores u for each component
+    OptimalAlphaV = smooth_result_v,           # Selected smoothing parameters (α_v) for each variable and component
+    OptimalAlphaU = smooth_result_u,           # Selected smoothing parameters (α_u) for each component
+    OptimalGammaV = sparse_result_v,           # Selected sparsity parameters (γ_v) for each variable and component
+    OptimalGammaU = sparse_result_u,           # Selected sparsity parameters (γ_u) for each component
+    GCVResultsV = GCV_v,                       # Generalized cross-validation scores for v (per variable/component)
+    GCVResultsU = GCV_u,                       # Generalized cross-validation scores for u (per component)
+    CVResultsV = CV_v,                        # Cross-validation scores for v (per variable/component)
+    CVResultsU = CV_u                         # Cross-validation scores for u (per component)
+  ))
 }
-
