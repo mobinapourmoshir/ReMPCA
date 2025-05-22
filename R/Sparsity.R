@@ -127,7 +127,7 @@ cv_sparse_col <- function(data,
   for (k in 1:K_fold) {
     rows_to_remove <- shuffled_rows[((k - 1) * group_size + 1):min(k * group_size, length(shuffled_rows))]
     data_train <- data.frame(data_tilde[-rows_to_remove,])
-    data_test <- data.frame(matrix(data_tilde[rows_to_remove,], nrow = length(rows_to_remove)))
+    data_test <- data.frame(data_tilde[rows_to_remove,])
 
     # Power Algorithm
     power_train <- power_algo(data = data_train,

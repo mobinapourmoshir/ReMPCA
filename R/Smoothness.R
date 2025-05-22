@@ -56,7 +56,7 @@ opt_alpha_u <- function(X,
       norm_v2 <- as.numeric(norm_vec(v)^2)
       alphaR_v <- as.numeric(t(v) %*% alpha_Omega_v %*% v / norm_v2)
 
-      GCV_alpha <- ( (1/n) *(norm_vec(((X %*% v) / norm_vec(v)) - u ))^2 ) /
+      GCV_alpha <- ( (1/n) *(norm_vec(((as.matrix(X) %*%v) / norm_vec(v)) - u ))^2 ) /
         ( 1 -  (1/n)* (sum(diag(S)))/(1 + alphaR_v))^2
       GCV[i] <- GCV_alpha
     }
@@ -64,17 +64,19 @@ opt_alpha_u <- function(X,
     opt.alpha <- alphas_u[which.min(GCV)]
     opt_s.alpha <- S_alphas_u[[which.min(GCV)]]
     Omega_u <- Omegas_u[[which.min(GCV)]]
+    opt_alpha_Omega_u <- opt.alpha * Omega_u
+
     #close(pb)
     result <- list(GCV_u = GCV,
                    opt.alpha_u = opt.alpha,
                    opt_s.alpha_u = opt_s.alpha,
                    GCVdf = data.frame(alphas_u, GCV),
-                   Omega_u = Omega_u)
+                   Omega_u = Omega_u,
+                   opt_alpha_Omega_u = opt_alpha_Omega_u)
 
     return(result)
   }
 }
-
 
 ########## Calculating the optimal alpha for v using conditional GCV ##########
 opt_alpha_v <- function(X,
@@ -155,11 +157,14 @@ opt_alpha_v <- function(X,
     opt.alpha <- alphas_v[which.min(GCV), ]
     opt_s.alpha <- S_alphas_v[[which.min(GCV)]]
     Omega_v <- Omegas_v[[which.min(GCV)]]
+    opt_alpha_Omega_v <- as.matrix(bdiag(lapply(1:n_var, function(j)
+      as.numeric(opt.alpha) * Omega_v[[j]])))
 
     return(list(GCV_v = GCV,
                 opt.alpha_v = opt.alpha,
                 opt_s.alpha_v = opt_s.alpha,
                 GCVdf_v = data.frame(alphas_v, GCV),
-                Omega_v = Omega_v))
+                Omega_v = Omega_v,
+                opt_alpha_Omega_v = opt_alpha_Omega_v))
   }
 }
