@@ -54,14 +54,6 @@ print.fdClass <- function(x, ...) {
   invisible(x)  # Return the object invisibly
 }
 
-#' Check if an object is of class 'fdClass'
-#' @param x An object to test.
-#' @return Logical; TRUE if the object inherits from class 'fdClass', FALSE otherwise.
-#' @export
-is.fdClass <- function(x) {
-  inherits(x, "fdClass")
-}
-
 #' Custom `$` operator for fdClass
 #' Allows access to the underlying data matrix via `fd$matrix`
 #'

@@ -102,15 +102,6 @@ print.hdClass <- function(x, ...) {
   invisible(x)
 }
 
-#' Check if an object is of class 'hdClass'
-#' @param x An object to test.
-#' @return Logical; TRUE if the object inherits from class 'hdClass', FALSE otherwise.
-#' @export
-is.hdClass <- function(x) {
-  inherits(x, "hdClass")
-}
-
-
 #' Custom `$` operator for hdClass
 #' Returns a clean data.frame when using hd_obj$matrix
 #'
