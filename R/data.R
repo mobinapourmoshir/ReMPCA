@@ -125,6 +125,15 @@ X4 <- outer(u, v4) + rnorm(length(outer(u, v4)), sd = 0.05)
 
 X <- cbind(outer(u, v1), outer(u, v2), outer(u, v3), outer(u, v4))
 
+# Test image Class
+set.seed(456)
+img_object3 <- imgClass(image = list(matrix(rnorm(100), nr= 50), matrix(rnorm(100),nr = 50)),
+                        argval = NULL, Smoothing_parameter = NULL, Sparsity_parameter = 0) #round(seq(0,29, length.out = 15)))
+is.imgClass(img_object3)
+is.fdClass(img_object3)
+
+attr(img_object3,"nrow")
+
 # Object
 set.seed(123)
 rd_object1 <- rdClass(data = as.matrix(X1), Sparsity_parameter = round(seq(1,19, length.out = 10)))
@@ -154,31 +163,6 @@ smooth_tuning_u = NULL
 smooth_tuning_v = NULL
 weights = 0
 
-# Param_selection function test
-X_temp =  X_temp
-n_var = n_var
-ncol = ncol
-n = n
-GridPoints_u = GridPoints_u
-GridPoints_v = GridPoints_v
-smooth_tuning_v = smooth_tuning_col
-smooth_tuning_u = smooth_tuning_row
-sparse_tuning_u = sparsity_row_list
-sparse_tuning_v = sparsity_col_list
-sparse_tuning_type = sparse_tuning_type
-nfolds_u = nfolds_u
-nfolds_v = nfolds_v
-S_alpha_list_v = S_alpha_list_v
-S_alpha_list_u = S_alpha_list_u
-Omegas_u = Omegas_u
-Omegas_v = Omegas_v
-tuning_iter = tuning_iter
-tuning_order = tuning_order
-thresh = thresh
-maxit = maxit
-cv.pick = cv.pick
-smoothness_type = smoothness_type
-
 
 # Plots
 par(mfrow = c(2, 4), pin = c(1, 1), mar = c(2, 2, 2, 2), pty = "s")
@@ -190,3 +174,35 @@ matplot(v3, type = 'l', main = 'v3, Functional')
 image(t(X3), main = 'X3, Functional')
 matplot(v4, type = 'o', main = 'v4, Regular')
 image(t(X4), main = 'X4, Regular')
+
+
+
+source("Sparsity.R")
+source("Smoothness.R")
+source("ReMPCA.R")
+source("tuning_parameters.R")
+
+ReMPCATest <- ReMPCA(hd = object_list,
+                     centerhds = FALSE,
+                     num_pcs = 1,
+                     nfolds_u = 5,
+                     nfolds_v = NULL,
+                     thresh = 1e-10,
+                     maxit = 100,
+                     tuning_iter = 1,
+                     parallel = FALSE,
+                     weights = 0,
+                     smoothness_type = "Second_order",
+                     sparse_tuning_type = "soft",
+                     tuning_order = "Sparsity",
+                     cv.pick = "1se",
+                     sparse_tuning_u = NULL,
+                     sparse_tuning_v = NULL,
+                     smooth_tuning_u = NULL,
+                     smooth_tuning_v = NULL)
+
+
+
+
+
+

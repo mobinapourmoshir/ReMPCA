@@ -213,7 +213,7 @@ ReMPCA <- function(hd,
   sparse_result_u <- sparse_result_v <- list()
   GCV_v <- GCV_u <- CV_v <- CV_u <- list()
   lsv <- lsu <- c()
-  funcs <- list()
+  funcs <- PCs <- list()
 
   ####### ReMPCA Implementation #######
   for (j in 1:num_pcs) {
@@ -293,16 +293,16 @@ ReMPCA <- function(hd,
     lsv <- cbind(lsv, v)
     lsu <- cbind(lsu, u)
     funcs[[j]] <- u%*%t(v)
-  }
 
-
-  # Splitting v for variables
-  PCs <- list()
-  for (i in 1:n_var) {
-    lsv <- data.frame(lsv)
-    rows_to_extract <- 1:as.integer(ncol[i])
-    PCs[[i]] <- lsv[rows_to_extract,]
-    lsv <- lsv[-rows_to_extract,]
+    # Splitting v for variables
+    new_PC <- list()
+    for (i in 1:n_var) {
+      lsv <- data.frame(lsv)
+      rows_to_extract <- 1:as.integer(ncol[i])
+      new_PC[[i]] <- lsv[rows_to_extract,]
+      lsv <- lsv[-rows_to_extract,]
+    }
+    PCs[[j]] <- new_PC
   }
 
   return(list(

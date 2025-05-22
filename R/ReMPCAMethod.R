@@ -275,5 +275,55 @@ plot_pc_scores <- function(ReMPCA_obj) {
   }
 }
 
+#' Plot Principal Component Functions
+#'
+#' This function visualizes the estimated principal component functions (v) from a
+#' ReMPCA object. Each component is plotted across its variables using either a
+#' line plot (for functional variables) or a dot plot (for regular variables).
+#'
+#' @param ReMPCA_obj A ReMPCA object containing:
+#'   \describe{
+#'     \item{\code{PCFunctions}}{A list of length equal to number of PCs. Each element is a list of PC functions for each variable.}
+#'     \item{\code{variable_types}}{A character vector indicating type of each variable: either `"hd"` (functional) or `"rd"` (regular).}
+#'   }
+#'
+#' @details The function arranges plots in a matrix layout with rows corresponding
+#' to variables and columns to principal components. A light gray horizontal line
+#' at 0 is added for reference unless the minimum value in the plot is ≥ 5.
+#'
+#' @return No return value. This function is called for its side effect of plotting.
+#'
+#' @examples
+#' plot_pc_functions(ReMPCA_obj)
+#'
+#' @export
+plot_pc_functions <- function(ReMPCA_obj) {
+  PCFunctions <- ReMPCA_obj$PCFunctions
+  variable_types <- ReMPCA_obj$variable_types
 
+  n_pc <- length(PCFunctions)
+  n_var <- length(variable_types)
 
+  par(mfrow = c(n_var, n_pc), mar = c(3, 3, 2, 1))
+
+  for (i in seq_len(n_pc)) {
+    pc_funcs <- PCFunctions[[i]]
+    for (j in seq_len(n_var)) {
+      func <- pc_funcs[[j]]
+      y_min <- min(func, na.rm = TRUE)
+      y_max <- max(func, na.rm = TRUE)
+
+      plot(func, type = "n", main = paste("PC", i, "- Var", j),
+           xlab = "", ylab = "", ylim = c(y_min, y_max))
+
+      # Add gray zero line if min < 5
+      if (y_min < 5) abline(h = 0, col = "gray80", lty = 2)
+
+      if (variable_types[j] == "rd") {
+        points(func, pch = 16, col = "black")
+      } else {
+        lines(func, col = "black")
+      }
+    }
+  }
+}
