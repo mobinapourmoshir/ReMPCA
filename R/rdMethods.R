@@ -27,14 +27,6 @@ print.rdClass <- function(x, ...) {
 
 }
 
-#' Check if an object is of class 'rdClass'
-#' @param x An object to test.
-#' @return Logical; TRUE if the object inherits from class 'rdClass', FALSE otherwise.
-#' @export
-is.rdClass <- function(x) {
-  inherits(x, "rdClass")
-}
-
 #' Custom `$` operator for rdClass
 #' Allows access to the underlying data matrix via `rd$matrix`
 #'
