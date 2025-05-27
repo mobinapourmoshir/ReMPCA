@@ -125,3 +125,25 @@ as.fdClass <- function(x,
           Smoothing_parameter = Smoothing_parameter,
           Sparsity_parameter = Sparsity_parameter)
 }
+
+
+#' Plot Method for fdClass Objects
+#'
+#' Generates a line plot of the functional data stored in an object of class \code{fdClass}.
+#'
+#' @param obj An object of class \code{fdClass}.
+#'
+#' @details
+#' This function uses \code{\link{matplot}} to visualize each observation (row) as a separate curve.
+#' It provides a quick overview of the functional data structure stored in the \code{fdClass} object.
+#'
+#' @return No return value. This function is called for its side effect (plot).
+#'
+#' @examples
+#' fd_obj <- fdClass(matrix(sin(1:100 / 10), nrow = 10, ncol = 10))
+#' plot(fd_obj)
+#'
+#' @export
+plot.fdClass <- function(obj) {
+  matplot(obj, type = "l", main = "fd Class Plot", ...)
+}

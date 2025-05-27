@@ -305,3 +305,59 @@ scale_hd <- function(hd_obj) {
     weights = weights
   ))
 }
+
+#' Plot Method for hdClass Objects
+#'
+#' Visualizes each variable in a hybrid data object (\code{hdClass}) using an appropriate plot style:
+#' - Functional data are shown using lines (\code{matplot(..., type = "l")}).
+#' - Regular data are shown using solid dots (\code{matplot(..., type = "p", pch = 16)}).
+#' - Image data are plotted using \code{image()} if they originated from matrices.
+#'
+#' @param obj An object of class \code{hdClass}.
+#' @param ... Additional graphical parameters passed to the plotting functions.
+#'
+#' @return No return value. Called for its side effect (producing plots).
+#'
+#' @examples
+#' fd_obj <- fdClass(matrix(rnorm(100), 10, 10))
+#' rd_obj <- rdClass(matrix(rnorm(100), 10, 10))
+#' img_obj <- imgClass(list(matrix(rnorm(100), 10, 10), matrix(rnorm(100), 10, 10)))
+#' hd_obj <- hdClass(list(fd_obj, rd_obj, img_obj))
+#' plot(hd_obj)
+#'
+#' @export
+plot.hdClass <- function(obj) {
+  n_var <- attr(obj, "n_var")
+  ncol_list <- as.numeric(attr(obj, "ncol"))
+  var_types <- attr(obj, "variable_types")
+
+  par(mfrow = c(1, n_var))
+
+  start_idx <- 1
+  for (i in seq_len(n_var)) {
+    end_idx <- start_idx + ncol_list[i] - 1
+    subdata <- obj[, start_idx:end_idx, drop = FALSE]
+    main_title <- paste("Variable", i, "-", var_types[i])
+
+    if (var_types[i] == "hd") {
+      matplot(subdata, type = "l", main = main_title)
+    } else if (var_types[i] == "rd") {
+      matplot(subdata, type = "p", pch = 16, main = main_title)
+    } else if (var_types[i] == "img") {
+      if (!is.null(attr(obj, "nrow"))) {
+        nrow_img <- attr(obj, "nrow")
+        for (k in 1:nrow(subdata)) {
+          image(matrix(subdata[k, ], nrow = nrow_img),
+                main = paste(main_title, "- Image", k), col = gray.colors(256))
+        }
+      } else {
+        # fallback to line or point if structure is unknown
+        matplot(subdata, type = "l", main = main_title)
+      }
+    }
+
+    start_idx <- end_idx + 1
+  }
+
+  invisible(NULL)
+}

@@ -126,7 +126,7 @@ as.imgClass <- function(x,
   }
 
   # Convert to matrix
-  data <- as.matrix(x)
+  data <- list(as.matrix(x))
 
   # Extract sparsity parameter
   if (is.null(Sparsity_parameter)) {
@@ -144,9 +144,6 @@ as.imgClass <- function(x,
   }else{
     argval <- argval}
 
-  # Extract data matrix
-
-
   # Construct fdClass with overrides
   imgClass(image  = data,
            argval = argval,
@@ -154,3 +151,50 @@ as.imgClass <- function(x,
            Sparsity_parameter = Sparsity_parameter)
 }
 
+
+#' Plot Method for imgClass Objects
+#'
+#' Visualizes a list of image matrices stored in an \code{imgClass} object.
+#' Each image is shown one at a time. The user is prompted to press Enter or
+#' click on the graphics window to advance to the next image.
+#'
+#' @param obj An object of class \code{imgClass}, created using \code{imgClass()}.
+#' @param col Color palette to use for image rendering (default: grayscale).
+#' @param ... Additional graphical parameters passed to \code{image()}.
+#'
+#' @return No return value. Called for its side effect (plotting).
+#'
+#' @examples
+#' img_list <- list(matrix(rnorm(100), 10, 10),
+#'                  matrix(runif(100), 10, 10))
+#' img_obj <- imgClass(img_list)
+#' plot(img_obj)
+#'
+#' @export
+plot.imgClass <- function(obj) {
+  if (!inherits(obj, "imgClass")) {
+    stop("Input must be of class 'imgClass'.")
+  }
+
+  if (!is.list(obj) && !is.matrix(obj)) {
+    stop("imgClass must contain a list of matrices or a single image matrix.")
+  }
+
+  # If it's a list of vectorized images, convert back
+  if (!is.null(attr(obj, "nrow"))) {
+    n_imgs <- nrow(obj)
+    nrow_img <- attr(obj, "nrow")
+    ncol_img <- ncol(obj) / nrow_img
+    for (i in 1:n_imgs) {
+      img <- matrix(obj[i, ], nrow = nrow_img)
+      image(img, main = paste("Image", i))
+      if(n_imgs>=2 && i<= n_imgs -1){
+        readline(prompt = "Press [Enter] or click to continue...")
+      }
+    }
+  } else {
+    stop("Unknown image structure. Missing 'nrow' attribute!")
+  }
+
+  invisible()
+}
