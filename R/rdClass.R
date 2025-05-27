@@ -73,3 +73,25 @@ rdClass <- function(data,
   class(data) <- "rdClass"
   return(data)
 }
+
+#' Plot Method for rdClass Objects
+#'
+#' Produces a scatter plot of regular data stored in an \code{rdClass} object.
+#' Each column is plotted as a sequence of solid points.
+#'
+#' @param obj An object of class \code{rdClass}.
+#'
+#' @details
+#' This method visualizes the regular (non-functional) data in the \code{rdClass} object.
+#' It shows the values in each column as solid dots, which is useful for examining patterns across observations or variables.
+#'
+#' @return No return value. This function is called for its side effect (plot).
+#'
+#' @examples
+#' rd_obj <- rdClass(matrix(rnorm(100), nrow = 10, ncol = 10))
+#' plot(rd_obj)
+#'
+#' @export
+plot.rdClass <- function(obj, ...) {
+  matplot(obj, type = "p", pch = 16, main = "rd Class Plot", ...)
+}
