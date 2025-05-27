@@ -118,8 +118,6 @@ print.hdClass <- function(x, ...) {
   }
 }
 
-
-
 #' Coerce an object of class 'rdClass', 'fdClass', or 'imgClass' to class 'hdClass'
 #'
 #' This function wraps a single regular or functional object into a hybrid data object.
@@ -360,4 +358,184 @@ plot.hdClass <- function(obj) {
   }
 
   invisible(NULL)
+}
+
+#' Subset Method for hdClass
+#'
+#' Enables subsetting of an \code{hdClass} object by rows (observations) and columns (variables).
+#'
+#' @param x An object of class \code{hdClass}.
+#' @param i Row indices (observations). If \code{NULL}, all rows are included.
+#' @param j Column indices (variables). If \code{NULL}, all variables are included.
+#' @param ... Not used.
+#'
+#' @return A new \code{hdClass} object with subsetted data and inherited attributes.
+#'
+#' @export
+`[.hdClass` <- function(x, i = NULL, j = NULL, ...) {
+  n <- nrow(x)
+  var_count <- attr(x, "n_var")
+  col_sizes <- as.numeric(attr(x, "ncol"))
+  stopifnot(length(col_sizes) == var_count)
+
+  # Default to full selection
+  if (is.null(i)) i <- seq_len(n)
+  if (is.null(j)) j <- seq_len(var_count)
+
+  # Bounds check
+  if (any(i < 1 | i > n)) stop("Row index out of bounds.")
+  if (any(j < 1 | j > var_count)) stop("Column index out of bounds.")
+
+  # Compute column positions for selected variables
+  cum_cols <- c(0, cumsum(col_sizes))
+  selected_cols <- unlist(lapply(j, function(idx) {
+    seq(cum_cols[idx] + 1, cum_cols[idx + 1])
+  }))
+
+  # Subset data matrix
+  data_sub <- x[i, selected_cols, drop = FALSE]
+
+  # Prepare new list of subsetted objects
+  hdlist <- vector("list", length(j))
+  sm_pars <- attr(x, "Smoothing_parameter_col")
+  sp_pars <- attr(x, "Sparsity_parameter_col")
+  grid_v  <- attr(x, "GridPoints_v")
+  types   <- attr(x, "variable_types")
+
+  start <- 1
+  for (k in seq_along(j)) {
+    var_idx <- j[k]
+    nc <- col_sizes[var_idx]
+    mat_k <- data_sub[, start:(start + nc - 1), drop = FALSE]
+
+    if (types[var_idx] == "hd") {
+      hdlist[[k]] <- fdClass(mat_k,
+                             argval = grid_v[[var_idx]],
+                             Smoothing_parameter = sm_pars[[var_idx]],
+                             Sparsity_parameter = sp_pars[[var_idx]])
+    } else if (types[var_idx] == "rd") {
+      hdlist[[k]] <- rdClass(mat_k,
+                             Sparsity_parameter = sp_pars[[var_idx]])
+    } else {
+      stop("Unknown variable type in 'hdClass'.")
+    }
+
+    start <- start + nc
+  }
+
+  # Construct and return new hdClass object
+  hdClass(hdlist = hdlist,
+          argval = attr(x, "GridPoints_u")[i],
+          Smoothing_parameter = attr(x, "Smoothing_parameter"),
+          Sparsity_parameter = attr(x, "Sparsity_parameter"))
+}
+
+#' @title Element-wise Addition of Two Hybrid Data Objects
+#'
+#' @description Performs element-wise addition of two objects of class `hdClass`, `fdClass`, `rdClass`, or `imgClass`,
+#' assuming they have identical dimensions. This operation is primarily intended for internal use during iterative
+#' algorithms (e.g., functional PCA or regularized decomposition).
+#'
+#' @param obj1 An object of class \code{hdClass}, \code{fdClass}, \code{rdClass}, or \code{imgClass}.
+#' @param obj2 Another object of the same class as \code{obj1}. If \code{NULL}, the function returns \code{obj1}.
+#'
+#' @return An object of the same class as \code{obj1} and \code{obj2}, representing the element-wise sum.
+#'
+#' @details The dimensions of the two input objects must match exactly. The attributes from \code{obj1} are retained.
+#'
+#' @examples
+#' fd1 <- fdClass(matrix(1:9, 3, 3))
+#' fd2 <- fdClass(matrix(9:1, 3, 3))
+#' fd_sum <- fd1 + fd2
+#' print(fd_sum)
+#'
+#' @export
+`+.hd` <- function(obj1, obj2 = NULL) {
+  if (is.null(obj2)) return(obj1)
+
+  # Ensure same dimensions
+  if (!all(dim(obj1) == dim(obj2))) {
+    stop("Both objects must have the same dimensions.")
+  }
+
+  # Add underlying matrices
+  sum_data <- as.matrix(obj1) + as.matrix(obj2)
+
+  # Reconstruct an object of the same class as obj1 (or obj2)
+  if (inherits(obj1, "hdClass")) {
+    obj1[] <- sum_data
+    return(obj1)
+  } else if (inherits(obj1, "fdClass")) {
+    return(fdClass(sum_data,
+                   argval = attr(obj1, "GridPoints_v"),
+                   Smoothing_parameter = attr(obj1, "Smoothing_parameter"),
+                   Sparsity_parameter = attr(obj1, "Sparsity_parameter")))
+  } else if (inherits(obj1, "rdClass")) {
+    return(rdClass(sum_data,
+                   Sparsity_parameter = attr(obj1, "Sparsity_parameter")))
+  } else if (inherits(obj1, "imgClass")) {
+    img_obj <- imgClass(sum_data,
+                        argval = attr(obj1, "GridPoints_v"),
+                        Smoothing_parameter = attr(obj1, "Smoothing_parameter"),
+                        Sparsity_parameter = attr(obj1, "Sparsity_parameter"))
+    attr(img_obj, "nrow") <- attr(obj1, "nrow")
+    return(img_obj)
+  } else {
+    stop("Unsupported class for addition.")
+  }
+}
+
+#' @title Element-wise Subtraction for Hybrid Data Objects
+#'
+#' @description Performs element-wise subtraction of two objects of class `hdClass`, `fdClass`, `rdClass`, or `imgClass`,
+#' assuming they have identical dimensions. This operator is useful for iterative model fitting, residual computation, or
+#' gradient-based updates in hybrid data decomposition.
+#'
+#' @param obj1 An object of class \code{hdClass}, \code{fdClass}, \code{rdClass}, or \code{imgClass}.
+#' @param obj2 Another object of the same class as \code{obj1}. If \code{NULL}, the function returns \code{obj1}.
+#'
+#' @return An object of the same class as \code{obj1} and \code{obj2}, representing the element-wise difference.
+#'
+#' @details The dimensions of the two input objects must match exactly. Attributes from \code{obj1} are preserved.
+#'
+#' @examples
+#' fd1 <- fdClass(matrix(1:9, 3, 3))
+#' fd2 <- fdClass(matrix(1, 3, 3))
+#' fd_diff <- fd1 - fd2
+#' print(fd_diff)
+#'
+#' @export
+`-.hd` <- function(obj1, obj2 = NULL) {
+  if (is.null(obj2)) return(obj1)
+
+  # Ensure same dimensions
+  if (!all(dim(obj1) == dim(obj2))) {
+    stop("Both objects must have the same dimensions.")
+  }
+
+  # Subtract underlying matrices
+  diff_data <- as.matrix(obj1) - as.matrix(obj2)
+
+  # Reconstruct an object of the same class as obj1 (or obj2)
+  if (inherits(obj1, "hdClass")) {
+    obj1[] <- diff_data
+    return(obj1)
+  } else if (inherits(obj1, "fdClass")) {
+    return(fdClass(diff_data,
+                   argval = attr(obj1, "GridPoints_v"),
+                   Smoothing_parameter = attr(obj1, "Smoothing_parameter"),
+                   Sparsity_parameter = attr(obj1, "Sparsity_parameter")))
+  } else if (inherits(obj1, "rdClass")) {
+    return(rdClass(diff_data,
+                   Sparsity_parameter = attr(obj1, "Sparsity_parameter")))
+  } else if (inherits(obj1, "imgClass")) {
+    img_obj <- imgClass(diff_data,
+                        argval = attr(obj1, "GridPoints_v"),
+                        Smoothing_parameter = attr(obj1, "Smoothing_parameter"),
+                        Sparsity_parameter = attr(obj1, "Sparsity_parameter"))
+    attr(img_obj, "nrow") <- attr(obj1, "nrow")
+    return(img_obj)
+  } else {
+    stop("Unsupported class for subtraction.")
+  }
 }
