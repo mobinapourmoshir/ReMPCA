@@ -2,7 +2,7 @@
 % Please edit documentation in R/fdMethods.R
 \name{as.fdClass}
 \alias{as.fdClass}
-\title{Coerce an object of class 'rdClass', or 'imgClass' to class 'fdClass'.}
+\title{Coerce an object of class 'rdClass' or 'imgClass' to class 'fdClass'.}
 \usage{
 as.fdClass(
   x,
@@ -12,7 +12,7 @@ as.fdClass(
 )
 }
 \arguments{
-\item{x}{An object of class 'rdClass', or 'imgClass'.}
+\item{x}{An object of class 'rdClass' or 'imgClass'.}
 
 \item{Sparsity_parameter}{Optional sparsity parameter to assign. If \code{NULL}, defaults are used.}
 
@@ -24,15 +24,15 @@ as.fdClass(
 An object of class 'fdClass' with user-specified or inherited regularization parameters.
 }
 \description{
-Coerce an object of class 'rdClass', or 'imgClass' to class 'fdClass'.
+Coerce an object of class 'rdClass' or 'imgClass' to class 'fdClass'.
 }
 \examples{
-img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
-                                    matrix(rnorm(100),nr = 50)),
-                       argval = NULL,
-                       Smoothing_parameter = NULL,
-                       Sparsity_parameter = 0)
-
+img_object <- imgClass(
+  image = list(matrix(rnorm(100), nrow = 10), matrix(rnorm(100), nrow = 10)),
+  argval = NULL,
+  Smoothing_parameter = NULL,
+  Sparsity_parameter = 0
+)
 newfd <- as.fdClass(img_object)
 newfd
 

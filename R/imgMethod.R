@@ -88,30 +88,30 @@ print.imgClass <- function(x, ...) {
 
 #' Coerce an Object to imgClass
 #'
-#' Converts an object of class \code{rdClass} or \code{fdClass} to an \code{imgClass}
-#' while preserving or overriding its associated attributes such as smoothing,
-#' sparsity, and grid points.
+#' Converts an object of class \code{rdClass} or \code{fdClass} to an \code{imgClass},
+#' while preserving or overriding associated attributes such as smoothing, sparsity,
+#' and grid points.
 #'
 #' @param x An object of class \code{rdClass} or \code{fdClass}.
 #' @param Sparsity_parameter Optional. A numeric vector of non-negative integers representing
-#'        sparsity levels to apply. If \code{NULL}, the sparsity parameter is inherited from \code{x}.
-#' @param Smoothing_parameter Optional. A numeric value or vector representing the smoothing parameter(s).
-#'        If \code{NULL}, the smoothing parameter is inherited from \code{x}.
-#' @param argval Optional. A vector of grid points (argvals) for functional representation.
-#'        If \code{NULL}, it is inherited from \code{x}.
+#'        sparsity levels to apply. If \code{NULL}, the parameter is inherited from \code{x}.
+#' @param Smoothing_parameter Optional. A numeric value or vector representing smoothing parameters.
+#'        If \code{NULL}, the parameter is inherited from \code{x}.
+#' @param argval Optional. A numeric vector of grid points (argvals) for functional representation.
+#'        If \code{NULL}, the grid is inherited from \code{x}.
 #'
-#' @return An object of class \code{imgClass}, with appropriate \code{fdClass} or \code{rdClass} behavior.
+#' @return An object of class \code{imgClass}, which also inherits from \code{fdClass} or \code{rdClass},
+#' depending on the smoothing parameter.
 #'
 #' @details
-#' This function is useful for explicitly marking an object as image-based data, particularly
-#' when the original matrix (or list of matrices) was treated as a regular or functional object,
-#' but is to be interpreted and processed as an image.
+#' This coercion is helpful when an object originally treated as regular or functional data
+#' (via \code{rdClass} or \code{fdClass}) should instead be interpreted and processed as image data.
 #'
 #' @examples
 #' mat <- matrix(rnorm(100), nrow = 10, ncol = 10)
 #' fd_obj <- fdClass(mat, Smoothing_parameter = 0.1)
 #' img_obj <- as.imgClass(fd_obj)
-#' print(class(img_obj))  # "imgClass" "fdClass"
+#' print(class(img_obj))              # "imgClass" "fdClass"
 #' print(attr(img_obj, "Smoothing_parameter"))
 #'
 #' @export

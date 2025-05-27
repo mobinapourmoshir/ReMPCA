@@ -2,30 +2,32 @@
 % Please edit documentation in R/rdMethods.R
 \name{as.rdClass}
 \alias{as.rdClass}
-\title{Coerce an object of class 'fdClass', or 'imgClass' to class 'rdClass'}
+\title{Coerce an object of class 'fdClass' or 'imgClass' to class 'rdClass'}
 \usage{
 as.rdClass(x, Sparsity_parameter = NULL)
 }
 \arguments{
-\item{x}{An object of class 'fdClass', or 'imgClass'.}
+\item{x}{An object of class \code{'fdClass'} or \code{'imgClass'}.}
 
-\item{Sparsity_parameter}{Optional sparsity parameter to override the original.}
+\item{Sparsity_parameter}{Optional sparsity parameter to override the original.
+If \code{NULL}, the existing sparsity parameter (if any) is inherited.}
 }
 \value{
-An object of class 'rdClass' with smoothing and grid attributes removed,
+An object of class \code{rdClass} with smoothing and grid attributes removed,
 and sparsity parameter preserved or overridden.
 }
 \description{
-Coerce an object of class 'fdClass', or 'imgClass' to class 'rdClass'
+This function strips the smoothing and grid-related structure from a functional object
+and converts it to a regular data object of class \code{rdClass}.
 }
 \examples{
-img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
-                                    matrix(rnorm(100),nr = 50)),
+img_object <- imgClass(image = list(matrix(rnorm(100), nr = 50),
+                                    matrix(rnorm(100), nr = 50)),
                        argval = NULL,
                        Smoothing_parameter = NULL,
                        Sparsity_parameter = 0)
 
 newrd <- as.rdClass(img_object, Sparsity_parameter = 1:10)
-attr(newrd , "Sparsity_parameter")
+attr(newrd, "Sparsity_parameter")
 
 }

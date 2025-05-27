@@ -70,24 +70,25 @@ print.fdClass <- function(x, ...) {
 }
 
 
-#' Coerce an object of class 'rdClass', or 'imgClass' to class 'fdClass'.
+#' Coerce an object of class 'rdClass' or 'imgClass' to class 'fdClass'.
 #'
-#' @param x An object of class 'rdClass', or 'imgClass'.
+#' @param x An object of class 'rdClass' or 'imgClass'.
 #' @param Smoothing_parameter Optional smoothing parameter to assign. If \code{NULL}, defaults are used.
 #' @param Sparsity_parameter Optional sparsity parameter to assign. If \code{NULL}, defaults are used.
 #' @param argval Optional vector of grid points for columns. If \code{NULL}, defaults are used.
 #'
-#' @examples
-#' img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
-#'                                     matrix(rnorm(100),nr = 50)),
-#'                        argval = NULL,
-#'                        Smoothing_parameter = NULL,
-#'                        Sparsity_parameter = 0)
+#' @return An object of class 'fdClass' with user-specified or inherited regularization parameters.
 #'
+#' @examples
+#' img_object <- imgClass(
+#'   image = list(matrix(rnorm(100), nrow = 10), matrix(rnorm(100), nrow = 10)),
+#'   argval = NULL,
+#'   Smoothing_parameter = NULL,
+#'   Sparsity_parameter = 0
+#' )
 #' newfd <- as.fdClass(img_object)
 #' newfd
 #'
-#' @return An object of class 'fdClass' with user-specified or inherited regularization parameters.
 #' @export
 as.fdClass <- function(x,
                        Sparsity_parameter = NULL,

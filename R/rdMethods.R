@@ -43,23 +43,27 @@ print.rdClass <- function(x, ...) {
 }
 
 
-#' Coerce an object of class 'fdClass', or 'imgClass' to class 'rdClass'
+#' Coerce an object of class 'fdClass' or 'imgClass' to class 'rdClass'
 #'
-#' @param x An object of class 'fdClass', or 'imgClass'.
+#' This function strips the smoothing and grid-related structure from a functional object
+#' and converts it to a regular data object of class \code{rdClass}.
+#'
+#' @param x An object of class \code{'fdClass'} or \code{'imgClass'}.
 #' @param Sparsity_parameter Optional sparsity parameter to override the original.
+#'   If \code{NULL}, the existing sparsity parameter (if any) is inherited.
 #'
-#' @return An object of class 'rdClass' with smoothing and grid attributes removed,
+#' @return An object of class \code{rdClass} with smoothing and grid attributes removed,
 #'         and sparsity parameter preserved or overridden.
 #'
 #' @examples
-#' img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
-#'                                     matrix(rnorm(100),nr = 50)),
+#' img_object <- imgClass(image = list(matrix(rnorm(100), nr = 50),
+#'                                     matrix(rnorm(100), nr = 50)),
 #'                        argval = NULL,
 #'                        Smoothing_parameter = NULL,
 #'                        Sparsity_parameter = 0)
 #'
 #' newrd <- as.rdClass(img_object, Sparsity_parameter = 1:10)
-#' attr(newrd , "Sparsity_parameter")
+#' attr(newrd, "Sparsity_parameter")
 #'
 #' @export
 as.rdClass <- function(x,
