@@ -42,22 +42,31 @@ print.rdClass <- function(x, ...) {
 }
 
 
-#' Coerce an object of class 'fdClass', 'rdClass', or 'hdClass' to class 'rdClass'
+#' Coerce an object of class 'fdClass', or 'imgClass' to class 'rdClass'
 #'
-#' @param x An object of class 'fdClass', 'rdClass', or 'hdClass'.
+#' @param x An object of class 'fdClass', or 'imgClass'.
 #' @param Sparsity_parameter Optional sparsity parameter to override the original.
 #'
 #' @return An object of class 'rdClass' with smoothing and grid attributes removed,
 #'         and sparsity parameter preserved or overridden.
+#'
+#' @example
+#' img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
+#'                                     matrix(rnorm(100),nr = 50)),
+#'                        argval = NULL,
+#'                        Smoothing_parameter = NULL,
+#'                        Sparsity_parameter = 0)
+#'
+#' newrd <- as.rdClass(img_object, Sparsity_parameter = 1:10)
+#' attr(newrd , "Sparsity_parameter")
+#'
 #' @export
-
 as.rdClass <- function(x,
                        Sparsity_parameter = NULL) {
   # Validate input class
   if (!(inherits(x, "fdClass") ||
-        inherits(x, "rdClass") ||
-        inherits(x, "hdClass"))) {
-    stop("Input must be of class 'fdClass', 'rdClass', or 'hdClass'")
+        inherits(x, "imgClass"))) {
+    stop("Input must be of class 'fdClass', or 'imgClass'!")
   }
 
   # Convert to matrix

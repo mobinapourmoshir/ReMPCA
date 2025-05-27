@@ -69,34 +69,57 @@ print.fdClass <- function(x, ...) {
 }
 
 
-#' Coerce an object of class 'rdClass', 'fdClass', or 'hdClass' to class 'fdClass'
+#' Coerce an object of class 'rdClass', or 'imgClass' to class 'fdClass'.
 #'
-#' @param x An object of class 'rdClass', 'fdClass', or 'hdClass'.
+#' @param x An object of class 'rdClass', or 'imgClass'.
 #' @param Smoothing_parameter Optional smoothing parameter to assign. If \code{NULL}, defaults are used.
+#' @param Sparsity_parameter Optional sparsity parameter to assign. If \code{NULL}, defaults are used.
 #' @param argval Optional vector of grid points for columns. If \code{NULL}, defaults are used.
+#'
+#' @example
+#' img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
+#'                                     matrix(rnorm(100),nr = 50)),
+#'                        argval = NULL,
+#'                        Smoothing_parameter = NULL,
+#'                        Sparsity_parameter = 0)
+#'
+#' newfd <- as.fdClass(img_object)
+#' newfd
 #'
 #' @return An object of class 'fdClass' with user-specified or inherited regularization parameters.
 #' @export
-
 as.fdClass <- function(x,
+                       Sparsity_parameter = NULL,
                        Smoothing_parameter = NULL,
                        argval = NULL) {
   # Validate class
   if (!(inherits(x, "rdClass") ||
-        inherits(x, "fdClass") ||
-        inherits(x, "hdClass"))) {
-    stop("Input must be of class 'rdClass', 'fdClass', or 'hdClass'")
+        inherits(x, "imgClass"))) {
+    stop("Input must be of class 'rdClass', or 'imgClass'!")
   }
 
   # Convert to matrix
   data <- as.matrix(x)
 
   # Extract sparsity parameter
-  sparsity <- attr(x, "Sparsity_parameter")
+  if (is.null(Sparsity_parameter)) {
+    Sparsity_parameter <- attr(x, "Sparsity_parameter")
+  }else{
+    Sparsity_parameter <- Sparsity_parameter}
+
+  # Extract smoothness parameter
+  if (is.null(Smoothing_parameter)) {
+    Smoothing_parameter <- attr(x, "Smoothing_parameter")
+  }else{
+    Smoothing_parameter <- Smoothing_parameter}
+  if (is.null(argval)) {
+    argval <- attr(x, "GridPoints_v")
+  }else{
+    argval <- argval}
 
   # Construct fdClass with overrides
   fdClass(data = data,
           argval = argval,
           Smoothing_parameter = Smoothing_parameter,
-          Sparsity_parameter = sparsity)
+          Sparsity_parameter = Sparsity_parameter)
 }

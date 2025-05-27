@@ -127,12 +127,39 @@ X <- cbind(outer(u, v1), outer(u, v2), outer(u, v3), outer(u, v4))
 
 # Test image Class
 set.seed(456)
-img_object3 <- imgClass(image = list(matrix(rnorm(100), nr= 50), matrix(rnorm(100),nr = 50)),
-                        argval = NULL, Smoothing_parameter = NULL, Sparsity_parameter = 0) #round(seq(0,29, length.out = 15)))
+img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
+                                     matrix(rnorm(100),nr = 50)),
+                       argval = NULL,
+                       Smoothing_parameter = NULL,
+                       Sparsity_parameter = 0)
+
+
+newrd <- as.rdClass(img_object, Sparsity_parameter = 1:10)
+attr(newrd , "Sparsity_parameter")
+
 is.imgClass(img_object3)
 is.fdClass(img_object3)
 
 attr(img_object3,"nrow")
+
+
+
+img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
+                                    matrix(rnorm(100),nr = 50)),
+                       argval = NULL,
+                       Smoothing_parameter = NULL,
+                       Sparsity_parameter = 0)
+
+newfd <- as.fdClass(img_object)
+newfd
+
+
+mat <- matrix(rnorm(100), nrow = 10, ncol = 10)
+fd_obj <- rdClass(mat, Sparsity_parameter = 1)
+img_obj <- as.imgClass(fd_obj)
+print(class(img_obj))  # "imgClass" "fdClass"
+print(attr(img_obj, "Smoothing_parameter"))
+
 
 # Object
 set.seed(123)

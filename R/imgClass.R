@@ -46,11 +46,8 @@ imgClass <- function(image,
     # Vectorize each image in row-major order
     data <- t(sapply(image, function(img) c(t(img))))
     nrow_img <- nrow(image[[1]])
-  } else if (is.matrix(image)) {
-    data <- image
-    nrow_img <- NULL
   } else {
-    stop("Input must be a matrix or a list of matrices.")
+    stop("Input must be a list of matrices.")
   }
 
   # Determine whether smoothing is needed

@@ -119,16 +119,24 @@ print.hdClass <- function(x, ...) {
 
 
 
-#' Coerce an object of class 'rdClass', 'fdClass', or 'hdClass' to class 'hdClass'
+#' Coerce an object of class 'rdClass', 'fdClass', or 'imgClass' to class 'hdClass'
 #'
-#' @param x An object of class 'rdClass', 'fdClass', or 'hdClass'.
+#' @param x An object of class 'rdClass', 'fdClass', or 'imgClass'.
 #' @param Smoothing_parameter Optional smoothing parameter for the row direction.
 #'                            If NULL, taken from input attributes or defaulted in hdClass().
 #' @param Sparsity_parameter Optional sparsity parameter for the row direction.
 #'                           If NULL, taken from input attributes or defaulted in hdClass().
 #' @param argval Optional grid points for rows. If NULL, taken from input attributes or defaulted.
 #'
+#' #' @details
+#' This function returns a modified version of the input object with an updated \code{"Sparsity_parameter"} attribute.
+#' Due to R's copy-on-modify semantics for S3 objects, the user must reassign the object
+#'
 #' @return An object of class 'hdClass'.
+#' #' @examples
+#' fd_obj <- fdClass(matrix(rnorm(100), 10, 10))
+#' hd_obj <- as.hdClass(fd_obj, Sparsity_parameter = 0:5)
+#' attr(hd_obj, "Sparsity_parameter")
 #' @export
 as.hdClass <- function(x,
                        Smoothing_parameter = NULL,
@@ -137,8 +145,8 @@ as.hdClass <- function(x,
   # Validate class
   if (!(inherits(x, "rdClass") ||
         inherits(x, "fdClass") ||
-        inherits(x, "hdClass"))) {
-    stop("Input must be of class 'rdClass', 'fdClass', or 'hdClass'")
+        inherits(x, "imgClass"))) {
+    stop("Input must be of class 'rdClass', 'fdClass', or 'imgClass'!")
   }
 
   # Extract or override attributes
@@ -155,29 +163,107 @@ as.hdClass <- function(x,
   }else{
     argval <- argval}
 
-  # Construct hdlist from $matrix using hdClass attributes
-  if (inherits(x, "hdClass")) {
-    data <- x$matrix
-    ncol <- attr(x, "ncol")
-    n_var <- attr(x, "n_var")
-    Smoothing_parameter_col <- attr(x, "Smoothing_parameter_col")
-    Sparsity_parameter_col <- attr(x, "Sparsity_parameter_col")
-    GridPoints_v <- attr(x, "GridPoints_v")
-    attr(x, "GridPoints_u") <- argval
-    attr(x, "Sparsity_parameter") <- Sparsity_parameter
-    attr(x, "Smoothing_parameter") <- Smoothing_parameter
-    x
 
-  } else {
-    datalist <- list(x)
-    # Call hdClass using the list
-    hdClass(hdlist = datalist,
-            argval = argval,
-            Smoothing_parameter = Smoothing_parameter,
-            Sparsity_parameter = Sparsity_parameter)
-  }
+  datalist <- list(x)
+  # Call hdClass using the list
+  hdClass(hdlist = datalist,
+          argval = argval,
+          Smoothing_parameter = Smoothing_parameter,
+          Sparsity_parameter = Sparsity_parameter)
 }
 
+#' Set Sparsity Tuning Parameter
+#'
+#' Assigns a sparsity tuning parameter to an object of class \code{rdClass}, \code{fdClass}, \code{imgClass}, or \code{hdClass}.
+#'
+#' @param obj An object of class \code{rdClass}, \code{fdClass}, \code{imgClass}, or \code{hdClass}.
+#' @param Sparsity_parameter A numeric vector of non-negative integers indicating sparsity tuning levels.
+#'   If \code{NULL}, a default sequence will be generated based on the object's dimensions.
+#'
+#' @details
+#' This function returns a modified version of the input object with an updated \code{"Sparsity_parameter"} attribute.
+#' Due to R's copy-on-modify semantics for S3 objects, the user must reassign the object:
+#' \preformatted{
+#'   obj <- setSparsityParameter(obj, c(0, 2, 4))
+#' }
+#' The object will not be updated in-place unless reassigned.
+#'
+#' @return The modified object with updated sparsity parameters.
+#'
+#' @examples
+#' fd_obj <- fdClass(matrix(rnorm(100), 10, 10))
+#' fd_obj <- setSparsityParameter(fd_obj, 0:5)
+#' attr(fd_obj, "Sparsity_parameter")
+#'
+#' @export
+
+setSparsityParameter <- function(obj, Sparsity_parameter) {
+  if (!(inherits(obj, "rdClass") ||
+        inherits(obj, "fdClass") ||
+        inherits(obj, "hdClass") ||
+        inherits(obj, "imgClass"))) {
+    stop("Input must be of class 'rdClass', 'fdClass', 'imgClass', or 'hdClass'.")
+  }
+
+  # Infer dimension for validation
+  dim_target <- if (inherits(obj, "hdClass")) nrow(obj) else ncol(obj)
+
+  if (is.null(Sparsity_parameter)) {
+    if (dim_target <= 15) {
+      Sparsity_parameter <- 0:(dim_target - 1)
+    } else {
+      extra_vals <- unique(c(0:3, 2^(0:floor(log2(dim_target - 1))),
+                             dim_target - 1))
+      Sparsity_parameter <- sort(unique(extra_vals[extra_vals <=
+                                                     (dim_target - 1)]))
+    }
+  }
+
+  if (!is.numeric(Sparsity_parameter) ||
+      any(Sparsity_parameter < 0) ||
+      any(Sparsity_parameter != floor(Sparsity_parameter))) {
+    stop("Sparsity_parameter must be a vector of non-negative integers.")
+  }
+
+  attr(obj, "Sparsity_parameter") <- as.vector(Sparsity_parameter)
+  return(obj)
+}
+
+#' Set Smoothness Tuning Parameter
+#'
+#' Assigns a smoothing tuning parameter to an object of class \code{rdClass}, \code{fdClass}, \code{imgClass}, or \code{hdClass}.
+#'
+#' @param obj An object of class \code{rdClass}, \code{fdClass}, \code{imgClass}, or \code{hdClass}.
+#' @param Smoothing_parameter A numeric value or vector representing the smoothing parameter(s)
+#'   to assign to the object.
+#'
+#' @details
+#' This function updates the \code{"Smoothing_parameter"} attribute of the given object.
+#' Since R uses copy-on-modify semantics for S3 objects, users must reassign the object after calling this function:
+#' \preformatted{
+#'   obj <- setSmoothnessParameter(obj, c(0.01, 0.1, 1))
+#' }
+#' Without reassignment, the original object remains unchanged.
+#'
+#' @return The modified object with updated \code{Smoothing_parameter} attribute.
+#'
+#' @examples
+#' fd_obj <- fdClass(matrix(rnorm(100), 10, 10))
+#' fd_obj <- setSmoothnessParameter(fd_obj, c(0.01, 0.1, 1))
+#' attr(fd_obj, "Smoothing_parameter")
+#'
+#' @export
+setSmoothnessParameter <- function(obj, Smoothing_parameter) {
+  if (!(inherits(obj, "rdClass") ||
+        inherits(obj, "fdClass") ||
+        inherits(obj, "hdClass") ||
+        inherits(obj, "imgClass"))) {
+    stop("Input must be of class 'rdClass', 'fdClass', 'imgClass', or 'hdClass'.")
+  }
+
+  attr(obj, "Smoothing_parameter") <- as.vector(Smoothing_parameter)
+  return(obj)
+}
 
 #' Compute Scaling Weights for `hdClass` Object
 #'

@@ -85,3 +85,72 @@ print.imgClass <- function(x, ...) {
   }
 }
 
+
+#' Coerce an Object to imgClass
+#'
+#' Converts an object of class \code{rdClass} or \code{fdClass} to an \code{imgClass}
+#' while preserving or overriding its associated attributes such as smoothing,
+#' sparsity, and grid points.
+#'
+#' @param x An object of class \code{rdClass} or \code{fdClass}.
+#' @param Sparsity_parameter Optional. A numeric vector of non-negative integers representing
+#'        sparsity levels to apply. If \code{NULL}, the sparsity parameter is inherited from \code{x}.
+#' @param Smoothing_parameter Optional. A numeric value or vector representing the smoothing parameter(s).
+#'        If \code{NULL}, the smoothing parameter is inherited from \code{x}.
+#' @param argval Optional. A vector of grid points (argvals) for functional representation.
+#'        If \code{NULL}, it is inherited from \code{x}.
+#'
+#' @return An object of class \code{imgClass}, with appropriate \code{fdClass} or \code{rdClass} behavior.
+#'
+#' @details
+#' This function is useful for explicitly marking an object as image-based data, particularly
+#' when the original matrix (or list of matrices) was treated as a regular or functional object,
+#' but is to be interpreted and processed as an image.
+#'
+#' @examples
+#' mat <- matrix(rnorm(100), nrow = 10, ncol = 10)
+#' fd_obj <- fdClass(mat, Smoothing_parameter = 0.1)
+#' img_obj <- as.imgClass(fd_obj)
+#' print(class(img_obj))  # "imgClass" "fdClass"
+#' print(attr(img_obj, "Smoothing_parameter"))
+#'
+#' @export
+as.imgClass <- function(x,
+                        Sparsity_parameter = NULL,
+                        Smoothing_parameter = NULL,
+                        argval = NULL) {
+  # Validate class
+  if (!(inherits(x, "rdClass") ||
+        inherits(x, "fdClass"))) {
+    stop("Input must be of class 'rdClass', or 'fdClass'!")
+  }
+
+  # Convert to matrix
+  data <- as.matrix(x)
+
+  # Extract sparsity parameter
+  if (is.null(Sparsity_parameter)) {
+    Sparsity_parameter <- attr(x, "Sparsity_parameter")
+  }else{
+    Sparsity_parameter <- Sparsity_parameter}
+
+  # Extract smoothness parameter
+  if (is.null(Smoothing_parameter)) {
+    Smoothing_parameter <- attr(x, "Smoothing_parameter")
+  }else{
+    Smoothing_parameter <- Smoothing_parameter}
+  if (is.null(argval)) {
+    argval <- attr(x, "GridPoints_v")
+  }else{
+    argval <- argval}
+
+  # Extract data matrix
+
+
+  # Construct fdClass with overrides
+  imgClass(image  = data,
+           argval = argval,
+           Smoothing_parameter = Smoothing_parameter,
+           Sparsity_parameter = Sparsity_parameter)
+}
+
