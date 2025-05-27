@@ -35,6 +35,17 @@ parameter_selection <- function(X_temp,
 
   for (iter in 1:tuning_iter) {
     if (tuning_order == "Sparsity") {
+
+      # Progress bar
+      total_steps <- nrow(smooth_tuning_v) + length(smooth_tuning_u) +
+        length(sparse_tuning_u) + sum(lengths(sparse_tuning_v))
+      pb <- txtProgressBar(min = 0,
+                           max = total_steps,
+                           width = 50,
+                           style = 3)
+      step <- 0
+
+      # S_alpha for v
       S_alpha_v0 <- Omega_v0 <- list()
       for (i in 1:n_var) {
         tds <- GridPoints_v[[i]]
@@ -77,6 +88,7 @@ parameter_selection <- function(X_temp,
                                      sparse_tuning_type = sparse_tuning_type)
       gamma_u <- cv_row_result[[1]]
       last_cv_result_u <- cv_row_result[[2]]
+      step <- step + 1; setTxtProgressBar(pb, step)
 
       CV_results <- CV_scores_result_v <- list()
       gamma_v <- rep(0, n_var)
@@ -105,6 +117,8 @@ parameter_selection <- function(X_temp,
 
           cv_means[j] <- cv_result$CV_error
           cv_ses[j] <- cv_result$SE *sqrt(K_fold)
+          step <- step + 1
+          setTxtProgressBar(pb, step)
         }
 
         CV_results[[i]] <- data.frame(gamma_Xi, cv_means, cv_ses)
@@ -126,6 +140,7 @@ parameter_selection <- function(X_temp,
         gamma_v[i] <- sparse_tuning_selection_v
       }
       last_cv_result_v <- CV_results
+      step <- step + 1; setTxtProgressBar(pb, step)
 
       # Smoothness on u
       opt_u <- opt_alpha_u(X = X_temp,
@@ -147,6 +162,7 @@ parameter_selection <- function(X_temp,
       last_gcv_result_u <- opt_u$GCVdf
       last_opt_S_u <- opt_u$opt_s.alpha_u
       last_opt_alpha_omega_u <- opt_u$opt_alpha_Omega_u
+      step <- step + 1; setTxtProgressBar(pb, step)
 
       # Smoothness on v
       opt_v <- opt_alpha_v(X = X_temp,
@@ -168,8 +184,22 @@ parameter_selection <- function(X_temp,
       last_gcv_result_v <- opt_v$GCVdf
       last_opt_S_v <- opt_v$opt_s.alpha_v
       last_opt_alpha_omega_v <- opt_u$opt_alpha_Omega_v
+      step <- step + 1; setTxtProgressBar(pb, step)
+
+      close(pb)
+      cat("Progress completed:", step, "of", total_steps, "\n")
+      stopifnot(step == total_steps)
 
     } else if (tuning_order == "Smoothness") {
+
+      # Progress bar
+      total_steps <- nrow(smooth_tuning_v) + length(smooth_tuning_u) +
+        length(sparse_tuning_u) + sum(lengths(sparse_tuning_v))
+      pb <- txtProgressBar(min = 0,
+                           max = total_steps,
+                           width = 50,
+                           style = 3)
+      step <- 0
 
       # Current S_alpha_v
       S_alpha_v0 <- Omega_v0 <- list()
@@ -220,6 +250,7 @@ parameter_selection <- function(X_temp,
       last_gcv_result_u <- opt_u$GCVdf
       last_opt_S_u <- opt_u$opt_s.alpha_u
       last_opt_alpha_omega_u <- opt_u$opt_alpha_Omega_u
+      step <- step + 1; setTxtProgressBar(pb, step)
 
       # Smoothness on v
       opt_v <- opt_alpha_v(X = X_temp,
@@ -241,6 +272,7 @@ parameter_selection <- function(X_temp,
       last_gcv_result_v <- opt_v$GCVdf
       last_opt_S_v <- opt_v$opt_s.alpha_v
       last_opt_alpha_omega_v <- opt_v$opt_alpha_Omega_v
+      step <- step + 1; setTxtProgressBar(pb, step)
 
       # Sparsity on u
       cv_row_result <- cv_sparse_row(data = X_temp,
@@ -257,6 +289,8 @@ parameter_selection <- function(X_temp,
                                      sparse_tuning_result_v = gamma_v,
                                      sparse_tuning_type = sparse_tuning_type)
       gamma_u <- cv_row_result[[1]]
+      last_cv_result_u <- cv_row_result[[2]]
+      step <- step + 1; setTxtProgressBar(pb, step)
 
       # Sparsity on v
       CV_scores_result_v <- CV_results <- list()
@@ -284,6 +318,8 @@ parameter_selection <- function(X_temp,
 
           cv_means[j] <- cv_result$CV_error
           cv_ses[j] <- cv_result$SE *sqrt(K_fold)
+          step <- step + 1
+          setTxtProgressBar(pb, step)
         }
 
         CV_results[[i]] <- data.frame(gamma_Xi, cv_means, cv_ses)
@@ -305,6 +341,12 @@ parameter_selection <- function(X_temp,
 
         gamma_v[i] <- sparse_tuning_selection_v
       }
+      last_cv_result_v <- CV_results
+      step <- step + 1; setTxtProgressBar(pb, step)
+
+      close(pb)
+      cat("Progress completed:", step, "of", total_steps, "\n")
+      stopifnot(step == total_steps)
     }
 
     # Store all iterations
