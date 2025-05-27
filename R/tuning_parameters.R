@@ -1,3 +1,7 @@
+#' @importFrom doParallel registerDoParallel
+#' @importFrom parallel clusterExport parLapplyLB makeCluster clusterEvalQ stopCluster
+#' @importFrom foreach getDoParWorkers
+#'
 ################## Conditional Tuning Parameters  - CV and GCV #################
 parameter_selection <- function(X_temp,
                                 n_var,
@@ -12,6 +16,7 @@ parameter_selection <- function(X_temp,
                                 sparse_tuning_type,
                                 nfolds_u,
                                 nfolds_v,
+                                parallel,
                                 S_alpha_list_v,
                                 S_alpha_list_u,
                                 Omegas_u,
@@ -22,6 +27,12 @@ parameter_selection <- function(X_temp,
                                 maxit,
                                 cv.pick = "1se",
                                 smoothness_type) {
+
+  if(parallel == TRUE){
+    n_cores <- parallel::detectCores() -1
+    cl <- parallel::makeCluster(n_cores)
+    doParallel::registerDoParallel(cl)
+  }
 
   alpha_u <- 0
   alpha_v <- rep(0, n_var)
@@ -37,8 +48,7 @@ parameter_selection <- function(X_temp,
     if (tuning_order == "Sparsity") {
 
       # Progress bar
-      total_steps <- nrow(smooth_tuning_v) + length(smooth_tuning_u) +
-        length(sparse_tuning_u) + sum(lengths(sparse_tuning_v))
+      total_steps <-  n_var + 1 + 1 + sum(lengths(sparse_tuning_v)) + 1 + 1
       pb <- txtProgressBar(min = 0,
                            max = total_steps,
                            width = 50,
@@ -57,6 +67,8 @@ parameter_selection <- function(X_temp,
                                   type = smoothness_type)
           S_alpha_v0[[i]] <- getpenresult$S.alpha
           Omega_v0[[i]] <- getpenresult$Omega
+          step <- step + 1
+          setTxtProgressBar(pb, step)
         }
       }
 
@@ -70,6 +82,8 @@ parameter_selection <- function(X_temp,
                                 type = smoothness_type)
         S_alpha_u0 <- getpenresult$S.alpha
         Omega_u0 <- getpenresult$Omega
+        step <- step + 1
+        setTxtProgressBar(pb, step)
       }
 
       # Sparsity on u
@@ -82,6 +96,7 @@ parameter_selection <- function(X_temp,
                                      thresh = thresh,
                                      maxit = maxit,
                                      conditional = FALSE,
+                                     parallel = parallel,
                                      cv.pick = cv.pick,
                                      sparse_tuning_result_u = sparse_tuning_u,
                                      sparse_tuning_result_v = gamma_v,
@@ -186,15 +201,12 @@ parameter_selection <- function(X_temp,
       last_opt_alpha_omega_v <- opt_u$opt_alpha_Omega_v
       step <- step + 1; setTxtProgressBar(pb, step)
 
+      setTxtProgressBar(pb, total_steps)
       close(pb)
-      cat("Progress completed:", step, "of", total_steps, "\n")
-      stopifnot(step == total_steps)
-
     } else if (tuning_order == "Smoothness") {
 
       # Progress bar
-      total_steps <- nrow(smooth_tuning_v) + length(smooth_tuning_u) +
-        length(sparse_tuning_u) + sum(lengths(sparse_tuning_v))
+      total_steps <- n_var + 1 + 1 + sum(lengths(sparse_tuning_v)) + 1 + 1
       pb <- txtProgressBar(min = 0,
                            max = total_steps,
                            width = 50,
@@ -213,6 +225,8 @@ parameter_selection <- function(X_temp,
                                   type = smoothness_type)
           S_alpha_v0[[i]] <- getpenresult$S.alpha
           Omega_v0[[i]] <- getpenresult$Omega
+          step <- step + 1
+          setTxtProgressBar(pb, step)
         }
       }
 
@@ -227,6 +241,8 @@ parameter_selection <- function(X_temp,
                                 type = smoothness_type)
         S_alpha_u0 <- getpenresult$S.alpha
         Omega_u0 <- getpenresult$Omega
+        step <- step + 1
+        setTxtProgressBar(pb, step)
       }
 
       # Smoothness on u
@@ -283,6 +299,7 @@ parameter_selection <- function(X_temp,
                                      K_fold = nfolds_u,
                                      thresh = thresh,
                                      maxit = maxit,
+                                     parallel = parallel,
                                      conditional = FALSE,
                                      cv.pick = cv.pick,
                                      sparse_tuning_result_u = sparse_tuning_u,
@@ -344,9 +361,8 @@ parameter_selection <- function(X_temp,
       last_cv_result_v <- CV_results
       step <- step + 1; setTxtProgressBar(pb, step)
 
+      setTxtProgressBar(pb, total_steps)
       close(pb)
-      cat("Progress completed:", step, "of", total_steps, "\n")
-      stopifnot(step == total_steps)
     }
 
     # Store all iterations
@@ -377,6 +393,10 @@ parameter_selection <- function(X_temp,
   )
 
   return(final_results)
+
+  parallel::stopCluster(cl)
+  foreach::registerDoSEQ()
+  foreach::getDoParWorkers()
 }
 
 ########################### Process bar indexing ###########################

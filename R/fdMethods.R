@@ -1,4 +1,5 @@
 ##################### Print method for functional data #####################
+#' @export
 print.fdClass <- function(x, ...) {
   cat("Functional Data (fdClass) Object\n")
   cat("-----------------------------------\n")
@@ -76,7 +77,7 @@ print.fdClass <- function(x, ...) {
 #' @param Sparsity_parameter Optional sparsity parameter to assign. If \code{NULL}, defaults are used.
 #' @param argval Optional vector of grid points for columns. If \code{NULL}, defaults are used.
 #'
-#' @example
+#' @examples
 #' img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
 #'                                     matrix(rnorm(100),nr = 50)),
 #'                        argval = NULL,

@@ -13,7 +13,7 @@
 #' - For no sparsity, set it to 0.
 #' - If `NULL`, the sparsity parameter will be tuned automatically.
 #'
-#' @example
+#' @examples
 #' # Example for Regular Data (rd)
 #' rd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # 10 rows, 10 columns
 #' rd_object <- rdClass(data = rd_data,

@@ -1,4 +1,5 @@
 ##################### Print method for hybrid data #####################
+#' @export
 print.hdClass <- function(x, ...) {
   cat("Hybrid Data (hdClass) Object\n")
   cat("===================================\n")

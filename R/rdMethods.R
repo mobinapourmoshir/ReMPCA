@@ -1,4 +1,5 @@
 ##################### Print method for regular data #####################
+#' @export
 print.rdClass <- function(x, ...) {
 
   sparsity_param <- attributes(x)["Sparsity_parameter"][[1]]
@@ -50,7 +51,7 @@ print.rdClass <- function(x, ...) {
 #' @return An object of class 'rdClass' with smoothing and grid attributes removed,
 #'         and sparsity parameter preserved or overridden.
 #'
-#' @example
+#' @examples
 #' img_object <- imgClass(image = list(matrix(rnorm(100), nr= 50),
 #'                                     matrix(rnorm(100),nr = 50)),
 #'                        argval = NULL,

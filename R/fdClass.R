@@ -24,7 +24,7 @@
 #' - If `NULL`, the sparsity parameter will be tuned automatically.
 #'
 #'
-#' @example
+#' @examples
 #' # Example for Functional Data (fd)
 #' fd_data <- matrix(rnorm(100), nrow = 10, ncol = 10)  # 10 rows, 10 columns
 #' fd_object <- fdClass(data = fd_data,
