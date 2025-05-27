@@ -1,4 +1,4 @@
-#' @importFrom matrix bdaig
+#' @importFrom Matrix bdaig
 #' @importFrom utils  txtProgressBar setTxtProgressBar
 
 ############### Calculating the optimal alpha for u using GCV ###############
