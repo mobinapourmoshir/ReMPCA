@@ -22,10 +22,10 @@ print.rdClass <- function(x, ...) {
   cat("-----------------------------------\n")
   cat("First few rows and columns of the data:\n")
   # Extract and print only the first 5 rows and 10 columns
+  data <- x$matrix
   rows_to_show <- min(5, dim(x)[1])
   cols_to_show <- min(5, dim(x)[2])
-  print(as.matrix(x[1:rows_to_show, 1:cols_to_show]))
-
+  print(as.matrix(data)[1:rows_to_show, 1:cols_to_show])
 }
 
 #' Custom `$` operator for rdClass
@@ -84,4 +84,89 @@ as.rdClass <- function(x,
 
   rdClass(data = data,
           Sparsity_parameter = Sparsity_parameter)
+}
+
+#' Multiply a `rdClass` Object by a Scalar
+#'
+#' @description Performs element-wise multiplication between a scalar and a `rdClass` object.
+#'              Attributes like sparsity settings are preserved.
+#'
+#' @param e1 A scalar numeric value or a `rdClass` object.
+#' @param e2 A `rdClass` object or a scalar numeric value.
+#'
+#' @return A `rdClass` object scaled by the numeric scalar.
+#'
+#' @examples
+#' rd <- rdClass(matrix(1:12, nrow = 4))
+#' rd_scaled <- rd * 0.5
+#'
+#' @export
+`*.rdClass` <- function(e1, e2) {
+  if (is.numeric(e1) && inherits(e2, "rdClass")) {
+    out <- e1 * unclass(e2)
+    attributes(out) <- attributes(e2)
+    class(out) <- "rdClass"
+    return(out)
+  } else if (is.numeric(e2) && inherits(e1, "rdClass")) {
+    out <- e2 * unclass(e1)
+    attributes(out) <- attributes(e1)
+    class(out) <- "rdClass"
+    return(out)
+  } else {
+    stop("One operand must be numeric and the other an 'rdClass' object.")
+  }
+}
+
+#' Plot Method for rdClass Objects
+#'
+#' Produces a scatter plot of regular data stored in an \code{rdClass} object.
+#' Each column is plotted as a sequence of solid points.
+#'
+#' @param obj An object of class \code{rdClass}.
+#'
+#' @details
+#' This method visualizes the regular (non-functional) data in the \code{rdClass} object.
+#' It shows the values in each column as solid dots, which is useful for examining patterns across observations or variables.
+#'
+#' @return No return value. This function is called for its side effect (plot).
+#'
+#' @examples
+#' rd_obj <- rdClass(matrix(rnorm(100), nrow = 10, ncol = 10))
+#' plot(rd_obj)
+#'
+#' @export
+plot.rdClass <- function(obj, ...) {
+  matplot(obj, type = "p", pch = 16, main = "rd Class Plot", ...)
+}
+
+#' Indexing operator for rdClass
+#'
+#' Enables subsetting of an \code{rdClass} object by rows and columns.
+#'
+#' @param x An object of class \code{rdClass}.
+#' @param i Row indices (observations). If \code{NULL}, all rows are included.
+#' @param j Column indices. If \code{NULL}, all columns are included.
+#'
+#' @return A new \code{rdClass} object with subsetted data and inherited attributes.
+#'
+#' @export
+`[.rdClass` <- function(x, i = NULL, j = NULL) {
+  n <- nrow(x)
+  m <- ncol(x)
+
+  # Default to full selection
+  if (is.null(i)) i <- seq_len(n)
+  if (is.null(j)) j <- seq_len(m)
+
+  # Bounds check
+  if (any(i < 1 | i > n)) stop("Row index out of bounds.")
+  if (any(j < 1 | j > m)) stop("Column index out of bounds.")
+
+  # Subset data matrix
+  data <- x$matrix
+  data_sub <- as.matrix(data[i, j])
+
+  # Construct and return new hdClass object
+  rdClass(data = data_sub,
+          Sparsity_parameter = attr(x, "Sparsity_parameter"))
 }
