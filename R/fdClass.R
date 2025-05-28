@@ -70,7 +70,7 @@ fdClass <- function(data,
 
   ####### Smoothing_parameter #######
   if (!is.null(Smoothing_parameter) &&
-      (!is.numeric(Smoothing_parameter) || is.na(Smoothing_parameter))) {
+      (!is.numeric(Smoothing_parameter) || all(is.na(Smoothing_parameter)))) {
     stop("Smoothing_parameter must be a numeric value, numeric vector, or NULL.")
   }
 

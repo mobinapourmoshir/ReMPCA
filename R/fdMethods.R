@@ -48,9 +48,10 @@ print.fdClass <- function(x, ...) {
 
   cat("-----------------------------------\n")
   cat("First few rows and columns of the data:\n")
+  data <- x$matrix
   rows_to_show <- min(5, dim(x)[1])
   cols_to_show <- min(5, dim(x)[2])
-  print(x[1:rows_to_show, 1:cols_to_show])
+  print(as.matrix(data)[1:rows_to_show, 1:cols_to_show])
 
   invisible(x)  # Return the object invisibly
 }
@@ -146,4 +147,72 @@ as.fdClass <- function(x,
 #' @export
 plot.fdClass <- function(obj) {
   matplot(obj, type = "l", main = "fd Class Plot", ...)
+}
+
+#' Multiply a `fdClass` Object by a Scalar
+#'
+#' @description Performs element-wise multiplication between a scalar and a `fdClass` object.
+#'              All functional data attributes are preserved in the result.
+#'
+#' @param e1 A scalar numeric value or a `fdClass` object.
+#' @param e2 A `fdClass` object or a scalar numeric value.
+#'
+#' @return A new `fdClass` object with elements scaled by the scalar value.
+#'
+#' @examples
+#' fd <- fdClass(matrix(1:20, 10, 2), Smoothing_parameter = 0.1)
+#' scaled_fd <- 3 * fd
+#'
+#' @export
+`*.fdClass` <- function(e1, e2) {
+  if (is.numeric(e1) && inherits(e2, "fdClass")) {
+    out <- e1 * unclass(e2)
+    attributes(out) <- attributes(e2)
+    class(out) <- "fdClass"
+    return(out)
+  } else if (is.numeric(e2) && inherits(e1, "fdClass")) {
+    out <- e2 * unclass(e1)
+    attributes(out) <- attributes(e1)
+    class(out) <- "fdClass"
+    return(out)
+  } else {
+    stop("One operand must be numeric and the other an 'fdClass' object.")
+  }
+}
+
+#' Indexing operator for fdClass
+#'
+#' Enables subsetting of an \code{fdClass} object by rows and columns.
+#'
+#' @param x An object of class \code{fdClass}.
+#' @param i Row indices (observations). If \code{NULL}, all rows are included.
+#' @param j Column indices (grid points). If \code{NULL}, all columns are included.
+#'
+#' @return A new \code{fdClass} object with subsetted data and inherited attributes.
+#'
+#' @export
+`[.fdClass` <- function(x, i = NULL, j = NULL) {
+  if (is.null(i) && is.null(j)) {
+    return(x)
+  }
+  n <- nrow(x)
+  m <- ncol(x)
+
+  # Default to full selection
+  if (is.null(i)) i <- seq_len(n)
+  if (is.null(j)) j <- seq_len(m)
+
+  # Bounds check
+  if (any(i < 1 | i > n)) stop("Row index out of bounds.")
+  if (any(j < 1 | j > m)) stop("Column index out of bounds.")
+
+  # Subset data matrix
+  data <- x$matrix
+  data_sub <- as.matrix(data[i, j])
+
+  # Construct and return new hdClass object
+  fdClass(data = data_sub,
+          Sparsity_parameter = attr(x, "Sparsity_parameter"),
+          Smoothing_parameter = attr(x, "Smoothing_parameter"),
+          argval = attr(x, "GridPoints_v"))
 }

@@ -97,9 +97,10 @@ print.hdClass <- function(x, ...) {
 
   cat("===================================\n")
   cat("First few rows and columns of the data:\n")
+  data <- x$matrix
   rows_to_show <- min(5, dim(x)[1])
   cols_to_show <- min(5, dim(x)[2])
-  print(x[1:rows_to_show, 1:cols_to_show])
+  print(as.matrix(data)[1:rows_to_show, 1:cols_to_show])
   invisible(x)
 }
 
@@ -360,74 +361,53 @@ plot.hdClass <- function(obj) {
   invisible(NULL)
 }
 
-#' Subset Method for hdClass
+#' Indexing Operator for hdClass
 #'
-#' Enables subsetting of an \code{hdClass} object by rows (observations) and columns (variables).
+#' Enables subsetting of an \code{hdClass} object by variables.
 #'
 #' @param x An object of class \code{hdClass}.
-#' @param i Row indices (observations). If \code{NULL}, all rows are included.
-#' @param j Column indices (variables). If \code{NULL}, all variables are included.
-#' @param ... Not used.
+#' @param k Variables indices. If \code{NULL}, all variables are included.
+#'
 #'
 #' @return A new \code{hdClass} object with subsetted data and inherited attributes.
 #'
 #' @export
-`[.hdClass` <- function(x, i = NULL, j = NULL, ...) {
-  n <- nrow(x)
-  var_count <- attr(x, "n_var")
-  col_sizes <- as.numeric(attr(x, "ncol"))
-  stopifnot(length(col_sizes) == var_count)
-
-  # Default to full selection
-  if (is.null(i)) i <- seq_len(n)
-  if (is.null(j)) j <- seq_len(var_count)
-
-  # Bounds check
-  if (any(i < 1 | i > n)) stop("Row index out of bounds.")
-  if (any(j < 1 | j > var_count)) stop("Column index out of bounds.")
-
-  # Compute column positions for selected variables
-  cum_cols <- c(0, cumsum(col_sizes))
-  selected_cols <- unlist(lapply(j, function(idx) {
-    seq(cum_cols[idx] + 1, cum_cols[idx + 1])
-  }))
-
-  # Subset data matrix
-  data_sub <- x[i, selected_cols, drop = FALSE]
-
-  # Prepare new list of subsetted objects
-  hdlist <- vector("list", length(j))
-  sm_pars <- attr(x, "Smoothing_parameter_col")
-  sp_pars <- attr(x, "Sparsity_parameter_col")
-  grid_v  <- attr(x, "GridPoints_v")
-  types   <- attr(x, "variable_types")
-
-  start <- 1
-  for (k in seq_along(j)) {
-    var_idx <- j[k]
-    nc <- col_sizes[var_idx]
-    mat_k <- data_sub[, start:(start + nc - 1), drop = FALSE]
-
-    if (types[var_idx] == "hd") {
-      hdlist[[k]] <- fdClass(mat_k,
-                             argval = grid_v[[var_idx]],
-                             Smoothing_parameter = sm_pars[[var_idx]],
-                             Sparsity_parameter = sp_pars[[var_idx]])
-    } else if (types[var_idx] == "rd") {
-      hdlist[[k]] <- rdClass(mat_k,
-                             Sparsity_parameter = sp_pars[[var_idx]])
-    } else {
-      stop("Unknown variable type in 'hdClass'.")
-    }
-
-    start <- start + nc
+`[.hdClass` <- function(x, k = NULL) {
+  if (is.null(k)) {
+    return(x)
   }
 
-  # Construct and return new hdClass object
-  hdClass(hdlist = hdlist,
-          argval = attr(x, "GridPoints_u")[i],
-          Smoothing_parameter = attr(x, "Smoothing_parameter"),
-          Sparsity_parameter = attr(x, "Sparsity_parameter"))
+  # Get original per-variable column sizes and cumulative boundaries
+  n_var <- attr(x, "n_var")
+  ncol_all <- as.numeric(attr(x, "ncol"))
+  var_types <- attr(x, "variable_types")
+
+  if (any(k > n_var) || any(k < 1)) {
+    stop("Subset index out of bounds for hdClass object.")
+  }
+
+  # Determine column indices to keep
+  col_starts <- cumsum(c(1, head(ncol_all, -1)))
+  col_ends <- cumsum(ncol_all)
+  cols_to_keep <- unlist(mapply(seq, col_starts[k], col_ends[k], SIMPLIFY = FALSE))
+
+  # Subset the data matrix
+  data <- x$matrix
+  new_x <- data[, cols_to_keep]
+
+  # Preserve only relevant attributes
+  attr(new_x, "GridPoints_u") <- attr(x, "GridPoints_u")
+  attr(new_x, "Smoothing_parameter") <- attr(x, "Smoothing_parameter")
+  attr(new_x, "Sparsity_parameter") <- attr(x, "Sparsity_parameter")
+  attr(new_x, "n_var") <- length(k)
+  attr(new_x, "ncol") <- ncol_all[k]
+  attr(new_x, "variable_types") <- var_types[k]
+  attr(new_x, "Smoothing_parameter_col") <- attr(x, "Smoothing_parameter_col")[k]
+  attr(new_x, "GridPoints_v") <- attr(x, "GridPoints_v")[k]
+  attr(new_x, "Sparsity_parameter_col") <- attr(x, "Sparsity_parameter_col")[k]
+
+  class(new_x) <- "hdClass"
+  return(new_x)
 }
 
 #' @title Element-wise Addition of Two Hybrid Data Objects
@@ -537,5 +517,36 @@ plot.hdClass <- function(obj) {
     return(img_obj)
   } else {
     stop("Unsupported class for subtraction.")
+  }
+}
+
+#' Multiply a `hdClass` Object by a Scalar
+#'
+#' @description Performs element-wise multiplication between a scalar and a `hdClass` object.
+#'              All attributes and class information are preserved.
+#'
+#' @param e1 A scalar numeric value or a `hdClass` object.
+#' @param e2 A `hdClass` object or a scalar numeric value.
+#'
+#' @return A new `hdClass` object with elements scaled by the scalar value, and original attributes retained.
+#'
+#' @examples
+#' obj <- hdClass(list(fdClass(matrix(1:10, ncol = 2))))
+#' 2 * obj
+#'
+#' @export
+`*.hdClass` <- function(e1, e2) {
+  if (is.numeric(e1) && inherits(e2, "hdClass")) {
+    out <- e1 * unclass(e2)
+    attributes(out) <- attributes(e2)
+    class(out) <- "hdClass"
+    return(out)
+  } else if (is.numeric(e2) && inherits(e1, "hdClass")) {
+    out <- e2 * unclass(e1)
+    attributes(out) <- attributes(e1)
+    class(out) <- "hdClass"
+    return(out)
+  } else {
+    stop("One operand must be numeric and the other an 'hdClass' object.")
   }
 }

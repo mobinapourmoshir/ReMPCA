@@ -151,6 +151,10 @@ plot.rdClass <- function(obj, ...) {
 #'
 #' @export
 `[.rdClass` <- function(x, i = NULL, j = NULL) {
+  if (is.null(i) && is.null(j)) {
+    return(x)
+  }
+
   n <- nrow(x)
   m <- ncol(x)
 
