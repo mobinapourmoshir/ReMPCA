@@ -63,13 +63,13 @@ print.imgClass <- function(x, ...) {
 
   cat("-----------------------------------\n")
   cat("First few rows and columns of the data:\n")
+  data <- x$matrix
   rows_to_show <- min(5, nrow(x))
   cols_to_show <- min(5, ncol(x))
-  print(x[1:rows_to_show, 1:cols_to_show])
+  print(as.matrix(data)[1:rows_to_show, 1:cols_to_show])
 
   invisible(x)
 }
-
 
 #' Custom `$` operator for imgClass
 #' Allows access to the underlying data matrix via `img$matrix`
@@ -84,7 +84,6 @@ print.imgClass <- function(x, ...) {
     stop(sprintf("Unknown field '%s'. Only 'matrix' is supported for imgClass."), call. = FALSE)
   }
 }
-
 
 #' Coerce an Object to imgClass
 #'
@@ -151,7 +150,6 @@ as.imgClass <- function(x,
            Sparsity_parameter = Sparsity_parameter)
 }
 
-
 #' Plot Method for imgClass Objects
 #'
 #' Visualizes a list of image matrices stored in an \code{imgClass} object.
@@ -197,4 +195,68 @@ plot.imgClass <- function(obj) {
   }
 
   invisible()
+}
+
+#' Multiply a `imgClass` Object by a Scalar
+#'
+#' @description Multiplies each matrix (image) in an `imgClass` object by a scalar.
+#'              All attributes and class structure are retained.
+#'
+#' @param e1 A scalar numeric value or an `imgClass` object.
+#' @param e2 An `imgClass` object or a scalar numeric value.
+#'
+#' @return A new `imgClass` object with each image scaled by the scalar value.
+#'
+#' @examples
+#' img <- imgClass(image = list(matrix(1:9, 3, 3)))
+#' img_scaled <- 2 * img
+#'
+#' @export
+`*.imgClass` <- function(e1, e2) {
+  if (is.numeric(e1) && inherits(e2, "imgClass")) {
+    out_data <- lapply(unclass(e2), function(mat) e1 * mat)
+    attributes(out_data) <- attributes(e2)
+    class(out_data) <- class(e2)
+    return(out_data)
+  } else if (is.numeric(e2) && inherits(e1, "imgClass")) {
+    out_data <- lapply(unclass(e1), function(mat) e2 * mat)
+    attributes(out_data) <- attributes(e1)
+    class(out_data) <- class(e1)
+    return(out_data)
+  } else {
+    stop("One operand must be numeric and the other an 'imgClass' object.")
+  }
+}
+
+#' Indexing operator for imgClass
+#'
+#' Enables subsetting of an \code{imgClass} object by rows.
+#'
+#' @param x An object of class \code{imgClass}.
+#' @param i Row indices (Images). If \code{NULL}, all images are included.
+#'
+#' @return A new \code{imgClass} object with subsetted data and inherited attributes.
+#'
+#' @export
+`[.imgClass` <- function(x, i = NULL) {
+  if (is.null(i)) {
+    return(x)
+  }
+  n <- nrow(x)
+
+  # Default to full selection
+  if (is.null(i)) i <- seq_len(n)
+
+  # Bounds check
+  if (any(i < 1 | i > n)) stop("Row index out of bounds.")
+
+  # Subset data matrix
+  data <- x$matrix
+  data_sub <- list(as.matrix(data[i, ]))
+
+  # Construct and return new hdClass object
+  imgClass(image = data_sub,
+          Sparsity_parameter = attr(x, "Sparsity_parameter"),
+          Smoothing_parameter = attr(x, "Smoothing_parameter"),
+          argval = attr(x, "argval"))
 }
