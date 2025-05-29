@@ -111,7 +111,7 @@ parameter_selection <- function(X_temp,
       # Sparsity on v
       for (i in 1:n_var) {
         K_fold <- nfolds_v[i]
-        gamma_Xi <- sparsity_col_list[[i]]
+        gamma_Xi <- sparse_tuning_v[[i]]
         cv_means <- cv_ses  <- numeric(length(gamma_Xi))
 
         for (j in seq_along(gamma_Xi)) {
@@ -315,7 +315,7 @@ parameter_selection <- function(X_temp,
 
       for (i in 1:n_var) {
         K_fold <- nfolds_v[i]
-        gamma_Xi <- sparsity_col_list[[i]]
+        gamma_Xi <- sparse_tuning_v[[i]]
         cv_means <- cv_ses  <- numeric(length(gamma_Xi))
 
         for (j in seq_along(gamma_Xi)) {

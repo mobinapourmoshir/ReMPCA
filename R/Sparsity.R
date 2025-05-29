@@ -8,6 +8,7 @@ cv_sparse_row <- function(data,
                           cv.pick,
                           thresh,
                           maxit,
+                          parallel,
                           conditional = FALSE,
                           sparse_tuning_result_u,  # vector of candidate sparsity levels for rows (u)
                           sparse_tuning_result_v,  # fixed sparsity params (vector)
@@ -23,7 +24,7 @@ cv_sparse_row <- function(data,
   fold_errors_list <- vector("list", length(sparse_tuning_result_u))
 
   for (j in 1:length(sparse_tuning_result_u)) {
-    gamma_u <- sparsity_row_list[j]
+    gamma_u <- sparse_tuning_result_u[j]
     fold_errors <- numeric(K_fold)
 
     for (k in 1:K_fold) {
@@ -110,6 +111,7 @@ cv_sparse_col <- function(data,
                           K_fold,
                           thresh,
                           maxit,
+                          parallel,
                           conditional = FALSE,
                           sparse_tuning_result_u,
                           sparse_tuning_result_v,
