@@ -117,7 +117,7 @@ hdClass <- function(hdlist,
 
   attr(hd, "Sparsity_parameter") <- Sparsity_parameter
   attr(hd, "n_var") <- length(hdlist)
-  attr(hd, "ncol") <- as.numeric(as.data.frame(sapply(hdlist, dim))[2, ])
+  attr(hd, "ncol") <- as.data.frame(sapply(hdlist, dim))[2, ]
 
   ####### Column-wise parameter attributes #######
   attr(hd, "Smoothing_parameter_col") <- lapply(hdlist, function(obj) attr(obj, "Smoothing_parameter"))
