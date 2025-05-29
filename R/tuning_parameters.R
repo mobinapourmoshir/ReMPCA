@@ -29,9 +29,9 @@ parameter_selection <- function(X_temp,
                                 smoothness_type) {
 
   if(parallel == TRUE){
-    n_cores <- parallel::detectCores() -1
-    cl <- parallel::makeCluster(n_cores)
-    doParallel::registerDoParallel(cl)
+    n_cores = 7
+    cl <- makeCluster(n_cores)
+    registerDoParallel(cl)
   }
 
   alpha_u <- 0
@@ -97,6 +97,7 @@ parameter_selection <- function(X_temp,
                                      maxit = maxit,
                                      conditional = FALSE,
                                      parallel = parallel,
+                                     cl = cl,
                                      cv.pick = cv.pick,
                                      sparse_tuning_result_u = sparse_tuning_u,
                                      sparse_tuning_result_v = gamma_v,
@@ -126,6 +127,7 @@ parameter_selection <- function(X_temp,
                                      S_alpha_v = S_alpha_v0,
                                      S_alpha_u = S_alpha_u0,
                                      K_fold = K_fold,
+                                     parallel = parallel,
                                      sparse_tuning_result_u = gamma_u,
                                      sparse_tuning_result_v = gamma_v,
                                      sparse_tuning_type = sparse_tuning_type)
@@ -329,6 +331,7 @@ parameter_selection <- function(X_temp,
                                      S_alpha_v = opt_v$opt_s.alpha_v,
                                      S_alpha_u = opt_u$opt_s.alpha_u,
                                      K_fold = K_fold,
+                                     parallel = parallel,
                                      sparse_tuning_result_u = gamma_u,
                                      sparse_tuning_result_v = gamma_v,
                                      sparse_tuning_type = sparse_tuning_type)
@@ -393,10 +396,6 @@ parameter_selection <- function(X_temp,
   )
 
   return(final_results)
-
-  parallel::stopCluster(cl)
-  foreach::registerDoSEQ()
-  foreach::getDoParWorkers()
 }
 
 ########################### Process bar indexing ###########################

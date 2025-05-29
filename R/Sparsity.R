@@ -8,98 +8,112 @@ cv_sparse_row <- function(data,
                           cv.pick,
                           thresh,
                           maxit,
-                          parallel,
+                          parallel = FALSE,
+                          cl       = NULL,
                           conditional = FALSE,
-                          sparse_tuning_result_u,  # vector of candidate sparsity levels for rows (u)
-                          sparse_tuning_result_v,  # fixed sparsity params (vector)
+                          sparse_tuning_result_u,
+                          sparse_tuning_result_v,
                           sparse_tuning_type) {
 
+  # 1) pre‐compute things that don't depend on j:
   set.seed(123)
-  shuffled_cols <- sample(ncol(data))  # Shuffle column indices
-  group_size <- ceiling(length(shuffled_cols) / K_fold)
-  m <- ncol(data)
+  shuffled_cols <- sample(ncol(data))
+  group_size    <- ceiling(length(shuffled_cols) / K_fold)
 
-  CV_errors <- numeric(length(sparse_tuning_result_u))
-  SE_errors <- numeric(length(sparse_tuning_result_u))
-  fold_errors_list <- vector("list", length(sparse_tuning_result_u))
+  # 2) helper that does the exact same inner logic for a single j:
+  compute_for_j <- function(j) {
+    gamma_u    <- sparse_tuning_result_u[j]
+    fold_errs  <- numeric(K_fold)
 
-  for (j in 1:length(sparse_tuning_result_u)) {
-    gamma_u <- sparse_tuning_result_u[j]
-    fold_errors <- numeric(K_fold)
+    for (k in seq_len(K_fold)) {
+      cols_out   <- shuffled_cols[((k-1)*group_size + 1):
+                                    min(k*group_size, length(shuffled_cols))]
+      data_train <- data[, -cols_out, drop=FALSE]
+      data_test  <- data[,  cols_out, drop=FALSE]
+      up_ncol    <- update_ncol(ncol, cols_out)
 
-    for (k in 1:K_fold) {
-      # Define indices for test columns
-      cols_to_remove <- shuffled_cols[((k - 1) * group_size + 1):
-                                        min(k * group_size, length(shuffled_cols))]
-
-      # Create training and test sets
-      data_train <- data[, -cols_to_remove]
-      data_test  <- data[, cols_to_remove]
-
-      # Update column structure
-      updated_ncol <- update_ncol(ncol, cols_to_remove)
-
-      # Convert first row of ncol to a vector of column counts per variable
-      ncol_vec <- as.numeric(ncol[1, ])
-      cumulative_ncol <- c(0, cumsum(ncol_vec))
-
+      # rebuild S_alpha_v for train
+      ncol_vec        <- as.numeric(ncol[1,])
+      cum_ncol        <- c(0, cumsum(ncol_vec))
       S_alpha_v_train <- lapply(1:n_var, function(i) {
-        start_idx <- cumulative_ncol[i] + 1
-        end_idx <- cumulative_ncol[i + 1]
-        cols_in_var <- start_idx:end_idx
-
-        # Columns of this variable that are *not* removed
-        retained_cols <- setdiff(cols_in_var, cols_to_remove)
-        local_indices <- match(retained_cols, cols_in_var)
-
-        # Subset the original smoother for this variable
-        S_alpha_v[[i]][local_indices, local_indices, drop = FALSE]
+        cols_i    <- (cum_ncol[i]+1):cum_ncol[i+1]
+        keep      <- setdiff(cols_i, cols_out)
+        idx_local <- match(keep, cols_i)
+        S_alpha_v[[i]][ idx_local, idx_local, drop=FALSE ]
       })
 
+      pr <- power_algo(
+        data                    = data_train,
+        n_var                   = n_var,
+        ncol                    = up_ncol,
+        thresh                  = thresh,
+        maxit                   = maxit,
+        conditional             = conditional,
+        sparse_tuning_result_u  = gamma_u,
+        sparse_tuning_result_v  = sparse_tuning_result_v,
+        S_alpha_v               = S_alpha_v_train,
+        S_alpha_u               = S_alpha_u,
+        sparse_tuning_type      = sparse_tuning_type
+      )
 
-      # Run power algorithm
-      power_result <- power_algo(data = data_train,
-                                 n_var = n_var,
-                                 ncol = updated_ncol,
-                                 thresh = thresh,
-                                 maxit = maxit,
-                                 conditional = FALSE,
-                                 sparse_tuning_result_u = gamma_u,
-                                 sparse_tuning_result_v = sparse_tuning_result_v,
-                                 S_alpha_v = S_alpha_v_train,
-                                 S_alpha_u = S_alpha_u,
-                                 sparse_tuning_type = sparse_tuning_type)
-
-      u_hat <- power_result[[2]]
-      v_test <- t(as.matrix(data_test)) %*% u_hat
-
-      # Compute reconstruction error for this fold
-      fold_errors[k] <- sum((data_test - u_hat %*% t(v_test))^2) / ncol(data_test)
+      u_hat      <- pr[[2]]
+      v_pred     <- t(as.matrix(data_test)) %*% u_hat
+      fold_errs[k] <- sum((data_test - u_hat %*% t(v_pred))^2) / ncol(data_test)
     }
 
-    # Compute CV error and standard error for current gamma
-    CV_errors[j] <- mean(fold_errors)
-    SE_errors[j] <- sd(fold_errors) / sqrt(K_fold)
-    fold_errors_list[[j]] <- fold_errors
+    # return named vector with error & se
+    err <- mean(fold_errs)
+    se  <- sd(fold_errs) / sqrt(K_fold)
+    list(err = err, se = se, folds = fold_errs)
   }
 
-  # Select gamma_u based on cv.pick
-  if (cv.pick == "1se") {
-    j_star <- which.min(CV_errors)
-    CV_1se_threshold <- CV_errors[j_star] + SE_errors[j_star]
-    j_1se <- max(which(CV_errors <= CV_1se_threshold))  # most regularized
-    gamma_u <- sparse_tuning_result_u[j_1se]
-    } else if (cv.pick == "min") {
-      j_min <- which.min(CV_errors)
-      gamma_u <- sparse_tuning_result_u[j_min]
-      } else {
-        stop("cv.pick must be either '1se' or 'min'")
-        }
+  # 3) pick the right apply‐fun
+  if (parallel) {
+    if (is.null(cl))
+      stop("When parallel=TRUE you must pass a cluster 'cl'")
+    # export only the binding names your compute_for_j needs:
+    parallel::clusterExport(cl,
+                            varlist = c("data","n_var","ncol","S_alpha_u","S_alpha_v",
+                                        "K_fold","thresh","maxit","conditional",
+                                        "sparse_pen_fun", "norm_vec",
+                                        "sparse_tuning_result_v","sparse_tuning_type",
+                                        "update_ncol","power_algo"),
+                            envir = environment()
+    )
+    applyFun <- function(X, FUN) parallel::parLapplyLB(cl, X, FUN)
+  } else {
+    applyFun <- lapply
+  }
 
-  return(list(gamma_u,
-              cv_results = data.frame(sparse_tuning_result_u,
-                                      CV_errors,
-                                      SE_errors)))
+  # 4) run over all j in parallel or serial
+  out_list <- applyFun(seq_along(sparse_tuning_result_u), compute_for_j)
+
+  # 5) pull out CV_errors, SE_errors, and fold_errors_list
+  CV_errors       <- sapply(out_list, `[[`, "err")
+  SE_errors       <- sapply(out_list, `[[`, "se")
+  fold_errors_list<- lapply(out_list, `[[`, "folds")
+
+  # 6) pick gamma_u as before
+  if (cv.pick == "1se") {
+    j0      <- which.min(CV_errors)
+    cutoff  <- CV_errors[j0] + SE_errors[j0]
+    j_star  <- max(which(CV_errors <= cutoff))
+  } else if (cv.pick == "min") {
+    j_star <- which.min(CV_errors)
+  } else {
+    stop("cv.pick must be either '1se' or 'min'")
+  }
+  gamma_u <- sparse_tuning_result_u[j_star]
+
+  # 7) return exactly what you did before
+  list(
+    gamma_u,
+    cv_results = data.frame(
+      sparse_tuning_result_u,
+      CV_errors,
+      SE_errors
+    )
+  )
 }
 
 ########### CV Scores calculators for sparsity on columns (PCs, v) ###########
@@ -111,50 +125,85 @@ cv_sparse_col <- function(data,
                           K_fold,
                           thresh,
                           maxit,
-                          parallel,
+                          parallel = FALSE,
+                          cl       = NULL,
                           conditional = FALSE,
                           sparse_tuning_result_u,
                           sparse_tuning_result_v,
                           sparse_tuning_type) {
 
+  # 1) prepare fold assignments
   set.seed(123)
-  shuffled_rows <- sample(nrow(data)) # Grouping rows of data matrix
-  group_size <- ifelse(round(length(shuffled_rows) / K_fold, digits = 0) == 0,
-                       1,
-                       round(length(shuffled_rows) / K_fold, digits = 0))
+  shuffled_rows <- sample(nrow(data))
+  group_size    <- ifelse(
+    round(length(shuffled_rows) / K_fold, 0) == 0,
+    1,
+    round(length(shuffled_rows) / K_fold, 0)
+  )
 
-  data_tilde <- data
-  fold_errors <- numeric(K_fold)  # store errors
+  # 2) helper: compute the error for a single fold k
+  compute_fold <- function(k) {
+    # which rows go to test
+    rows_out   <- shuffled_rows[((k - 1) * group_size + 1):
+                                  min(k * group_size, length(shuffled_rows))]
+    # train / test split
+    train_df   <- data.frame(data[-rows_out, , drop = FALSE])
+    test_df    <- data.frame(data[ rows_out, , drop = FALSE])
 
-  for (k in 1:K_fold) {
-    rows_to_remove <- shuffled_rows[((k - 1) * group_size + 1):min(k * group_size, length(shuffled_rows))]
-    data_train <- data.frame(data_tilde[-rows_to_remove,])
-    data_test <- data.frame(data_tilde[rows_to_remove,])
+    # run your exact same power‐algorithm call
+    pr <- power_algo(
+      data                    = train_df,
+      n_var                   = n_var,
+      ncol                    = ncol,
+      conditional             = conditional,
+      thresh                  = thresh,
+      maxit                   = maxit,
+      sparse_tuning_result_u  = sparse_tuning_result_u,
+      sparse_tuning_result_v  = sparse_tuning_result_v,
+      S_alpha_v               = S_alpha_v,
+      S_alpha_u               = S_alpha_u[-rows_out, -rows_out],
+      sparse_tuning_type      = sparse_tuning_type
+    )
 
-    # Power Algorithm
-    power_train <- power_algo(data = data_train,
-                              n_var = n_var,
-                              ncol = ncol,
-                              conditional = FALSE,
-                              thresh = thresh,
-                              maxit = maxit,
-                              sparse_tuning_result_u = sparse_tuning_result_u,
-                              sparse_tuning_result_v = sparse_tuning_result_v,
-                              S_alpha_v = S_alpha_v,
-                              S_alpha_u = S_alpha_u[-rows_to_remove, -rows_to_remove],
-                              sparse_tuning_type = sparse_tuning_type)
+    v_train <- pr[[1]]
+    u_test  <- as.matrix(test_df) %*% as.matrix(v_train)
 
-    v_train <- power_train[[1]]
-    u_test <- as.matrix(data_test) %*% as.matrix(v_train)
-
-    # Fold-wise error
-    fold_errors[k] <- sum((data_test - u_test %*% t(v_train))^2) / nrow(data_test)
+    # exactly the same fold‐error
+    sum((test_df - u_test %*% t(v_train))^2) / nrow(test_df)
   }
-  CV_mean <- mean(fold_errors)
-  CV_se <- sd(fold_errors) / sqrt(K_fold)
 
-  return(list(CV_error = CV_mean, SE = CV_se, fold_errors = fold_errors))
+  # 3) pick apply‐function
+  if (parallel) {
+    if (is.null(cl)) stop("Must supply a cluster 'cl' when parallel=TRUE")
+    # export needed objects
+    parallel::clusterExport(cl,
+                            varlist = c("data","n_var","ncol","S_alpha_v","S_alpha_u",
+                                        "thresh","maxit","conditional",
+                                        "sparse_tuning_result_u","sparse_tuning_result_v",
+                                        "sparse_tuning_type","power_algo"),
+                            envir = environment()
+    )
+    applyFun <- function(X, FUN) parallel::parLapplyLB(cl, X, FUN)
+  } else {
+    applyFun <- lapply
+  }
+
+  # 4) run folds (in parallel or serial)
+  fold_errors_list <- applyFun(seq_len(K_fold), compute_fold)
+  fold_errors      <- unlist(fold_errors_list)
+
+  # 5) compute CV summary
+  CV_mean <- mean(fold_errors)
+  CV_se   <- sd(fold_errors) / sqrt(K_fold)
+
+  # 6) return exactly as before
+  list(
+    CV_error   = CV_mean,
+    SE         = CV_se,
+    fold_errors = fold_errors
+  )
 }
+
 
 ############# Computing number of columns when eliminating some ##############
 update_ncol <- function(ncol_matrix, cols_to_remove) {
