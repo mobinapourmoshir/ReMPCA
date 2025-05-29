@@ -116,6 +116,8 @@ cv_sparse_row <- function(data,
   )
 }
 
+
+
 ########### CV Scores calculators for sparsity on columns (PCs, v) ###########
 cv_sparse_col <- function(data,
                           n_var,
@@ -179,6 +181,7 @@ cv_sparse_col <- function(data,
     parallel::clusterExport(cl,
                             varlist = c("data","n_var","ncol","S_alpha_v","S_alpha_u",
                                         "thresh","maxit","conditional",
+                                        "sparse_pen_fun", "norm_vec",
                                         "sparse_tuning_result_u","sparse_tuning_result_v",
                                         "sparse_tuning_type","power_algo"),
                             envir = environment()
