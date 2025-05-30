@@ -191,7 +191,7 @@ plot_cv_u <- function(ReMPCA_obj) {
 #'
 #' @return A grid of CV plots for variables and PCs. For each variable-PC pair with more than one tuning value,
 #'   the function plots CV error vs. gamma, highlights the selected gamma (in blue), and the 1-SE threshold (red line).
-#'   @export
+#' @export
 plot_cv_v <- function(ReMPCA_obj) {
   CV_v <- ReMPCA_obj$CVResultsV
   OptimalGammaV <- ReMPCA_obj$OptimalGammaV
