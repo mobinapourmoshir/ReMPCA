@@ -12,6 +12,7 @@
 #' @param components Optional; a vector of component indices to plot (default is all).
 #'
 #' @return A ggplot2 object showing GCV scores across alpha_u values.
+#' @export
 
 plot_gcv_u <- function(ReMPCA_obj) {
   GCVlist <- ReMPCA_obj$GCVResultsU
@@ -68,6 +69,7 @@ plot_gcv_u <- function(ReMPCA_obj) {
 #'
 #' @details
 #' If all variables for a PC have zero-valued tuning parameters, no plot is drawn.
+#' @export
 plot_gcv_v <- function(ReMPCA_obj) {
   GCVlist <- ReMPCA_obj$GCVResultsV
   smooth_result_v <- ReMPCA_obj$OptimalAlphaV
@@ -144,7 +146,7 @@ plot_gcv_v <- function(ReMPCA_obj) {
 #' @param ReMPCA_obj Output list from the ReMPCA routine.
 #'
 #' @return Side-by-side base R plots for each component showing the CV error and 1-SE threshold.
-
+#' @export
 plot_cv_u <- function(ReMPCA_obj) {
   CVlist <- ReMPCA_obj$CVResultsU
   opt_gamma <- ReMPCA_obj$OptimalGammaU
@@ -189,7 +191,7 @@ plot_cv_u <- function(ReMPCA_obj) {
 #'
 #' @return A grid of CV plots for variables and PCs. For each variable-PC pair with more than one tuning value,
 #'   the function plots CV error vs. gamma, highlights the selected gamma (in blue), and the 1-SE threshold (red line).
-
+#'   @export
 plot_cv_v <- function(ReMPCA_obj) {
   CV_v <- ReMPCA_obj$CVResultsV
   OptimalGammaV <- ReMPCA_obj$OptimalGammaV
@@ -255,7 +257,7 @@ plot_cv_v <- function(ReMPCA_obj) {
 #'
 #' @return No return value. The function produces a series of dot plots, one for
 #'         each principal component.
-#'
+#' @export
 
 plot_pc_scores <- function(ReMPCA_obj) {
   scores <- ReMPCA_obj$PCScores
