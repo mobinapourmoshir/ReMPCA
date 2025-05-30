@@ -19,6 +19,7 @@ for each variable in each PC.}
 \value{
 A grid of CV plots for variables and PCs. For each variable-PC pair with more than one tuning value,
 the function plots CV error vs. gamma, highlights the selected gamma (in blue), and the 1-SE threshold (red line).
+@export
 }
 \description{
 This function visualizes the cross-validation (CV) errors for each functional variable

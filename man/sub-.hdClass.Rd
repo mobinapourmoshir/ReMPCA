@@ -2,22 +2,18 @@
 % Please edit documentation in R/hdMethods.R
 \name{[.hdClass}
 \alias{[.hdClass}
-\title{Subset Method for hdClass}
+\title{Indexing Operator for hdClass}
 \usage{
-\method{[}{hdClass}(x, i = NULL, j = NULL, ...)
+\method{[}{hdClass}(x, k = NULL)
 }
 \arguments{
 \item{x}{An object of class \code{hdClass}.}
 
-\item{i}{Row indices (observations). If \code{NULL}, all rows are included.}
-
-\item{j}{Column indices (variables). If \code{NULL}, all variables are included.}
-
-\item{...}{Not used.}
+\item{k}{Variables indices. If \code{NULL}, all variables are included.}
 }
 \value{
 A new \code{hdClass} object with subsetted data and inherited attributes.
 }
 \description{
-Enables subsetting of an \code{hdClass} object by rows (observations) and columns (variables).
+Enables subsetting of an \code{hdClass} object by variables.
 }
