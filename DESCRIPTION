@@ -2,9 +2,10 @@ Package: ReMPCA
 Date: 2024-7-10
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
-Authors@R: 
-    person("Mobina", "Pourmoshir", , "mobina.pourmoshir@marqueete.edu", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+Authors@R: c(
+person("Mobina", "Pourmoshir", , "mobina.pourmoshir@marqueete.edu", role = c("aut", "cre")),
+person("Mehdi", "Maadooliat", email = "mehdi.maadooliat@mu.edu", role = "aut")
+)
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Encoding: UTF-8
