@@ -8,6 +8,8 @@ Authors@R: c(
     )
 Description: ReMPCA is an R package designed to extend Principal Component Analysis (PCA) to complex, high-dimensional datasets—including curves, images, functional, and regular data. By integrating multiple data types within a single framework, ReMPCA captures intricate relationships across variables and domains, making it an ideal tool for structured data analysis in fields like imaging, signal processing, and functional data analysis.
 License: MIT + file LICENSE
+Suggests:
+  doParallel
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
