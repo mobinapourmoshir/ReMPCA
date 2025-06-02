@@ -1,9 +1,15 @@
 ---
-output: github_document
-always_allow_html: true
+output:
+  rmarkdown::github_document:
+    html_preview: true
 ---
 
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  fig.path = "man/figures/README-",
+  echo = TRUE
+)
+```
 
 # ReMPCA Package<img src="man/figures/hexagon.png" width = "170" height = "170" align="right" />
 
@@ -137,7 +143,7 @@ image(t(X4), main = 'X4, Regular')
 ## Regularized Multivariate Hybrid PCA function 
 
 Now that we have constructed our hybrid data object, we can apply the `ReMPCA` function to extract the principal components while incorporating smoothing and sparsity constraints.
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, results='hide'}
 ReMPCATest <- ReMPCA(hd = object_list,
                      centerhds = FALSE,
                      num_pcs = 1,
