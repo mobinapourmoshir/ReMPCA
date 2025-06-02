@@ -43,31 +43,24 @@ during regularization tuning.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_gcv_u</span><span class="op">(</span><span class="va">ReMPCA_obj</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_gcv_u</span><span class="op">(</span><span class="va">ReMPCA_obj</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-gcv-u">GCV_u<a class="anchor" aria-label="anchor" href="#arg-gcv-u"></a></dt>
-<dd><p>A numeric matrix of GCV scores for u,
-with rows corresponding to different alpha_u values
-and columns to principal components.</p></dd>
+<dl><dt id="arg-rempca-obj">ReMPCA_obj<a class="anchor" aria-label="anchor" href="#arg-rempca-obj"></a></dt>
+<dd><p>An object returned from ReMPCA().</p></dd>
 
 
-<dt id="arg-alpha-u">alpha_u<a class="anchor" aria-label="anchor" href="#arg-alpha-u"></a></dt>
-<dd><p>A numeric vector of smoothing parameter values
-corresponding to the rows of GCV_u.</p></dd>
-
-
-<dt id="arg-components">components<a class="anchor" aria-label="anchor" href="#arg-components"></a></dt>
-<dd><p>Optional; a vector of component indices to plot (default is all).</p></dd>
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
+<dd><p>Additional plotting options.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A ggplot2 object showing GCV scores across alpha_u values.</p>
+    <p>A plot object showing GCV scores across alpha_u values.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
