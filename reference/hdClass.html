@@ -90,20 +90,43 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fd_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="fdClass.html">fdClass</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">rd_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="rdClass.html">rdClass</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">img_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="imgClass.html">imgClass</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, <span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, <span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">hd_obj</span> <span class="op">&lt;-</span> <span class="fu">hdClass</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  hdlist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">fd_obj</span>, <span class="va">rd_obj</span>, <span class="va">img_obj</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  hdlist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">fd_obj</span>, <span class="va">rd_obj</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  argval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, length.out <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  Smoothing_parameter <span class="op">=</span> <span class="fl">0.5</span>,</span></span>
 <span class="r-in"><span>  Sparsity_parameter <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in hdClass(hdlist = list(fd_obj, rd_obj, img_obj), argval = seq(0,     1, length.out = 10), Smoothing_parameter = 0.5, Sparsity_parameter = 2):</span> Error: Not all matrices have the same number of rows!</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">hd_obj</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'hd_obj' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Hybrid Data (hdClass) Object</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ===================================</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dimensions           : 10 rows x 20 columns</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Number of Variables  :  2 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Columns per Variable :  10 | 10 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -----------------------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Grid Points (Rows)   : 0, 0.111111111111111, 0.222222222222222 , ...,  0.888888888888889, 1 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Grid Points (Columns):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Variable 1: 0.1, 0.2, 0.3 , ...,  0.9, 1 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Variable 2: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Smoothing Parameter (Row): 0.5 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Smoothing Parameters (Col):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Variable 1: 0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Variable 2: 0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sparsity Parameter (Row): 2 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Sparsity Parameters (Col):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Variable 1: 0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - Variable 2: 0 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ===================================</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> First few rows and columns of the data:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                V1         V2          V3         V4         V5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.893165020  2.2729548  0.88986536 -0.1865538 -0.5296437</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -0.376555496  0.1360582 -1.48281332 -0.8122754 -0.6812732</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  0.605884808 -1.9990391  0.44575035 -1.6405817 -0.2024476</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,] -0.004874726 -0.4205009  1.36977586  0.5079225  1.6844957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,] -0.520796373 -0.3784074 -0.02011003  1.7543370 -1.0337732</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">hd_obj</span>, <span class="st">"variable_types"</span><span class="op">)</span>  <span class="co"># Shows "hd", "rd", etc.</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'hd_obj' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "hd" "rd"</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
