@@ -312,7 +312,7 @@ scale_hd <- function(hd_obj) {
 #' - Regular data are shown using solid dots (\code{matplot(..., type = "p", pch = 16)}).
 #' - Image data are plotted using \code{image()} if they originated from matrices.
 #'
-#' @param obj An object of class \code{hdClass}.
+#' @param x An object of class \code{hdClass}.
 #' @param ... Additional graphical parameters passed to the plotting functions.
 #'
 #' @return No return value. Called for its side effect (producing plots).
@@ -325,17 +325,17 @@ scale_hd <- function(hd_obj) {
 #' plot(hd_obj)
 #'
 #' @export
-plot.hdClass <- function(obj) {
-  n_var <- attr(obj, "n_var")
-  ncol_list <- as.numeric(attr(obj, "ncol"))
-  var_types <- attr(obj, "variable_types")
+plot.hdClass <- function(x) {
+  n_var <- attr(x, "n_var")
+  ncol_list <- as.numeric(attr(x, "ncol"))
+  var_types <- attr(x, "variable_types")
 
   par(mfrow = c(1, n_var))
 
   start_idx <- 1
   for (i in seq_len(n_var)) {
     end_idx <- start_idx + ncol_list[i] - 1
-    subdata <- obj[, start_idx:end_idx, drop = FALSE]
+    subdata <- x[, start_idx:end_idx, drop = FALSE]
     main_title <- paste("Variable", i, "-", var_types[i])
 
     if (var_types[i] == "hd") {
@@ -343,8 +343,8 @@ plot.hdClass <- function(obj) {
     } else if (var_types[i] == "rd") {
       matplot(subdata, type = "p", pch = 16, main = main_title)
     } else if (var_types[i] == "img") {
-      if (!is.null(attr(obj, "nrow"))) {
-        nrow_img <- attr(obj, "nrow")
+      if (!is.null(attr(x, "nrow"))) {
+        nrow_img <- attr(x, "nrow")
         for (k in 1:nrow(subdata)) {
           image(matrix(subdata[k, ], nrow = nrow_img),
                 main = paste(main_title, "- Image", k), col = gray.colors(256))

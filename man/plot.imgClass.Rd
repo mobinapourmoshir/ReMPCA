@@ -4,14 +4,12 @@
 \alias{plot.imgClass}
 \title{Plot Method for imgClass Objects}
 \usage{
-\method{plot}{imgClass}(obj)
+\method{plot}{imgClass}(x)
 }
 \arguments{
-\item{obj}{An object of class \code{imgClass}, created using \code{imgClass()}.}
+\item{x}{An object of class \code{imgClass}, created using \code{imgClass()}.}
 
 \item{col}{Color palette to use for image rendering (default: grayscale).}
-
-\item{...}{Additional graphical parameters passed to \code{image()}.}
 }
 \value{
 No return value. Called for its side effect (plotting).

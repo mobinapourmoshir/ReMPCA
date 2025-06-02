@@ -4,10 +4,10 @@
 \alias{plot.fdClass}
 \title{Plot Method for fdClass Objects}
 \usage{
-\method{plot}{fdClass}(obj)
+\method{plot}{fdClass}(x)
 }
 \arguments{
-\item{obj}{An object of class \code{fdClass}.}
+\item{x}{An object of class \code{fdClass}.}
 }
 \value{
 No return value. This function is called for its side effect (plot).

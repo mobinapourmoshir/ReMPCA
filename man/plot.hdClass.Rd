@@ -4,10 +4,10 @@
 \alias{plot.hdClass}
 \title{Plot Method for hdClass Objects}
 \usage{
-\method{plot}{hdClass}(obj)
+\method{plot}{hdClass}(x)
 }
 \arguments{
-\item{obj}{An object of class \code{hdClass}.}
+\item{x}{An object of class \code{hdClass}.}
 
 \item{...}{Additional graphical parameters passed to the plotting functions.}
 }

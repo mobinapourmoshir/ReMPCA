@@ -55,10 +55,9 @@ The resulting object is a matrix with column-wise concatenation of the input mat
 \examples{
 fd_obj <- fdClass(matrix(rnorm(100), nrow = 10))
 rd_obj <- rdClass(matrix(rnorm(100), nrow = 10))
-img_obj <- imgClass(list(matrix(rnorm(100), 10, 10), matrix(rnorm(100), 10, 10)))
 
 hd_obj <- hdClass(
-  hdlist = list(fd_obj, rd_obj, img_obj),
+  hdlist = list(fd_obj, rd_obj),
   argval = seq(0, 1, length.out = 10),
   Smoothing_parameter = 0.5,
   Sparsity_parameter = 2

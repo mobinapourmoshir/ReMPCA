@@ -4,10 +4,10 @@
 \alias{plot.rdClass}
 \title{Plot Method for rdClass Objects}
 \usage{
-\method{plot}{rdClass}(obj, ...)
+\method{plot}{rdClass}(x, ...)
 }
 \arguments{
-\item{obj}{An object of class \code{rdClass}.}
+\item{x}{An object of class \code{rdClass}.}
 }
 \value{
 No return value. This function is called for its side effect (plot).

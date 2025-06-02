@@ -37,8 +37,6 @@
 #' print(attr(fd_object, "GridPoints_v"))  # Display grid points for columns
 #' print(attr(fd_object, "Smoothing_parameter"))  # Display smoothing parameter
 #'
-#' is.fd(fd_object)
-#'
 #' @export
 
 ####################### Define an S3 Class for Functional Data #######################

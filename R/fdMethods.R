@@ -132,7 +132,7 @@ as.fdClass <- function(x,
 #'
 #' Generates a line plot of the functional data stored in an object of class \code{fdClass}.
 #'
-#' @param obj An object of class \code{fdClass}.
+#' @param x An object of class \code{fdClass}.
 #'
 #' @details
 #' This function uses \code{\link{matplot}} to visualize each observation (row) as a separate curve.
@@ -145,8 +145,8 @@ as.fdClass <- function(x,
 #' plot(fd_obj)
 #'
 #' @export
-plot.fdClass <- function(obj) {
-  matplot(obj, type = "l", main = "fd Class Plot", ...)
+plot.fdClass <- function(x) {
+  matplot(x, type = "l", main = "fd Class Plot", ...)
 }
 
 #' Multiply a `fdClass` Object by a Scalar

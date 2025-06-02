@@ -1,5 +1,6 @@
 ########################### get.pen function ###########################
 get.pen <- function(td, alpha, type) {
+  # thrs <- 1e-6
 
   if(type == "Second_order"){
     if(alpha == 0){
