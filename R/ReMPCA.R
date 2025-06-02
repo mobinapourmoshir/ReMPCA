@@ -47,6 +47,8 @@
 #' If a numeric vector is provided, its length must match the number of variables, and
 #' each element is used to scale the corresponding variable.
 #' This is used to adjust for scale differences across variables in the hybrid data object.
+#' @param thresh The convergence threshold in power algorithm.
+#' @param maxit Maximum number of iterations in power algorithm.
 #'
 #' @importFrom utils  txtProgressBar setTxtProgressBar
 #' @importFrom Matrix bdiag
@@ -96,7 +98,7 @@ ReMPCA <- function(hd,
              length(weights) == n_var) {
     scaled_matrix <- hd$matrix
     start_idx <- 1
-
+    ncol_vec <- as.numeric(data.frame(attr(hd, "ncol")))
     for (i in 1:n_var) {
       end_idx <- as.numeric(start_idx + ncol_vec[i] - 1)
       mat <- scaled_matrix[, start_idx:end_idx, drop = FALSE]

@@ -33,11 +33,4 @@ rd_object <- rdClass(data = rd_data,
 # Display the created rd object
 print(rd_object)
 print(attr(rd_object, "Sparsity_parameter"))  # Display sparsity parameter
-
-is.rd(rd_object)
-is.fd(rd_object)
-
-convert2fd <- as.fdClass(rd_object)
-convert2rd <- as.rdClass(fd_object)
-
 }

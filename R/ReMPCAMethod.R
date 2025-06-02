@@ -4,17 +4,13 @@
 #' across different smoothing parameter values (alpha_u), typically obtained
 #' during regularization tuning.
 #'
-#' @param GCV_u A numeric matrix of GCV scores for u,
-#'              with rows corresponding to different alpha_u values
-#'              and columns to principal components.
-#' @param alpha_u A numeric vector of smoothing parameter values
-#'                corresponding to the rows of GCV_u.
-#' @param components Optional; a vector of component indices to plot (default is all).
+#' @param ReMPCA_obj An object returned from ReMPCA().
+#' @param ... Additional plotting options.
 #'
-#' @return A ggplot2 object showing GCV scores across alpha_u values.
+#' @return A plot object showing GCV scores across alpha_u values.
 #' @export
 
-plot_gcv_u <- function(ReMPCA_obj) {
+plot_gcv_u <- function(ReMPCA_obj,...) {
   GCVlist <- ReMPCA_obj$GCVResultsU
   smooth_result_u <- ReMPCA_obj$OptimalAlphaU
   n_pc <- length(GCVlist)
@@ -294,9 +290,6 @@ plot_pc_scores <- function(ReMPCA_obj) {
 #' at 0 is added for reference unless the minimum value in the plot is ≥ 5.
 #'
 #' @return No return value. This function is called for its side effect of plotting.
-#'
-#' @examples
-#' plot_pc_functions(ReMPCA_obj)
 #'
 #' @export
 plot_pc_functions <- function(ReMPCA_obj) {

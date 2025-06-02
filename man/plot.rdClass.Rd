@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{x}{An object of class \code{rdClass}.}
+
+\item{...}{Additional graphical parameters passed to plotting functions.}
 }
 \value{
 No return value. This function is called for its side effect (plot).

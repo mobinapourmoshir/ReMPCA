@@ -1,3 +1,10 @@
+#' @importFrom graphics matplot par image abline box contour filled.contour layout lines mtext plot.new points
+#' @importFrom grDevices gray.colors
+#' @importFrom utils head tail
+#' @importFrom stats sd
+#' @noRd
+NULL
+
 ##################### Print method for hybrid data #####################
 #' @export
 print.hdClass <- function(x, ...) {
@@ -279,9 +286,6 @@ setSmoothnessParameter <- function(obj, Smoothing_parameter) {
 #' @param hd_obj A hybrid data object of class `hdClass`.
 #'
 #' @return A numeric vector of weights (length equals the number of variables in the hybrid data).
-#'
-#' @examples
-#' weights <- get_hd_scaling_weights(hd_obj)
 scale_hd <- function(hd_obj) {
   if (!inherits(hd_obj, "hdClass")) stop("Input must be of class 'hdClass'")
 
@@ -320,22 +324,21 @@ scale_hd <- function(hd_obj) {
 #' @examples
 #' fd_obj <- fdClass(matrix(rnorm(100), 10, 10))
 #' rd_obj <- rdClass(matrix(rnorm(100), 10, 10))
-#' img_obj <- imgClass(list(matrix(rnorm(100), 10, 10), matrix(rnorm(100), 10, 10)))
-#' hd_obj <- hdClass(list(fd_obj, rd_obj, img_obj))
+#' hd_obj <- hdClass(list(fd_obj, rd_obj))
 #' plot(hd_obj)
 #'
 #' @export
-plot.hdClass <- function(x) {
+plot.hdClass <- function(x, ...) {
   n_var <- attr(x, "n_var")
   ncol_list <- as.numeric(attr(x, "ncol"))
   var_types <- attr(x, "variable_types")
-
+  data <- x$matrix
   par(mfrow = c(1, n_var))
 
   start_idx <- 1
   for (i in seq_len(n_var)) {
     end_idx <- start_idx + ncol_list[i] - 1
-    subdata <- x[, start_idx:end_idx, drop = FALSE]
+    subdata <- data[, start_idx:end_idx, drop = FALSE]
     main_title <- paste("Variable", i, "-", var_types[i])
 
     if (var_types[i] == "hd") {

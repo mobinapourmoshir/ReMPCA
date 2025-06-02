@@ -22,7 +22,7 @@
 #' - `variable_types`: Character vector of type labels for each variable: `"hd"` (functional) or `"rd"` (raw).
 #'
 #' @param hdlist A list of `fdClass`, `rdClass`, or `imgClass` objects.
-#' @param argval Optional numeric vector of grid points along the rows. If `NULL`, it defaults to a uniform grid over [0, 1].
+#' @param argval Optional numeric vector of grid points along the rows. If `NULL`, it defaults to a uniform grid over 0 and 1.
 #' @param Smoothing_parameter Smoothing parameter(s) for the rows:
 #'   - If 0, no smoothing is applied.
 #'   - If a numeric value or vector, it is used directly.

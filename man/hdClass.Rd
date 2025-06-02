@@ -9,7 +9,7 @@ hdClass(hdlist, argval = NULL, Smoothing_parameter = 0, Sparsity_parameter = 0)
 \arguments{
 \item{hdlist}{A list of \code{fdClass}, \code{rdClass}, or \code{imgClass} objects.}
 
-\item{argval}{Optional numeric vector of grid points along the rows. If \code{NULL}, it defaults to a uniform grid over \link{0, 1}.}
+\item{argval}{Optional numeric vector of grid points along the rows. If \code{NULL}, it defaults to a uniform grid over 0 and 1.}
 
 \item{Smoothing_parameter}{Smoothing parameter(s) for the rows:
 \itemize{

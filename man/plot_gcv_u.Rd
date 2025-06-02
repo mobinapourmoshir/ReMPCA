@@ -4,20 +4,15 @@
 \alias{plot_gcv_u}
 \title{Plot GCV Scores for u Components}
 \usage{
-plot_gcv_u(ReMPCA_obj)
+plot_gcv_u(ReMPCA_obj, ...)
 }
 \arguments{
-\item{GCV_u}{A numeric matrix of GCV scores for u,
-with rows corresponding to different alpha_u values
-and columns to principal components.}
+\item{ReMPCA_obj}{An object returned from ReMPCA().}
 
-\item{alpha_u}{A numeric vector of smoothing parameter values
-corresponding to the rows of GCV_u.}
-
-\item{components}{Optional; a vector of component indices to plot (default is all).}
+\item{...}{Additional plotting options.}
 }
 \value{
-A ggplot2 object showing GCV scores across alpha_u values.
+A plot object showing GCV scores across alpha_u values.
 }
 \description{
 This function visualizes the GCV scores for the left singular vectors (u)

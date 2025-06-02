@@ -123,6 +123,7 @@ as.rdClass <- function(x,
 #' Each column is plotted as a sequence of solid points.
 #'
 #' @param x An object of class \code{rdClass}.
+#' @param ... Additional graphical parameters passed to plotting functions.
 #'
 #' @details
 #' This method visualizes the regular (non-functional) data in the \code{rdClass} object.

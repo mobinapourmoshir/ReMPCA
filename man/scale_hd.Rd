@@ -17,6 +17,3 @@ This function computes scaling weights for each component (column) in a \code{hd
 The goal is to normalize the contributions of different functional variables by
 accounting for their scale, using the inverse of total variance (integrated over domain).
 }
-\examples{
-weights <- get_hd_scaling_weights(hd_obj)
-}

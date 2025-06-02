@@ -24,9 +24,6 @@
 #' img1 <- matrix(rnorm(64), 8, 8)
 #' img2 <- matrix(rnorm(64), 8, 8)
 #'
-#' # Single image
-#' fd_img <- imgClass(img1, Smoothing_parameter = 0.5, Sparsity_parameter = 2)
-#'
 #' # Multiple images
 #' rd_img <- imgClass(list(img1, img2), Smoothing_parameter = 0, Sparsity_parameter = NULL)
 #'

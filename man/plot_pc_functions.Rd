@@ -26,7 +26,3 @@ The function arranges plots in a matrix layout with rows corresponding
 to variables and columns to principal components. A light gray horizontal line
 at 0 is added for reference unless the minimum value in the plot is ≥ 5.
 }
-\examples{
-plot_pc_functions(ReMPCA_obj)
-
-}

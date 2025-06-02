@@ -39,6 +39,10 @@ the \code{i}-th element specifies the number of cross-validation folds to use fo
 \code{i}-th variable. If not provided (\code{NULL}), a value of 5 will be assigned to
 all variables by default.}
 
+\item{thresh}{The convergence threshold in power algorithm.}
+
+\item{maxit}{Maximum number of iterations in power algorithm.}
+
 \item{tuning_iter}{Integer specifying the number of iterations to perform during the tuning process for conditional smoothing and sparsity parameters.}
 
 \item{parallel}{Logical; if \code{TRUE}, parallel computation is used to fit models

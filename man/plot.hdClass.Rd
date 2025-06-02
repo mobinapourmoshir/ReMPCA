@@ -4,7 +4,7 @@
 \alias{plot.hdClass}
 \title{Plot Method for hdClass Objects}
 \usage{
-\method{plot}{hdClass}(x)
+\method{plot}{hdClass}(x, ...)
 }
 \arguments{
 \item{x}{An object of class \code{hdClass}.}
@@ -25,8 +25,7 @@ Visualizes each variable in a hybrid data object (\code{hdClass}) using an appro
 \examples{
 fd_obj <- fdClass(matrix(rnorm(100), 10, 10))
 rd_obj <- rdClass(matrix(rnorm(100), 10, 10))
-img_obj <- imgClass(list(matrix(rnorm(100), 10, 10), matrix(rnorm(100), 10, 10)))
-hd_obj <- hdClass(list(fd_obj, rd_obj, img_obj))
+hd_obj <- hdClass(list(fd_obj, rd_obj))
 plot(hd_obj)
 
 }

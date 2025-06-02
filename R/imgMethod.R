@@ -157,7 +157,7 @@ as.imgClass <- function(x,
 #' click on the graphics window to advance to the next image.
 #'
 #' @param x An object of class \code{imgClass}, created using \code{imgClass()}.
-#' @param col Color palette to use for image rendering (default: grayscale).
+#' @param ... Additional graphical parameters passed to plotting functions.
 #'
 #' @return No return value. Called for its side effect (plotting).
 #'
@@ -168,7 +168,7 @@ as.imgClass <- function(x,
 #' plot(img_obj)
 #'
 #' @export
-plot.imgClass <- function(x) {
+plot.imgClass <- function(x, ...) {
   if (!inherits(x, "imgClass")) {
     stop("Input must be of class 'imgClass'.")
   }
@@ -177,13 +177,15 @@ plot.imgClass <- function(x) {
     stop("imgClass must contain a list of matrices or a single image matrix.")
   }
 
+  data <- x$matrix
   # If it's a list of vectorized images, convert back
   if (!is.null(attr(x, "nrow"))) {
     n_imgs <- nrow(x)
     nrow_img <- attr(x, "nrow")
     ncol_img <- ncol(x) / nrow_img
     for (i in 1:n_imgs) {
-      img <- matrix(x[i, ], nrow = nrow_img)
+      img <- matrix(data[i, ], nrow = nrow_img)
+      img <- matrix(as.numeric(img), nrow = nrow(img))
       image(img, main = paste("Image", i))
       if(n_imgs>=2 && i<= n_imgs -1){
         readline(prompt = "Press [Enter] or click to continue...")
