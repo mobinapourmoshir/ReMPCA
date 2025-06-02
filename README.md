@@ -53,8 +53,20 @@ To install the ReMPCA Package from GitHub, use the following code:
 remotes::install_github("mobinapourmoshir/ReMPCA")
 ```
 
-    ## Skipping install of 'ReMPCA' from a github remote, the SHA1 (e217115e) has not changed since last install.
-    ##   Use `force = TRUE` to force installation
+    ## Downloading GitHub repo mobinapourmoshir/ReMPCA@HEAD
+
+    ## ── R CMD build ─────────────────────────────────────────────────────────────────
+    ##      checking for file ‘/tmp/RtmpdfZwjt/remotes2fde17c671456/mobinapourmoshir-ReMPCA-68ea7dc/DESCRIPTION’ ...  ✔  checking for file ‘/tmp/RtmpdfZwjt/remotes2fde17c671456/mobinapourmoshir-ReMPCA-68ea7dc/DESCRIPTION’
+    ##   ─  preparing ‘ReMPCA’:
+    ##    checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
+    ##   ─  checking for LF line-endings in source and make files and shell scripts
+    ##   ─  checking for empty or unneeded directories
+    ##   ─  building ‘ReMPCA_0.0.0.9000.tar.gz’
+    ##      
+    ## 
+
+    ## Installing package into '/users/personnel/pmobina/R/x86_64-redhat-linux-gnu-library/4.4'
+    ## (as 'lib' is unspecified)
 
 ## Example
 
