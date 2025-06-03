@@ -54,7 +54,7 @@
 #' @importFrom Matrix bdiag
 #' @importFrom stats var
 #'
-#' @return ReconstructedData, PCFunctions, PCScores, OptimalAlphaV, OptimalAlphaU, OptimalGammaV, OptimalGammaU, GCVResultsV, GCVResultsU, CVResultsV, CVResultsU
+#' @return ReconstructedData, PCFunctions, PCScores, OptimalAlphaV, OptimalAlphaU, OptimalGammaV, OptimalGammaU, GCVResultsV, GCVResultsU, CVResultsV, CVResultsU, VarianceExplained, variable_types
 #' @export
 #'
 
@@ -217,8 +217,17 @@ ReMPCA <- function(hd,
   lsv <- lsu <- c()
   funcs <- PCs <- list()
 
+  X_orig = X  # store the original data
+  Var_total = sum(X_orig^2)
+  X_temp = X
+  pve = numeric(num_pcs)
+
   ####### ReMPCA Implementation #######
   for (j in 1:num_pcs) {
+
+    # Compute Frobenius norm squared before extracting PC
+    var_before = sum(X_temp^2)
+
     cat(sprintf("Computing the %s PC ...\n", ordinal(j)))
     if (j == 1) {
       X_temp = X
@@ -229,6 +238,12 @@ ReMPCA <- function(hd,
       sigma = SVD_result$d[1]
       X_temp = X_temp - sigma * u_original%*%t(v_original)
     }
+
+    # Store variance after removing the current PC
+    var_after = sum(X_temp^2)
+
+    # Compute and store the PVE for the current PC
+    pve[j] = (var_before - var_after) / Var_total
 
     # Tuning Parameters
     param_result <- list()
@@ -320,6 +335,7 @@ ReMPCA <- function(hd,
     GCVResultsU = GCV_u,                       # Generalized cross-validation scores for u (per component)
     CVResultsV = CV_v,                         # Cross-validation scores for v (per variable/component)
     CVResultsU = CV_u,                         # Cross-validation scores for u (per component)
-    variable_types = variable_types            # Variable types
+    variable_types = variable_types,           # Variable types
+    VarianceExplained = pve                    # Percentage of variance explained by each PC
   ))
 }
