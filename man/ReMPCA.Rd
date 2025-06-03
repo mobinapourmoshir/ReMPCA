@@ -94,7 +94,7 @@ If set to \code{NULL}, the function will default to using the \code{Sparsity_par
 If set to \code{NULL}, the function will default to using the \code{Smoothing_parameter_col} attribute from the input object of class \code{hdClass}.}
 }
 \value{
-ReconstructedData, PCFunctions, PCScores, OptimalAlphaV, OptimalAlphaU, OptimalGammaV, OptimalGammaU, GCVResultsV, GCVResultsU, CVResultsV, CVResultsU
+ReconstructedData, PCFunctions, PCScores, OptimalAlphaV, OptimalAlphaU, OptimalGammaV, OptimalGammaU, GCVResultsV, GCVResultsU, CVResultsV, CVResultsU, VarianceExplained, variable_types
 }
 \description{
 ReMPCA Smooth and Sparse Multivariate Functional Principal Component Analysis
