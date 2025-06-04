@@ -101,9 +101,26 @@ opt_alpha_v <- function(X,
   GCV <- numeric(n_iter)
 
   if (all(alphas_v == 0)) {
+    # S_alpha for v
+    S_alpha_v0 <- Omega_v0 <- list()
+    for (i in 1:n_var) {
+      tds <- GridPoints_v[[i]]
+      if(is.null(tds)){
+        S_alpha_v0[[i]] <- Omega_v0[[i]] <- diag(ncol[,i])
+      }else{
+        getpenresult <- get.pen(td = tds,
+                                alpha = as.numeric(alpha_v[i]),
+                                type = smoothness_type)
+        S_alpha_v0[[i]] <- getpenresult$S.alpha
+        Omega_v0[[i]] <- getpenresult$Omega
+        step <- step + 1
+        setTxtProgressBar(pb, step)
+      }
+    }
+
     return(list(GCV_v = Inf,
                 opt.alpha_v = rep(0, n_var),
-                opt_s.alpha_v = replicate(n_var, diag(m / n_var), simplify = FALSE),
+                opt_s.alpha_v = S_alpha_v0,
                 GCVdf_v = data.frame(alphas_v, rep(Inf, n_iter))))
   } else {
     alpha_Omega_u <- alpha_u * Omega_u
