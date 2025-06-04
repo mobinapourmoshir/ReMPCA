@@ -23,8 +23,12 @@ opt_alpha_u <- function(X,
   GCV <- numeric(n_iter)
 
   if (all(alphas_u == 0)) {
-    return(list(GCV_u = Inf, opt.alpha_u = 0, opt_s.alpha_u = diag(n),
-                GCVdf_u = data.frame(alphas_u, rep(Inf, n_iter))))
+    return(list(GCV_u = Inf,
+                opt.alpha_u = 0,
+                opt_s.alpha_u = diag(n),
+                GCVdf = data.frame(alphas_u, rep(Inf, n_iter)),
+                Omega_u = diag(n),
+                opt_alpha_Omega_u = 0 * diag(n)))
   } else {
     alpha_Omega_v <- bdiag(Map(function(a, M) a * M, alpha_v, Omega_v))
     for (i in 1:n_iter) {
@@ -117,17 +121,22 @@ opt_alpha_v <- function(X,
         setTxtProgressBar(pb, step)
       }
     }
+    opt_alpha_Omega_v <- as.matrix(bdiag(lapply(1:n_var, function(j)
+      as.numeric(rep(0, n_var)) * S_alpha_v0[[j]])))
 
     return(list(GCV_v = Inf,
                 opt.alpha_v = rep(0, n_var),
                 opt_s.alpha_v = S_alpha_v0,
-                GCVdf_v = data.frame(alphas_v, rep(Inf, n_iter))))
+                GCVdf_v = data.frame(alphas_v, rep(Inf, n_iter)),
+                Omega_v = S_alpha_v0,
+                opt_alpha_Omega_v = opt_alpha_Omega_v))
   } else {
     alpha_Omega_u <- alpha_u * Omega_u
     for (i in 1:n_iter) {
       S_alpha_v <- S_alphas_v[[i]]
       Omega_v <- Omegas_v[[i]]
-      alpha_Omega_v <- as.matrix(bdiag(lapply(1:n_var, function(j) alphas_v[i, j] * Omega_v[[j]])))
+      alpha_Omega_v <- as.matrix(bdiag(lapply(1:n_var, function(j)
+        alphas_v[i, j] * Omega_v[[j]])))
 
       # Power Algorithm
       power_result <- power_algo(data = X,
@@ -135,8 +144,8 @@ opt_alpha_v <- function(X,
                                  ncol = ncol,
                                  thresh = thresh,
                                  maxit = maxit,
-                                 sparse_tuning_result_u = sparse_tuning_result_u,
-                                 sparse_tuning_result_v = sparse_tuning_result_v,
+                                 sparse_tuning_result_u =sparse_tuning_result_u,
+                                 sparse_tuning_result_v =sparse_tuning_result_v,
                                  S_alpha_v = S_alpha_v,
                                  S_alpha_u = S_alphas_u,
                                  sparse_tuning_type = sparse_tuning_type,
