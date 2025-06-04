@@ -56,9 +56,6 @@
 #'
 #' @return ReconstructedData, PCFunctions, PCScores, OptimalAlphaV, OptimalAlphaU, OptimalGammaV, OptimalGammaU, GCVResultsV, GCVResultsU, CVResultsV, CVResultsU, VarianceExplained, variable_types
 #' @export
-#'
-
-
 ################### Smooth and Sparse Multivariate PCA ###################
 ReMPCA <- function(hd,
                    centerhds = TRUE,
@@ -216,17 +213,12 @@ ReMPCA <- function(hd,
   GCV_v <- GCV_u <- CV_v <- CV_u <- list()
   lsv <- lsu <- c()
   funcs <- PCs <- list()
-
-  X_orig = X  # store the original data
-  Var_total = sum(X_orig^2)
-  X_temp = X
-  pve = numeric(num_pcs)
+  v_mat <- matrix(0, nrow = sum(ncol), ncol = num_pcs)
+  X_orig <- X; X_temp <- X
+  pve <- numeric(num_pcs)
 
   ####### ReMPCA Implementation #######
   for (j in 1:num_pcs) {
-
-    # Compute Frobenius norm squared before extracting PC
-    var_before = sum(X_temp^2)
 
     cat(sprintf("Computing the %s PC ...\n", ordinal(j)))
     if (j == 1) {
@@ -238,12 +230,6 @@ ReMPCA <- function(hd,
       sigma = SVD_result$d[1]
       X_temp = X_temp - sigma * u_original%*%t(v_original)
     }
-
-    # Store variance after removing the current PC
-    var_after = sum(X_temp^2)
-
-    # Compute and store the PVE for the current PC
-    pve[j] = (var_before - var_after) / Var_total
 
     # Tuning Parameters
     param_result <- list()
@@ -311,6 +297,19 @@ ReMPCA <- function(hd,
     lsv <- cbind(lsv, v)
     lsu <- cbind(lsu, u)
     funcs[[j]] <- u%*%t(v)
+    v_mat[,j] <- v
+
+    # Percentage of variability explained by PCs
+    if(j==1){
+      v_mat <- as.matrix(v_mat)
+      xkbefore <- X_temp%*%v%*%solve(t(v)%*%v)%*%t(v)
+      pve[j] <- sum(diag(t(xkbefore)%*%xkbefore)) / sum(diag(t(X_temp)%*%X_temp)) #t(v) %*% t(X_temp) %*% X_temp %*% v / (n-1)
+    }else{
+      v_mat_new <- v_mat[,1:j]
+      Xkafter <- X_temp%*%v_mat_new%*%solve(t(v_mat_new)%*%v_mat_new)%*%t(v_mat_new)
+      pve[j] <- sum(diag(t(Xkafter)%*% Xkafter)) - sum(diag(t(xkbefore)%*%xkbefore))
+      xkbefore <- Xkafter
+    }
 
     # Splitting v for variables
     new_PC <- list()
