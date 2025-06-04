@@ -1,6 +1,6 @@
 #' @importFrom Matrix bdiag
 #' @importFrom utils  txtProgressBar setTxtProgressBar
-
+utils::globalVariables(c("GridPoints_v", "alpha_v", "smoothness_type", "pb"))
 ############### Calculating the optimal alpha for u using GCV ###############
 opt_alpha_u <- function(X,
                         n_var,
