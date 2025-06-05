@@ -4,7 +4,7 @@
 \alias{plot_pc_functions}
 \title{Plot Principal Component Functions}
 \usage{
-plot_pc_functions(ReMPCA_obj)
+plot_pc_functions(ReMPCA_obj, ...)
 }
 \arguments{
 \item{ReMPCA_obj}{A ReMPCA object containing:
@@ -12,6 +12,8 @@ plot_pc_functions(ReMPCA_obj)
 \item{\code{PCFunctions}}{A list of length equal to number of PCs. Each element is a list of PC functions for each variable.}
 \item{\code{variable_types}}{A character vector indicating type of each variable: either \code{"hd"} (functional) or \code{"rd"} (regular).}
 }}
+
+\item{...}{Additional plotting options.}
 }
 \value{
 No return value. This function is called for its side effect of plotting.

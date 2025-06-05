@@ -4,12 +4,14 @@
 \alias{plot_pc_scores}
 \title{Plot Principal Component Scores from ReMPCA Object}
 \usage{
-plot_pc_scores(ReMPCA_obj)
+plot_pc_scores(ReMPCA_obj, ...)
 }
 \arguments{
 \item{ReMPCA_obj}{A list-like ReMPCA object, expected to contain a component
 named \code{PCScores} which is a matrix or data frame where each column
 corresponds to the scores of one principal component.}
+
+\item{...}{Additional plotting options.}
 }
 \value{
 No return value. The function produces a series of dot plots, one for

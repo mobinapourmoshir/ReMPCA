@@ -4,15 +4,21 @@
 \alias{plot_cv_u}
 \title{Plot CV Error with 1-SE Rule for u}
 \usage{
-plot_cv_u(ReMPCA_obj)
+plot_cv_u(ReMPCA_obj, show_se = TRUE, ...)
 }
 \arguments{
 \item{ReMPCA_obj}{Output list from the ReMPCA routine.}
+
+\item{show_se}{Logical. If TRUE, adds standard error bars to each point. Default is TRUE.}
+
+\item{...}{Additional plotting options passed to \code{plot()}.}
 }
 \value{
-Side-by-side base R plots for each component showing the CV error and 1-SE threshold.
+Generates base R plots side-by-side for each PC.
 }
 \description{
-For each PC component, plots CV error vs. sparsity tuning parameter (\code{gamma})
-and highlights the optimal value selected via the 1-SE rule.
+For each principal component (PC), plots cross-validation (CV) error versus the
+sparsity tuning parameter (\code{gamma}) for the u-direction. The red dashed line
+indicates the 1-SE rule threshold, and the selected optimal gamma is highlighted.
+Optionally, standard error bars (±1 SE) can be displayed.
 }

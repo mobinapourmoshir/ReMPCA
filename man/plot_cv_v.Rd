@@ -2,26 +2,20 @@
 % Please edit documentation in R/ReMPCAMethod.R
 \name{plot_cv_v}
 \alias{plot_cv_v}
-\title{Plot CV Scores for v Components}
+\title{Plot Cross-Validation Scores for ReMPCA v-direction}
 \usage{
-plot_cv_v(ReMPCA_obj)
+plot_cv_v(ReMPCA_obj, show_se = TRUE, ...)
 }
 \arguments{
-\item{ReMPCA_obj}{A list-like ReMPCA object, expected to contain:
-\describe{
-\item{\code{CVResultsV}}{A nested list of data frames, one per principal component (PC),
-each containing a list of data frames (one per variable) with columns:
-\code{gamma_Xi}, \code{cv_means}, and \code{cv_ses}.}
-\item{\code{OptimalGammaV}}{A list of numeric vectors with optimal gamma values
-for each variable in each PC.}
-}}
-}
-\value{
-A grid of CV plots for variables and PCs. For each variable-PC pair with more than one tuning value,
-the function plots CV error vs. gamma, highlights the selected gamma (in blue), and the 1-SE threshold (red line).
+\item{ReMPCA_obj}{A list object returned by ReMPCA containing \code{CVResultsV} and \code{OptimalGammaV}.}
+
+\item{show_se}{Logical. If TRUE, adds standard error bars (±1 SE) to each point. Default is TRUE.}
+
+\item{...}{Additional arguments passed to the \code{plot()} function.}
 }
 \description{
-This function visualizes the cross-validation (CV) errors for each functional variable
-across a range of sparsity parameters (\code{gamma_v}), for each principal component (PC).
-It is designed for use with hybrid PCA models where multiple variables are tuned.
+This function creates a grid of plots showing cross-validation (CV) scores
+for each principal component (PC) and functional variable based on different
+values of the gamma penalty parameter in the v-direction. The red dashed line
+indicates the 1-SE rule threshold, and the selected optimal gamma is highlighted.
 }
