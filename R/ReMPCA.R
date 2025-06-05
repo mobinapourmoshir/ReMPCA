@@ -166,8 +166,8 @@ ReMPCA <- function(hd,
   n_iter1 <- nrow(smooth_tuning_col)     # The number of alphas
   pb <- txtProgressBar(min = 0,      # Minimum value of the progress bar
                        max = n_iter1,# Maximum value of the progress bar
-                       style = 3,    # Progress bar style (also available style = 1 and style = 2)
-                       width = 50,   # Progress bar width. Defaults to getOption("width")
+                       style = 3,    # Progress bar style
+                       width = 50,   # Progress bar width.
                        char = "=")   # Character used to create the bar
 
   # S_alpha for v
@@ -213,7 +213,6 @@ ReMPCA <- function(hd,
   GCV_v <- GCV_u <- CV_v <- CV_u <- list()
   lsv <- lsu <- c()
   funcs <- PCs <- list()
-  v_mat <- matrix(0, nrow = sum(ncol), ncol = num_pcs)
   X_orig <- X; X_temp <- X
   pve <- numeric(num_pcs)
 
@@ -287,8 +286,8 @@ ReMPCA <- function(hd,
                               sparse_tuning_result_v = sparse_result_v[[j]],
                               S_alpha_v = opt_S_v[[j]],
                               S_alpha_u = opt_S_u[[j]],
-                              alpha_Omega_v = param_result$last_opt_alpha_omega_v,
-                              alpha_Omega_u = param_result$last_opt_alpha_omega_v,
+                              alpha_Omega_v=param_result$last_opt_alpha_omega_v,
+                              alpha_Omega_u=param_result$last_opt_alpha_omega_v,
                               sparse_tuning_type = sparse_tuning_type)
 
 
@@ -297,19 +296,6 @@ ReMPCA <- function(hd,
     lsv <- cbind(lsv, v)
     lsu <- cbind(lsu, u)
     funcs[[j]] <- u%*%t(v)
-    v_mat[,j] <- v
-
-    # Percentage of variability explained by PCs
-    if(j==1){
-      v_mat <- as.matrix(v_mat)
-      xkbefore <- X_temp%*%v%*%solve(t(v)%*%v)%*%t(v)
-      pve[j] <- sum(diag(t(xkbefore)%*%xkbefore)) / sum(diag(t(X_temp)%*%X_temp)) #t(v) %*% t(X_temp) %*% X_temp %*% v / (n-1)
-    }else{
-      v_mat_new <- v_mat[,1:j]
-      Xkafter <- X_temp%*%v_mat_new%*%solve(t(v_mat_new)%*%v_mat_new)%*%t(v_mat_new)
-      pve[j] <- sum(diag(t(Xkafter)%*% Xkafter)) - sum(diag(t(xkbefore)%*%xkbefore))
-      xkbefore <- Xkafter
-    }
 
     # Splitting v for variables
     new_PC <- list()
@@ -322,19 +308,61 @@ ReMPCA <- function(hd,
     PCs[[j]] <- new_PC
   }
 
+  # Variance explained by each PC
+  V_list <-  apply(svd(X_orig)$v[,1:num_pcs], 2, function(x) x)
+  V_list <- as.list(data.frame(V_list))
+  Variance <- compute_variance_explained(X_orig, V_list = V_list)
+
   return(list(
-    ReconstructedData = funcs,                 # Reconstructed hybrid data matrix (X̂)
-    PCFunctions = PCs,                         # List of estimated PC vectors v for each variable and component
-    PCScores = lsu,                            # Matrix of principal component scores u for each component
-    OptimalAlphaV = smooth_result_v,           # Selected smoothing parameters (α_v) for each variable and component
-    OptimalAlphaU = smooth_result_u,           # Selected smoothing parameters (α_u) for each component
-    OptimalGammaV = sparse_result_v,           # Selected sparsity parameters (γ_v) for each variable and component
-    OptimalGammaU = sparse_result_u,           # Selected sparsity parameters (γ_u) for each component
-    GCVResultsV = GCV_v,                       # Generalized cross-validation scores for v (per variable/component)
-    GCVResultsU = GCV_u,                       # Generalized cross-validation scores for u (per component)
-    CVResultsV = CV_v,                         # Cross-validation scores for v (per variable/component)
-    CVResultsU = CV_u,                         # Cross-validation scores for u (per component)
-    variable_types = variable_types,           # Variable types
-    VarianceExplained = pve                    # Percentage of variance explained by each PC
+    ReconstructedData = funcs,              # Reconstructed hybrid data
+    PCFunctions = PCs,                      # Estimated PC (v, per var/PC)
+    PCScores = lsu,                         # PC scores u for each component
+    OptimalAlphaV = smooth_result_v,        # Alph_v (per var/PC)
+    OptimalAlphaU = smooth_result_u,        # Alph_u (per var/PC)
+    OptimalGammaV = sparse_result_v,        # gamma_v (per var/PC)
+    OptimalGammaU = sparse_result_u,        # gamma_u (per var/PC)
+    GCVResultsV = GCV_v,                    # GCV for v (per variable/component)
+    GCVResultsU = GCV_u,                    # GCV for u (per component)
+    CVResultsV = CV_v,                      # CV for v (per var/PC)
+    CVResultsU = CV_u,                      # CV for u (per component)
+    variable_types = variable_types,        # Variable types
+    VarianceExplained = Variance$AdjPercVar # Variance explained by each PC
+  ))
+}
+
+
+################ Percentage of variance explained by each PCA ################
+compute_variance_explained <- function(X, V_list) {
+  K <- length(V_list)
+  n <- nrow(X)
+  m <- ncol(X)
+
+  # PC matrix V_k
+  Vmat_list <- lapply(1:K, function(k) do.call(cbind, V_list[1:k]))
+
+  # Compute projection matrices H_k
+  H_list <- lapply(Vmat_list, function(Vk) {
+    solve_term <- solve(t(Vk) %*% Vk)
+    Hk <- Vk %*% solve_term %*% t(Vk)
+    return(Hk)
+  })
+
+  # Project the data matrix onto V
+  Xk_list <- lapply(H_list, function(Hk) X %*% Hk)
+
+  # Total variance of the original data
+  TotalVar <- sum(X^2)
+
+  # Compute variance explained and adjusted variance
+  VarExplained <- sapply(Xk_list, function(Xk) sum(Xk^2))
+  AdjVar <- c(VarExplained[1], diff(VarExplained))
+
+  # Convert to percentages
+  CPEV <- VarExplained / TotalVar
+  AdjPercVar <- AdjVar / TotalVar
+
+  return(list(
+    CPEV = CPEV,
+    AdjPercVar = AdjPercVar
   ))
 }
