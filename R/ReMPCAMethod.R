@@ -23,12 +23,21 @@ plot_gcv_u <- function(ReMPCA_obj,...) {
     alpha_vals <- df$alphas_u
     gcv_vals <- df$GCV
 
+    # If all GCV values are Inf or NA
+    if (all(is.infinite(gcv_vals)) || all(is.na(gcv_vals))) {
+      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "",
+           main = paste("Component", i))
+      text(1, 1, "GCV scores are Inf!", cex = 1.2)
+      next
+    }
+
     # Plot GCV curve
     matplot(alpha_vals, gcv_vals, type = "l", log = "x",
             lty = 1, col = "black",
             xlab = expression(alpha[u]),
             ylab = "GCV",
-            main = paste("Component", i))
+            main = paste("Component", i),
+            ...)
 
     # Highlight optimal alpha
     opt_alpha <- smooth_result_u[[i]]
@@ -38,35 +47,15 @@ plot_gcv_u <- function(ReMPCA_obj,...) {
   }
 }
 
-
 #' Plot GCV Results for Functional Loadings (`v`) in ReMPCA
 #'
 #' This function visualizes the Generalized Cross-Validation (GCV) curves or surfaces
 #' for the functional loading vectors (`v`) across components in a ReMPCA object.
-#' It determines the number of functional variables being tuned and chooses the
-#' appropriate plot type:
 #'
-#' - **Line plot** if only one variable is tuned
-#' - **Filled contour plot** if exactly two variables are tuned
-#' - **Error** if more than two variables are tuned simultaneously (not supported)
-#'
-#' The optimal smoothing parameter (selected \eqn{\alpha_v}) is highlighted in each plot.
-#'
-#' @param ReMPCA_obj A list-like ReMPCA object, expected to contain:
-#'   \describe{
-#'     \item{\code{GCVResultsV}}{A list of data frames, one per principal component (PC),
-#'     each containing columns \code{Var1}, \code{Var2}, ..., and a \code{GCV} column.}
-#'     \item{\code{OptimalAlphaV}}{A list of length equal to the number of PCs; each element
-#'     is a named numeric vector with optimal smoothing values for the corresponding variables.}
-#'   }
-#'
-#' @return Produces plots side by side in a loop, one for each component, and highlights the optimal \eqn{\alpha_v}.
-#' Does not return a value.
-#'
-#' @details
-#' If all variables for a PC have zero-valued tuning parameters, no plot is drawn.
+#' @param ReMPCA_obj A list-like ReMPCA object with GCVResultsV and OptimalAlphaV.
+#' @param ... Additional plotting options.
 #' @export
-plot_gcv_v <- function(ReMPCA_obj) {
+plot_gcv_v <- function(ReMPCA_obj, ...) {
   GCVlist <- ReMPCA_obj$GCVResultsV
   smooth_result_v <- ReMPCA_obj$OptimalAlphaV
   n_pc <- length(GCVlist)
@@ -93,8 +82,18 @@ plot_gcv_v <- function(ReMPCA_obj) {
       x_vals <- df[[non_zero_vars[1]]]
       y_vals <- df$GCV
 
-      plot(x_vals, y_vals, type = "l", log = "x", lty = 1, col = "black",
-           xlab = non_zero_vars[1], ylab = "GCV", main = main_title)
+      if (all(is.infinite(y_vals)) || all(is.na(y_vals))) {
+        plot(1, type = "n", axes = FALSE, xlab = "", ylab = "",
+             main = main_title)
+        text(1, 1, "GCV scores are Inf!", cex = 1.2)
+        next
+      }
+
+      plot(x_vals, y_vals, type = "l", log = "x",
+           lty = 1, col = "black",
+           xlab = non_zero_vars[1],
+           ylab = "GCV", main = main_title,
+           ...)
 
       # Highlight optimal alpha
       opt_alpha <- smooth_result_v[[i]][[which(var_cols == non_zero_vars[1])]]
@@ -106,10 +105,20 @@ plot_gcv_v <- function(ReMPCA_obj) {
       x_var <- non_zero_vars[1]
       y_var <- non_zero_vars[2]
 
-      # Create grid and matrix of GCV values
-      x_vals <- log10(unique(df[[x_var]]))
-      y_vals <- log10(unique(df[[y_var]]))
-      z_mat <- matrix(df$GCV, nrow = length(x_vals),
+      x_vals_raw <- df[[x_var]]
+      y_vals_raw <- df[[y_var]]
+      z_vals <- df$GCV
+
+      if (all(is.infinite(z_vals)) || all(is.na(z_vals))) {
+        plot(1, type = "n", axes = FALSE, xlab = "", ylab = "",
+             main = main_title)
+        text(1, 1, "GCV scores are Inf!", cex = 1.2)
+        next
+      }
+
+      x_vals <- log10(unique(x_vals_raw))
+      y_vals <- log10(unique(y_vals_raw))
+      z_mat <- matrix(z_vals, nrow = length(x_vals),
                       ncol = length(y_vals), byrow = TRUE)
 
       opt_x <- log10(smooth_result_v[[i]][[which(var_cols == x_var)]])
@@ -119,14 +128,14 @@ plot_gcv_v <- function(ReMPCA_obj) {
                      main = main_title,
                      plot.axes = {
                        box()
-                       # Add contour lines
-                       contour(x_vals, y_vals, z_mat, add = TRUE, drawlabels = TRUE, col = "black")
-                       # Add axis labels
+                       contour(x_vals, y_vals, z_mat, add = TRUE,
+                               drawlabels = TRUE, col = "black")
                        mtext(x_var, side = 1, line = 1, cex = 1.1)
                        mtext(y_var, side = 2, line = 1, cex = 1.1)
-                       # Highlight optimal (alpha1, alpha2)
-                       points(opt_x, opt_y, pch = 19, col = "black", cex = 1.5)
-                     })
+                       points(opt_x, opt_y, pch = 19, col = "black",
+                              cex = 1.5)
+                     },
+                     ...)
     } else {
       stop(paste("GCV plotting for v is only supported for up to 2 functional variables.",
                  "Component", i, "has", num_nonzero, "non-zero variables."))
@@ -136,14 +145,17 @@ plot_gcv_v <- function(ReMPCA_obj) {
 
 #' Plot CV Error with 1-SE Rule for u
 #'
-#' For each PC component, plots CV error vs. sparsity tuning parameter (`gamma`)
-#' and highlights the optimal value selected via the 1-SE rule.
+#' For each principal component (PC), plots cross-validation (CV) error versus the
+#' sparsity tuning parameter (`gamma`) for the u-direction. The red dashed line
+#' indicates the 1-SE rule threshold, and the selected optimal gamma is highlighted.
+#' Optionally, standard error bars (±1 SE) can be displayed.
 #'
 #' @param ReMPCA_obj Output list from the ReMPCA routine.
-#'
-#' @return Side-by-side base R plots for each component showing the CV error and 1-SE threshold.
+#' @param show_se Logical. If TRUE, adds standard error bars to each point. Default is TRUE.
+#' @param ... Additional plotting options passed to `plot()`.
+#' @return Generates base R plots side-by-side for each PC.
 #' @export
-plot_cv_u <- function(ReMPCA_obj) {
+plot_cv_u <- function(ReMPCA_obj, show_se = TRUE, ...) {
   CVlist <- ReMPCA_obj$CVResultsU
   opt_gamma <- ReMPCA_obj$OptimalGammaU
   n_pc <- length(CVlist)
@@ -155,40 +167,50 @@ plot_cv_u <- function(ReMPCA_obj) {
     gamma_vals <- df$sparse_tuning_result_u
     cv_means <- df$CV_errors
     cv_ses <- df$SE_errors
+
+    # Handle Inf or NA
+    if (all(is.infinite(cv_means)) || all(is.na(cv_means))) {
+      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "",
+           main = paste("Component", i))
+      text(1, 1, "CV scores are Inf!", cex = 1.2)
+      next
+    }
+
     threshold <- min(cv_means) + cv_ses[which.min(cv_means)]
 
     plot(gamma_vals, cv_means, type = "b", pch = 19,
          xlab = bquote(gamma[u]), ylab = "CV Error",
-         main = paste("Component", i))
+         main = paste("Component", i), ...)
+
+    # Optional: show SE bars
+    if (show_se) {
+      arrows(gamma_vals, cv_means - cv_ses,
+             gamma_vals, cv_means + cv_ses,
+             angle = 90, code = 3, length = 0.05, col = "gray40")
+    }
 
     abline(h = threshold, col = "red", lty = 2)
 
     points(opt_gamma[[i]],
-           cv_means[which(gamma_vals == opt_gamma[[i]])],
+           cv_means[which.min(abs(gamma_vals - opt_gamma[[i]]))],
            pch = 19, col = "red", cex = 1.5)
   }
 }
 
 
-#' Plot CV Scores for v Components
+
+#' Plot Cross-Validation Scores for ReMPCA v-direction
 #'
-#' This function visualizes the cross-validation (CV) errors for each functional variable
-#' across a range of sparsity parameters (`gamma_v`), for each principal component (PC).
-#' It is designed for use with hybrid PCA models where multiple variables are tuned.
+#' This function creates a grid of plots showing cross-validation (CV) scores
+#' for each principal component (PC) and functional variable based on different
+#' values of the gamma penalty parameter in the v-direction. The red dashed line
+#' indicates the 1-SE rule threshold, and the selected optimal gamma is highlighted.
 #'
-#' @param ReMPCA_obj A list-like ReMPCA object, expected to contain:
-#'   \describe{
-#'     \item{\code{CVResultsV}}{A nested list of data frames, one per principal component (PC),
-#'     each containing a list of data frames (one per variable) with columns:
-#'     \code{gamma_Xi}, \code{cv_means}, and \code{cv_ses}.}
-#'     \item{\code{OptimalGammaV}}{A list of numeric vectors with optimal gamma values
-#'     for each variable in each PC.}
-#'   }
+#' @param ReMPCA_obj A list object returned by ReMPCA containing `CVResultsV` and `OptimalGammaV`.
+#' @param show_se Logical. If TRUE, adds standard error bars (±1 SE) to each point. Default is TRUE.
+#' @param ... Additional arguments passed to the `plot()` function.
 #'
-#' @return A grid of CV plots for variables and PCs. For each variable-PC pair with more than one tuning value,
-#'   the function plots CV error vs. gamma, highlights the selected gamma (in blue), and the 1-SE threshold (red line).
-#' @export
-plot_cv_v <- function(ReMPCA_obj) {
+plot_cv_v <- function(ReMPCA_obj, show_se = TRUE, ...) {
   CV_v <- ReMPCA_obj$CVResultsV
   OptimalGammaV <- ReMPCA_obj$OptimalGammaV
   n_pc <- length(CV_v)
@@ -224,17 +246,36 @@ plot_cv_v <- function(ReMPCA_obj) {
       cv_ses <- df$cv_ses
       opt_gamma <- OptimalGammaV[[i]][j]
 
+      # Handle Inf or NA
+      if (all(is.infinite(cv_means)) || all(is.na(cv_means))) {
+        plot(1, type = "n", axes = FALSE, xlab = "", ylab = "",
+             main = paste(ordinal(j), "Functional Variable", "- PC", i))
+        text(1, 1, "CV scores are Inf!", cex = 1.2)
+        next
+      }
+
       # 1-SE rule threshold
       j_min <- which.min(cv_means)
       threshold <- cv_means[j_min] + cv_ses[j_min]
 
-      # Plot
+      # Plot means
       plot(gammas, cv_means, type = "b", pch = 19, col = "black",
            xlab = bquote(gamma[.(j)]),
            ylab = "CV Scores",
-           main = paste(ordinal(j),"Functional Variable", " - PC", i))
+           main = paste(ordinal(j), "Functional Variable", "- PC", i),
+           ...)
 
+      # Optional: show standard error bars
+      if (show_se) {
+        arrows(gammas, cv_means - cv_ses,
+               gammas, cv_means + cv_ses,
+               angle = 90, code = 3, length = 0.05, col = "gray40")
+      }
+
+      # 1-SE rule threshold line
       abline(h = threshold, lty = 2, col = "red")
+
+      # Highlight optimal gamma
       points(opt_gamma, cv_means[which.min(abs(gammas - opt_gamma))],
              pch = 19, col = "red", cex = 1.5)
     }
@@ -250,12 +291,12 @@ plot_cv_v <- function(ReMPCA_obj) {
 #' @param ReMPCA_obj A list-like ReMPCA object, expected to contain a component
 #'        named `PCScores` which is a matrix or data frame where each column
 #'        corresponds to the scores of one principal component.
-#'
+#' @param ... Additional plotting options.
 #' @return No return value. The function produces a series of dot plots, one for
 #'         each principal component.
 #' @export
 
-plot_pc_scores <- function(ReMPCA_obj) {
+plot_pc_scores <- function(ReMPCA_obj, ...) {
   scores <- ReMPCA_obj$PCScores
 
   if (!is.data.frame(scores) && !is.matrix(scores)) {
@@ -268,7 +309,7 @@ plot_pc_scores <- function(ReMPCA_obj) {
   for (i in seq_len(n_pc)) {
     plot(scores[, i], pch = 19, cex = 0.6, col = "black",
          xlab = "Observation", ylab = "Score",
-         main = paste("Component", i))
+         main = paste("Component", i), ...)
     abline(h = 0, lty = 2, col = "gray")
   }
 }
@@ -284,7 +325,7 @@ plot_pc_scores <- function(ReMPCA_obj) {
 #'     \item{\code{PCFunctions}}{A list of length equal to number of PCs. Each element is a list of PC functions for each variable.}
 #'     \item{\code{variable_types}}{A character vector indicating type of each variable: either `"hd"` (functional) or `"rd"` (regular).}
 #'   }
-#'
+#' @param ... Additional plotting options.
 #' @details The function arranges plots in a matrix layout with rows corresponding
 #' to variables and columns to principal components. A light gray horizontal line
 #' at 0 is added for reference unless the minimum value in the plot is ≥ 5.
@@ -292,7 +333,7 @@ plot_pc_scores <- function(ReMPCA_obj) {
 #' @return No return value. This function is called for its side effect of plotting.
 #'
 #' @export
-plot_pc_functions <- function(ReMPCA_obj) {
+plot_pc_functions <- function(ReMPCA_obj, ...) {
   PCFunctions <- ReMPCA_obj$PCFunctions
   variable_types <- ReMPCA_obj$variable_types
 
@@ -309,7 +350,7 @@ plot_pc_functions <- function(ReMPCA_obj) {
       y_max <- max(func, na.rm = TRUE)
 
       plot(func, type = "n", main = paste("PC", i, "- Var", j),
-           xlab = "", ylab = "", ylim = c(y_min, y_max))
+           xlab = "", ylab = "", ylim = c(y_min, y_max), ...)
 
       # Add gray zero line if min < 5
       if (y_min < 5) abline(h = 0, col = "gray80", lty = 2)
