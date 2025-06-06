@@ -2,20 +2,19 @@
 % Please edit documentation in R/ReMPCAMethod.R
 \name{plot_gcv_u}
 \alias{plot_gcv_u}
-\title{Plot GCV Scores for u Components}
+\title{Plot GCV Scores for U}
 \usage{
 plot_gcv_u(ReMPCA_obj, ...)
 }
 \arguments{
-\item{ReMPCA_obj}{An object returned from ReMPCA().}
+\item{ReMPCA_obj}{Output list from ReMPCA.}
 
-\item{...}{Additional plotting options.}
+\item{...}{Additional plotting parameters.}
 }
 \value{
-A plot object showing GCV scores across alpha_u values.
+A base R plot.
 }
 \description{
-This function visualizes the GCV scores for the left singular vectors (u)
-across different smoothing parameter values (alpha_u), typically obtained
-during regularization tuning.
+This function visualizes the GCV scores for the left singular vectors (U)
+across different regularization values.
 }

@@ -1,15 +1,13 @@
-#' Plot GCV Scores for u Components
+#' Plot GCV Scores for U
 #'
-#' This function visualizes the GCV scores for the left singular vectors (u)
-#' across different smoothing parameter values (alpha_u), typically obtained
-#' during regularization tuning.
+#' This function visualizes the GCV scores for the left singular vectors (U)
+#' across different regularization values.
 #'
-#' @param ReMPCA_obj An object returned from ReMPCA().
-#' @param ... Additional plotting options.
-#'
-#' @return A plot object showing GCV scores across alpha_u values.
+#' @param ReMPCA_obj Output list from ReMPCA.
+#' @param ... Additional plotting parameters.
+#' @return A base R plot.
 #' @export
-
+#' @importFrom graphics text arrows
 plot_gcv_u <- function(ReMPCA_obj,...) {
   GCVlist <- ReMPCA_obj$GCVResultsU
   smooth_result_u <- ReMPCA_obj$OptimalAlphaU
