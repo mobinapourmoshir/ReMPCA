@@ -176,9 +176,14 @@ plot_cv_u <- function(ReMPCA_obj, show_se = TRUE, ...) {
 
     threshold <- min(cv_means) + cv_ses[which.min(cv_means)]
 
+    # Compute local ylim for this component
+    local_ymin <- min(cv_means - cv_ses, na.rm = TRUE)
+    local_ymax <- max(cv_means + cv_ses, na.rm = TRUE)
+
     plot(gamma_vals, cv_means, type = "b", pch = 19,
          xlab = bquote(gamma[u]), ylab = "CV Error",
-         main = paste("Component", i), ...)
+         main = paste("Component", i),
+         ylim = c(local_ymin, local_ymax), ...)
 
     # Optional: show SE bars
     if (show_se) {
@@ -194,8 +199,6 @@ plot_cv_u <- function(ReMPCA_obj, show_se = TRUE, ...) {
            pch = 19, col = "red", cex = 1.5)
   }
 }
-
-
 
 #' Plot Cross-Validation Scores for ReMPCA v-direction
 #'
@@ -224,11 +227,9 @@ plot_cv_v <- function(ReMPCA_obj, show_se = TRUE, ...) {
     }
   }
 
-  # Count how many variables have at least one valid plot
   vars_with_plot <- which(rowSums(to_plot) > 0)
   n_plot_vars <- length(vars_with_plot)
 
-  # Set layout: rows = # of variables with plots, cols = # of PCs
   par(mfrow = c(n_plot_vars, n_pc), mar = c(4, 4, 2, 1))
 
   for (j in vars_with_plot) {
@@ -244,10 +245,9 @@ plot_cv_v <- function(ReMPCA_obj, show_se = TRUE, ...) {
       cv_ses <- df$cv_ses
       opt_gamma <- OptimalGammaV[[i]][j]
 
-      # Handle Inf or NA
       if (all(is.infinite(cv_means)) || all(is.na(cv_means))) {
         plot(1, type = "n", axes = FALSE, xlab = "", ylab = "",
-             main = paste(ordinal(j), "Functional Variable", "- PC", i))
+             main = paste("Variable", j, "- PC", i))
         text(1, 1, "CV scores are Inf!", cex = 1.2)
         next
       }
@@ -256,25 +256,25 @@ plot_cv_v <- function(ReMPCA_obj, show_se = TRUE, ...) {
       j_min <- which.min(cv_means)
       threshold <- cv_means[j_min] + cv_ses[j_min]
 
-      # Plot means
-      plot(gammas, cv_means, type = "b", pch = 19, col = "black",
-           xlab = bquote(gamma[.(j)]),
-           ylab = "CV Scores",
-           main = paste(ordinal(j), "Functional Variable", "- PC", i),
-           ...)
+      # Local ylim for this plot
+      local_ymin <- min(cv_means - cv_ses, na.rm = TRUE)
+      local_ymax <- max(cv_means + cv_ses, na.rm = TRUE)
 
-      # Optional: show standard error bars
+      plot(gammas, cv_means, type = "b", pch = 19, col = "black",
+           xlab = bquote(gamma[.(j)]), ylab = "CV Scores",
+           main = paste("Variable", j, "- PC", i),
+           ylim = c(local_ymin, local_ymax), ...)
+
       if (show_se) {
         arrows(gammas, cv_means - cv_ses,
                gammas, cv_means + cv_ses,
                angle = 90, code = 3, length = 0.05, col = "gray40")
       }
 
-      # 1-SE rule threshold line
       abline(h = threshold, lty = 2, col = "red")
 
-      # Highlight optimal gamma
-      points(opt_gamma, cv_means[which.min(abs(gammas - opt_gamma))],
+      points(opt_gamma,
+             cv_means[which.min(abs(gammas - opt_gamma))],
              pch = 19, col = "red", cex = 1.5)
     }
   }
