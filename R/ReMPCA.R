@@ -309,7 +309,7 @@ ReMPCA <- function(hd,
   }
 
   # Variance explained by each PC
-  V_list <-  apply(svd(X_orig)$v[,1:num_pcs], 2, function(x) x)
+  V_list <-  apply(data.frame(svd(X_orig)$v[,1:num_pcs]), 2, function(x) x)
   V_list <- as.list(data.frame(V_list))
   Variance <- compute_variance_explained(X_orig, V_list = V_list)
 
