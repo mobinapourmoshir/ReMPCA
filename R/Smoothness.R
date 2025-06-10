@@ -113,7 +113,7 @@ opt_alpha_v <- function(X,
         S_alpha_v0[[i]] <- Omega_v0[[i]] <- diag(ncol[,i])
       }else{
         getpenresult <- get.pen(td = tds,
-                                alpha = as.numeric(alpha_v[i]),
+                                alpha = as.numeric(alphas_v[i]),
                                 type = smoothness_type)
         S_alpha_v0[[i]] <- getpenresult$S.alpha
         Omega_v0[[i]] <- getpenresult$Omega
