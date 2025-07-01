@@ -89,6 +89,7 @@ opt_alpha_v <- function(X,
                         thresh,
                         maxit,
                         conditional,
+                        GridPoints_v,
                         S_alphas_v,   # List of length = n_iter, each element is list of length = n_var
                         S_alphas_u,   # Matrix (n × n)
                         alphas_v,     # Matrix of alpha_v values (n_iter × n_var)
@@ -108,13 +109,13 @@ opt_alpha_v <- function(X,
     # S_alpha for v
     S_alpha_v0 <- Omega_v0 <- list()
     for (i in 1:n_var) {
-      tds <- GridPoints_v[[i]]
+      tds <-  GridPoints_v[[i]]
       if(is.null(tds)){
         S_alpha_v0[[i]] <- Omega_v0[[i]] <- diag(ncol[,i])
       }else{
         getpenresult <- get.pen(td = tds,
                                 alpha = as.numeric(alphas_v[i]),
-                                type = smoothness_type)
+                                type = "Second_order")
         S_alpha_v0[[i]] <- getpenresult$S.alpha
         Omega_v0[[i]] <- getpenresult$Omega
         step <- step + 1
