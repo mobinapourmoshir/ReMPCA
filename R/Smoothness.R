@@ -118,8 +118,8 @@ opt_alpha_v <- function(X,
                                 type = "Second_order")
         S_alpha_v0[[i]] <- getpenresult$S.alpha
         Omega_v0[[i]] <- getpenresult$Omega
-        step <- step + 1
-        setTxtProgressBar(pb, step)
+        #step <- step + 1
+        #setTxtProgressBar(pb, step)
       }
     }
     opt_alpha_Omega_v <- as.matrix(bdiag(lapply(1:n_var, function(j)
