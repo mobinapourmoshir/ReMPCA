@@ -292,7 +292,9 @@ ReMPCA <- function(hd,
 
 
     v <- test_result[[1]]
+    #v <- v/norm_vec(v)
     u <- test_result[[2]]
+    #u <- u/norm_vec(u)
     lsv <- cbind(lsv, v)
     lsu <- cbind(lsu, u)
     funcs[[j]] <- u%*%t(v)

@@ -32,7 +32,7 @@ parameter_selection <- function(X_temp,
     n_cores = 6
     cl <- makeCluster(n_cores)
     registerDoParallel(cl)
-  }
+  }else{cl <- 0}
 
   alpha_u <- 0
   alpha_v <- rep(0, n_var)
