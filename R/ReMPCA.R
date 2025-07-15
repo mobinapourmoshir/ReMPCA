@@ -338,7 +338,8 @@ compute_variance_explained <- function(X, V_list) {
   K <- length(V_list)
   n <- nrow(X)
   m <- ncol(X)
-
+  X <- as.matrix(X)
+  storage.mode(X) <- "double"
   # PC matrix V_k
   Vmat_list <- lapply(1:K, function(k) do.call(cbind, V_list[1:k]))
 
