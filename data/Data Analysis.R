@@ -280,7 +280,7 @@
 #
 #
 #
-# ######### Motion Sense Data #########
+######### Motion Sense Data #########
 # X1obj <- fdClass(as.matrix(motion_sense_data$user_acceleration),
 #                  Smoothing_parameter = 0,
 #                  Sparsity_parameter = 0)
@@ -297,21 +297,20 @@
 # w2 <- 1 / mean( apply(motion_sense_data$pitch_attitude, 2, var) )
 #
 # library(grDevices)   # for adjustcolor()
-# cols <- adjustcolor("grey40", alpha.f = 0.05)
+# cols <- adjustcolor("grey40", alpha.f = 0.5)
 # timeGrid <- seq(0, 1, length.out = ncol(motion_sense_data$user_acceleration))
 #
-# matplot(timeGrid,
-#         t(as.matrix(motion_sense_data$user_acceleration)),
+# matplot(
+#         (as.matrix(motion_sense_data$user_acceleration)),
 #         type = "l", col = cols, lwd = 1,
 #         xlab = "Time",
 #         ylab = "User acceleration")
 #
-# matplot(timeGrid,
-#         t(as.matrix(motion_sense_data$pitch_attitude)),
+# matplot(
+#         (as.matrix(motion_sense_data$pitch_attitude)),
 #         type = "l", col = cols, lwd = 1,
 #         xlab = "Time",
 #         ylab = "Pitch attitude")
-#
 #
 #
 # # SVD #
