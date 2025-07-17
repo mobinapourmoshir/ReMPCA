@@ -98,7 +98,7 @@ parameter_selection <- function(X_temp,
                                      conditional = FALSE,
                                      parallel = parallel,
                                      cl = cl,
-                                     cv.pick = cv.pick,
+                                     cv.pick = 'min',
                                      sparse_tuning_result_u = sparse_tuning_u,
                                      sparse_tuning_result_v = gamma_v,
                                      sparse_tuning_type = sparse_tuning_type)
