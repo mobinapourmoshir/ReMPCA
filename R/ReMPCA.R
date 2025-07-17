@@ -80,6 +80,7 @@ ReMPCA <- function(hd,
   if (!inherits(hd, "hdClass")) {
     stop("hd must be of class 'hdClass'!")
   }
+  n_var <- attr(hd, "n_var")
 
   # weights
   if (is.null(weights)) {
