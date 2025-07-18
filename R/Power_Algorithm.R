@@ -116,7 +116,7 @@ power_algo <- function(data,
 
   if (!conditional) u_new <- u_new / norm_vec(u_new)
 
-  return(list(v_new = v_new / norm_vec(v_new),
+  return(list(v_new = v_new,
               u_new = u_new,
               iterations = iter,
               error = errors))
