@@ -432,7 +432,8 @@
 #   OneWaySimulation(N = 101, sigma = 4, random_seed = s)
 # })
 #
-#
+# nrep <- 50
+# seeds <- sample(1:199, size = 50, replace = FALSE)
 # results_list <- lapply(seeds, function(s) {
 #   set.seed(s)  # initialize RNG
 #   OneWaySimulation(N = 101, sigma = 4, random_seed = s)
