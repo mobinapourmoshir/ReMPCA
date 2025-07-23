@@ -96,6 +96,87 @@
 #   # combine side by side
 #   X_all <- cbind(X1, X2)
 #
+#   ###### Sparsity and Smoothness on u and v ######
+#   X1obj <- fdClass(X1, Smoothing_parameter = NULL,
+#                    Sparsity_parameter = round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
+#   X2obj <- fdClass(X2, Smoothing_parameter = NULL,
+#                    Sparsity_parameter = round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
+#
+#   Xobj <- hdClass(list(X1obj,X2obj), Smoothing_parameter = NULL,
+#                   Sparsity_parameter = round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
+#
+#   print("Smoothness & Sparsity on u and v")
+#   SimulTest_ss_uv <- ReMPCA(hd = Xobj,
+#                             centerhds = TRUE,
+#                             num_pcs = 2,
+#                             nfolds_u = 5,
+#                             nfolds_v = NULL,
+#                             thresh = 1e-10,
+#                             maxit = 100,
+#                             tuning_iter = 1,
+#                             parallel = FALSE,
+#                             weights = 0,
+#                             smoothness_type = "Second_order",
+#                             sparse_tuning_type = "soft",
+#                             tuning_order = "Sparsity",
+#                             cv.pick = "min",
+#                             sparse_tuning_u = NULL,
+#                             sparse_tuning_v = NULL,
+#                             smooth_tuning_u = NULL,
+#                             smooth_tuning_v = NULL)
+#
+#
+#   # Results
+#   algo <- SimulTest_ss_uv
+#
+#
+#   # Don't change!
+#   u1_est <- algo$PCScores[,1]
+#   u2_est <- algo$PCScores[,2]
+#
+#   v11_est <- algo$PCFunctions[[1]][[1]]
+#   v11_est <- v11_est/norm_vec(v11_est)
+#   v12_est <- algo$PCFunctions[[2]][[1]]
+#   v12_est <- v12_est/norm_vec(v12_est)
+#
+#   v21_est <- algo$PCFunctions[[1]][[2]]
+#   v21_est <- v21_est/norm_vec(v21_est)
+#   v22_est <- algo$PCFunctions[[2]][[2]]
+#   v22_est <- v22_est/norm_vec(v22_est)
+#
+#   # Align signs
+#   if (mean((u1 - u1_est)^2) > mean((u1 + u1_est)^2)) u1_est <- -u1_est
+#   if (mean((u2 - u2_est)^2) > mean((u2 + u2_est)^2)) u2_est <- -u2_est
+#   if (mean((v11 - v11_est)^2) > mean((v11 + v11_est)^2)) v11_est <- -v11_est
+#   if (mean((v12 - v12_est)^2) > mean((v12 + v12_est)^2)) v12_est <- -v12_est
+#   if (mean((v21 - v21_est)^2) > mean((v21 + v21_est)^2)) v21_est <- -v21_est
+#   if (mean((v22 - v22_est)^2) > mean((v22 + v22_est)^2)) v22_est <- -v22_est
+#
+#   # Change
+#   u1_est_ss_uv <- u1_est; u2_est_ss_uv <- u2_est
+#   v11_est_ss_uv <- v11_est; v12_est_ss_uv <- v12_est
+#   v21_est_ss_uv <- v21_est; v22_est_ss_uv <- v22_est
+#
+#   # MSE
+#   mse11_ss_uv <- mse_L2(v11, v11_est)
+#   mse12_ss_uv <- mse_L2(v12, v12_est)
+#   mse21_ss_uv <- mse_L2(v21, v21_est)
+#   mse22_ss_uv <- mse_L2(v22, v22_est)
+#   mse_V_ss_uv <- (mse11_ss_uv + mse11_ss_uv + mse21_ss_uv + mse22_ss_uv) / 4
+#
+#   mse_u1_ss_uv <- mse_L2(u1, u1_est)
+#   mse_u2_ss_uv <- mse_L2(u2, u2_est)
+#   mse_U_ss_uv <- (mse_u1_ss_uv + mse_u1_ss_uv) / 2
+#
+#   # ISE
+#   ISE_u1_ss_uv <- ise(u1, u1_est)
+#   ISE_u2_ss_uv <- ise(u2, u2_est)
+#   ISE_v11_ss_uv <- ise(v11, v11_est)
+#   ISE_v12_ss_uv <- ise(v12, v12_est)
+#   ISE_v21_ss_uv <- ise(v21, v21_est)
+#   ISE_v22_ss_uv <- ise(v22, v22_est)
+#
+#
 #   ###### SVD ######
 #   X1obj <- fdClass(X1, Smoothing_parameter = 0,
 #                    Sparsity_parameter = 0) #round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
@@ -175,95 +256,13 @@
 #   ISE_v21_SVD <- ise(v21, v21_est)
 #   ISE_v22_SVD <- ise(v22, v22_est)
 #
-#
-#   ###### Smoothness on u only ######
-#   X1obj <- fdClass(X1, Smoothing_parameter = 0,
-#                    Sparsity_parameter = 0) #round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
-#   X2obj <- fdClass(X2, Smoothing_parameter = 0,
-#                    Sparsity_parameter = 0) #round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
-#
-#   Xobj <- hdClass(list(X1obj,X2obj), Smoothing_parameter = NULL,
-#                            Sparsity_parameter = 0)
-#
-#   print("Smoothness on u")
-#   SimulTest_sm_u <- ReMPCA(hd = Xobj,
-#                            centerhds = TRUE,
-#                            num_pcs = 2,
-#                            nfolds_u = 5,
-#                            nfolds_v = NULL,
-#                            thresh = 1e-10,
-#                            maxit = 100,
-#                            tuning_iter = 1,
-#                            parallel = FALSE,
-#                            weights = 0,
-#                            smoothness_type = "Second_order",
-#                            sparse_tuning_type = "soft",
-#                            tuning_order = "Sparsity",
-#                            cv.pick = "min",
-#                            sparse_tuning_u = NULL,
-#                            sparse_tuning_v = NULL,
-#                            smooth_tuning_u = NULL,
-#                            smooth_tuning_v = NULL)
-#
-#
-#   # Results
-#   algo <- SimulTest_sm_u
-#
-#
-#   # Don't change!
-#   u1_est <- algo$PCScores[,1]
-#   u2_est <- algo$PCScores[,2]
-#
-#   v11_est <- algo$PCFunctions[[1]][[1]]
-#   v11_est <- v11_est/norm_vec(v11_est)
-#   v12_est <- algo$PCFunctions[[2]][[1]]
-#   v12_est <- v12_est/norm_vec(v12_est)
-#
-#   v21_est <- algo$PCFunctions[[1]][[2]]
-#   v21_est <- v21_est/norm_vec(v21_est)
-#   v22_est <- algo$PCFunctions[[2]][[2]]
-#   v22_est <- v22_est/norm_vec(v22_est)
-#
-#   # Align signs
-#   if (mean((u1 - u1_est)^2) > mean((u1 + u1_est)^2)) u1_est <- -u1_est
-#   if (mean((u2 - u2_est)^2) > mean((u2 + u2_est)^2)) u2_est <- -u2_est
-#   if (mean((v11 - v11_est)^2) > mean((v11 + v11_est)^2)) v11_est <- -v11_est
-#   if (mean((v12 - v12_est)^2) > mean((v12 + v12_est)^2)) v12_est <- -v12_est
-#   if (mean((v21 - v21_est)^2) > mean((v21 + v21_est)^2)) v21_est <- -v21_est
-#   if (mean((v22 - v22_est)^2) > mean((v22 + v22_est)^2)) v22_est <- -v22_est
-#
-#   # Change
-#   u1_est_sm_u <- u1_est; u2_est_sm_u <- u2_est
-#   v11_est_sm_u <- v11_est; v12_est_sm_u <- v12_est
-#   v21_est_sm_u <- v21_est; v22_est_sm_u <- v22_est
-#
-#   # MSE
-#   mse11_sm_u <- mse_L2(v11, v11_est)
-#   mse12_sm_u <- mse_L2(v12, v12_est)
-#   mse21_sm_u <- mse_L2(v21, v21_est)
-#   mse22_sm_u <- mse_L2(v22, v22_est)
-#   mse_V_sm_u <- (mse11_sm_u + mse11_sm_u + mse21_sm_u + mse22_sm_u) / 4
-#
-#   mse_u1_sm_u <- mse_L2(u1, u1_est)
-#   mse_u2_sm_u <- mse_L2(u2, u2_est)
-#   mse_U_sm_u <- (mse_u1_sm_u + mse_u2_sm_u) / 2
-#
-#   # ISE
-#   ISE_u1_sm_u <- ise(u1, u1_est)
-#   ISE_u2_sm_u <- ise(u2, u2_est)
-#   ISE_v11_sm_u <- ise(v11, v11_est)
-#   ISE_v12_sm_u <- ise(v12, v12_est)
-#   ISE_v21_sm_u <- ise(v21, v21_est)
-#   ISE_v22_sm_u <- ise(v22, v22_est)
-#
-#
-#   # Ratio Relative to baseline (SVD)
-#   R_ISE_u1_sm_u <- ISE_u1_sm_u/ISE_u1_SVD
-#   R_ISE_u2_sm_u <- ISE_u2_sm_u/ISE_u2_SVD
-#   R_ISE_v11_sm_u <- ISE_v11_sm_u/ISE_v11_SVD
-#   R_ISE_v12_sm_u <- ISE_v12_sm_u/ISE_v12_SVD
-#   R_ISE_v21_sm_u <- ISE_v21_sm_u/ISE_v21_SVD
-#   R_ISE_v22_sm_u <- ISE_v22_sm_u/ISE_v22_SVD
+#   # Ratio Relative to two-way smooth + sparse
+#   R_ISE_u1_svd <- ISE_u1_SVD/ISE_u1_ss_uv
+#   R_ISE_u2_svd <- ISE_u2_SVD/ISE_u2_ss_uv
+#   R_ISE_v11_svd <- ISE_v11_SVD/ISE_v11_ss_uv
+#   R_ISE_v12_svd <- ISE_v12_SVD/ISE_v12_ss_uv
+#   R_ISE_v21_svd <- ISE_v21_SVD/ISE_v21_ss_uv
+#   R_ISE_v22_svd <- ISE_v22_SVD/ISE_v22_ss_uv
 #
 #
 #   ###### Sparsity and Smoothness on u only ######
@@ -346,26 +345,27 @@
 #   ISE_v21_ss_u <- ise(v21, v21_est)
 #   ISE_v22_ss_u <- ise(v22, v22_est)
 #
-#   # Ratio Relative to baseline (SVD)
-#   R_ISE_u1_ss_u <- ISE_u1_ss_u/ISE_u1_SVD
-#   R_ISE_u2_ss_u <- ISE_u2_ss_u/ISE_u2_SVD
-#   R_ISE_v11_ss_u <- ISE_v11_ss_u/ISE_v11_SVD
-#   R_ISE_v12_ss_u <- ISE_v12_ss_u/ISE_v12_SVD
-#   R_ISE_v21_ss_u <- ISE_v21_ss_u/ISE_v21_SVD
-#   R_ISE_v22_ss_u <- ISE_v22_ss_u/ISE_v22_SVD
+#   # Ratio Relative to two-way smooth + sparse
+#   R_ISE_u1_ss_u <- ISE_u1_ss_u/ISE_u1_ss_uv
+#   R_ISE_u2_ss_u <- ISE_u2_ss_u/ISE_u2_ss_uv
+#   R_ISE_v11_ss_u <- ISE_v11_ss_u/ISE_v11_ss_uv
+#   R_ISE_v12_ss_u <- ISE_v12_ss_u/ISE_v12_ss_uv
+#   R_ISE_v21_ss_u <- ISE_v21_ss_u/ISE_v21_ss_uv
+#   R_ISE_v22_ss_u <- ISE_v22_ss_u/ISE_v22_ss_uv
 #
 #
-#   ###### Smoothness on v only ######
+#
+#   ###### Two way Smoothness ######
 #   X1obj <- fdClass(X1, Smoothing_parameter = NULL,
 #                    Sparsity_parameter = 0) #round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
 #   X2obj <- fdClass(X2, Smoothing_parameter = NULL,
 #                    Sparsity_parameter = 0) #round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
 #
-#   Xobj <- hdClass(list(X1obj,X2obj), Smoothing_parameter = 0,
+#   Xobj <- hdClass(list(X1obj,X2obj), Smoothing_parameter = NULL,
 #                   Sparsity_parameter = 0)
 #
-#   print("Smoothness on v")
-#   SimulTest_sm_v <- ReMPCA(hd = Xobj,
+#   print("Two way Smoothness")
+#   SimulTest_sm_uv <- ReMPCA(hd = Xobj,
 #                            centerhds = TRUE,
 #                            num_pcs = 2,
 #                            nfolds_u = 5,
@@ -386,7 +386,7 @@
 #
 #
 #   # Results
-#   algo <- SimulTest_sm_v
+#   algo <- SimulTest_sm_uv
 #
 #
 #   # Don't change!
@@ -412,36 +412,126 @@
 #   if (mean((v22 - v22_est)^2) > mean((v22 + v22_est)^2)) v22_est <- -v22_est
 #
 #   # Change
-#   u1_est_sm_v <- u1_est; u2_est_sm_v <- u2_est
-#   v11_est_sm_v <- v11_est; v12_est_sm_v <- v12_est
-#   v21_est_sm_v <- v21_est; v22_est_sm_v <- v22_est
+#   u1_est_sm_uv <- u1_est; u2_est_sm_uv <- u2_est
+#   v11_est_sm_uv <- v11_est; v12_est_sm_uv <- v12_est
+#   v21_est_sm_uv <- v21_est; v22_est_sm_uv <- v22_est
 #
 #   # MSE
-#   mse11_sm_v <- mse_L2(v11, v11_est)
-#   mse12_sm_v <- mse_L2(v12, v12_est)
-#   mse21_sm_v <- mse_L2(v21, v21_est)
-#   mse22_sm_v <- mse_L2(v22, v22_est)
-#   mse_V_sm_v <- (mse11_sm_v + mse11_sm_v + mse21_sm_v + mse22_sm_v) / 4
+#   mse11_sm_uv <- mse_L2(v11, v11_est)
+#   mse12_sm_uv <- mse_L2(v12, v12_est)
+#   mse21_sm_uv <- mse_L2(v21, v21_est)
+#   mse22_sm_uv <- mse_L2(v22, v22_est)
+#   mse_V_sm_uv <- (mse11_sm_uv + mse11_sm_uv + mse21_sm_uv + mse22_sm_uv) / 4
 #
-#   mse_u1_sm_v <- mse_L2(u1, u1_est)
-#   mse_u2_sm_v <- mse_L2(u2, u2_est)
-#   mse_U_sm_v <- (mse_u1_sm_v + mse_u2_sm_v) / 2
+#   mse_u1_sm_uv <- mse_L2(u1, u1_est)
+#   mse_u2_sm_uv <- mse_L2(u2, u2_est)
+#   mse_U_sm_uv <- (mse_u1_sm_uv + mse_u2_sm_uv) / 2
 #
 #   # ISE
-#   ISE_u1_sm_v <- ise(u1, u1_est)
-#   ISE_u2_sm_v <- ise(u2, u2_est)
-#   ISE_v11_sm_v <- ise(v11, v11_est)
-#   ISE_v12_sm_v <- ise(v12, v12_est)
-#   ISE_v21_sm_v <- ise(v21, v21_est)
-#   ISE_v22_sm_v <- ise(v22, v22_est)
+#   ISE_u1_sm_uv <- ise(u1, u1_est)
+#   ISE_u2_sm_uv <- ise(u2, u2_est)
+#   ISE_v11_sm_uv <- ise(v11, v11_est)
+#   ISE_v12_sm_uv <- ise(v12, v12_est)
+#   ISE_v21_sm_uv <- ise(v21, v21_est)
+#   ISE_v22_sm_uv <- ise(v22, v22_est)
 #
-#   # Ratio Relative to baseline (SVD)
-#   R_ISE_u1_sm_v <- ISE_u1_sm_v/ISE_u1_SVD
-#   R_ISE_u2_sm_v <- ISE_u2_sm_v/ISE_u2_SVD
-#   R_ISE_v11_sm_v <- ISE_v11_sm_v/ISE_v11_SVD
-#   R_ISE_v12_sm_v <- ISE_v12_sm_v/ISE_v12_SVD
-#   R_ISE_v21_sm_v <- ISE_v21_sm_v/ISE_v21_SVD
-#   R_ISE_v22_sm_v <- ISE_v22_sm_v/ISE_v22_SVD
+#
+#   # Ratio Relative to two-way smooth + sparse
+#   R_ISE_u1_sm_uv <- ISE_u1_sm_uv/ISE_u1_ss_uv
+#   R_ISE_u2_sm_uv <- ISE_u2_sm_uv/ISE_u2_ss_uv
+#   R_ISE_v11_sm_uv <- ISE_v11_sm_uv/ISE_v11_ss_uv
+#   R_ISE_v12_sm_uv <- ISE_v12_sm_uv/ISE_v12_ss_uv
+#   R_ISE_v21_sm_uv <- ISE_v21_sm_uv/ISE_v21_ss_uv
+#   R_ISE_v22_sm_uv <- ISE_v22_sm_uv/ISE_v22_ss_uv
+#
+#
+#   ###### Two-way Sparsity ######
+#   X1obj <- fdClass(X1, Smoothing_parameter = 0,
+#                    Sparsity_parameter = round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
+#   X2obj <- fdClass(X2, Smoothing_parameter = 0,
+#                    Sparsity_parameter = round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
+#
+#   Xobj <- hdClass(list(X1obj,X2obj), Smoothing_parameter = 0,
+#                   Sparsity_parameter = round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
+#
+#   print("Two-way Sparsity")
+#   SimulTest_sp_uv <- ReMPCA(hd = Xobj,
+#                            centerhds = TRUE,
+#                            num_pcs = 2,
+#                            nfolds_u = 5,
+#                            nfolds_v = NULL,
+#                            thresh = 1e-10,
+#                            maxit = 100,
+#                            tuning_iter = 1,
+#                            parallel = FALSE,
+#                            weights = 0,
+#                            smoothness_type = "Second_order",
+#                            sparse_tuning_type = "soft",
+#                            tuning_order = "Sparsity",
+#                            cv.pick = "min",
+#                            sparse_tuning_u = NULL,
+#                            sparse_tuning_v = NULL,
+#                            smooth_tuning_u = NULL,
+#                            smooth_tuning_v = NULL)
+#
+#
+#   # Results
+#   algo <- SimulTest_sp_uv
+#
+#
+#   # Don't change!
+#   u1_est <- algo$PCScores[,1]
+#   u2_est <- algo$PCScores[,2]
+#
+#   v11_est <- algo$PCFunctions[[1]][[1]]
+#   v11_est <- v11_est/norm_vec(v11_est)
+#   v12_est <- algo$PCFunctions[[2]][[1]]
+#   v12_est <- v12_est/norm_vec(v12_est)
+#
+#   v21_est <- algo$PCFunctions[[1]][[2]]
+#   v21_est <- v21_est/norm_vec(v21_est)
+#   v22_est <- algo$PCFunctions[[2]][[2]]
+#   v22_est <- v22_est/norm_vec(v22_est)
+#
+#   # Align signs
+#   if (mean((u1 - u1_est)^2) > mean((u1 + u1_est)^2)) u1_est <- -u1_est
+#   if (mean((u2 - u2_est)^2) > mean((u2 + u2_est)^2)) u2_est <- -u2_est
+#   if (mean((v11 - v11_est)^2) > mean((v11 + v11_est)^2)) v11_est <- -v11_est
+#   if (mean((v12 - v12_est)^2) > mean((v12 + v12_est)^2)) v12_est <- -v12_est
+#   if (mean((v21 - v21_est)^2) > mean((v21 + v21_est)^2)) v21_est <- -v21_est
+#   if (mean((v22 - v22_est)^2) > mean((v22 + v22_est)^2)) v22_est <- -v22_est
+#
+#   # Change
+#   u1_est_sp_uv <- u1_est; u2_est_sp_uv <- u2_est
+#   v11_est_sp_uv <- v11_est; v12_est_sp_uv <- v12_est
+#   v21_est_sp_uv <- v21_est; v22_est_sp_uv <- v22_est
+#
+#   # MSE
+#   mse11_sp_uv <- mse_L2(v11, v11_est)
+#   mse12_sp_uv <- mse_L2(v12, v12_est)
+#   mse21_sp_uv <- mse_L2(v21, v21_est)
+#   mse22_sp_uv <- mse_L2(v22, v22_est)
+#   mse_V_sp_uv <- (mse11_sp_uv + mse11_sp_uv + mse21_sp_uv + mse22_sp_uv) / 4
+#
+#   mse_u1_sp_uv <- mse_L2(u1, u1_est)
+#   mse_u2_sp_uv <- mse_L2(u2, u2_est)
+#   mse_U_sp_uv <- (mse_u1_sp_uv + mse_u2_sp_uv) / 2
+#
+#   # ISE
+#   ISE_u1_sp_uv <- ise(u1, u1_est)
+#   ISE_u2_sp_uv <- ise(u2, u2_est)
+#   ISE_v11_sp_uv <- ise(v11, v11_est)
+#   ISE_v12_sp_uv <- ise(v12, v12_est)
+#   ISE_v21_sp_uv <- ise(v21, v21_est)
+#   ISE_v22_sp_uv <- ise(v22, v22_est)
+#
+#   # Ratio Relative to two-way smooth + sparse
+#   R_ISE_u1_sp_uv <- ISE_u1_sp_uv/ISE_u1_ss_uv
+#   R_ISE_u2_sp_uv <- ISE_u2_sp_uv/ISE_u2_ss_uv
+#   R_ISE_v11_sp_uv <- ISE_v11_sp_uv/ISE_v11_ss_uv
+#   R_ISE_v12_sp_uv <- ISE_v12_sp_uv/ISE_v12_ss_uv
+#   R_ISE_v21_sp_uv <- ISE_v21_sp_uv/ISE_v21_ss_uv
+#   R_ISE_v22_sp_uv <- ISE_v22_sp_uv/ISE_v22_ss_uv
 #
 #
 #
@@ -525,102 +615,13 @@
 #   ISE_v21_ss_v <- ise(v21, v21_est)
 #   ISE_v22_ss_v <- ise(v22, v22_est)
 #
-#   # Ratio Relative to baseline (SVD)
-#   R_ISE_u1_ss_v <- ISE_u1_ss_v/ISE_u1_SVD
-#   R_ISE_u2_ss_v <- ISE_u2_ss_v/ISE_u2_SVD
-#   R_ISE_v11_ss_v <- ISE_v11_ss_v/ISE_v11_SVD
-#   R_ISE_v12_ss_v <- ISE_v12_ss_v/ISE_v12_SVD
-#   R_ISE_v21_ss_v <- ISE_v21_ss_v/ISE_v21_SVD
-#   R_ISE_v22_ss_v <- ISE_v22_ss_v/ISE_v22_SVD
-#
-#
-#   ###### Sparsity and Smoothness on u and v ######
-#   X1obj <- fdClass(X1, Smoothing_parameter = NULL,
-#                    Sparsity_parameter = round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
-#   X2obj <- fdClass(X2, Smoothing_parameter = NULL,
-#                    Sparsity_parameter = round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
-#
-#   Xobj <- hdClass(list(X1obj,X2obj), Smoothing_parameter = NULL,
-#                   Sparsity_parameter = round(seq(0,N-1, length.out = round(N/4, digits = 0)), digits = 0))
-#
-#   print("Smoothness & Sparsity on u and v")
-#   SimulTest_ss_uv <- ReMPCA(hd = Xobj,
-#                            centerhds = TRUE,
-#                            num_pcs = 2,
-#                            nfolds_u = 5,
-#                            nfolds_v = NULL,
-#                            thresh = 1e-10,
-#                            maxit = 100,
-#                            tuning_iter = 1,
-#                            parallel = FALSE,
-#                            weights = 0,
-#                            smoothness_type = "Second_order",
-#                            sparse_tuning_type = "soft",
-#                            tuning_order = "Sparsity",
-#                            cv.pick = "min",
-#                            sparse_tuning_u = NULL,
-#                            sparse_tuning_v = NULL,
-#                            smooth_tuning_u = NULL,
-#                            smooth_tuning_v = NULL)
-#
-#
-#   # Results
-#   algo <- SimulTest_ss_uv
-#
-#
-#   # Don't change!
-#   u1_est <- algo$PCScores[,1]
-#   u2_est <- algo$PCScores[,2]
-#
-#   v11_est <- algo$PCFunctions[[1]][[1]]
-#   v11_est <- v11_est/norm_vec(v11_est)
-#   v12_est <- algo$PCFunctions[[2]][[1]]
-#   v12_est <- v12_est/norm_vec(v12_est)
-#
-#   v21_est <- algo$PCFunctions[[1]][[2]]
-#   v21_est <- v21_est/norm_vec(v21_est)
-#   v22_est <- algo$PCFunctions[[2]][[2]]
-#   v22_est <- v22_est/norm_vec(v22_est)
-#
-#   # Align signs
-#   if (mean((u1 - u1_est)^2) > mean((u1 + u1_est)^2)) u1_est <- -u1_est
-#   if (mean((u2 - u2_est)^2) > mean((u2 + u2_est)^2)) u2_est <- -u2_est
-#   if (mean((v11 - v11_est)^2) > mean((v11 + v11_est)^2)) v11_est <- -v11_est
-#   if (mean((v12 - v12_est)^2) > mean((v12 + v12_est)^2)) v12_est <- -v12_est
-#   if (mean((v21 - v21_est)^2) > mean((v21 + v21_est)^2)) v21_est <- -v21_est
-#   if (mean((v22 - v22_est)^2) > mean((v22 + v22_est)^2)) v22_est <- -v22_est
-#
-#   # Change
-#   u1_est_ss_uv <- u1_est; u2_est_ss_uv <- u2_est
-#   v11_est_ss_uv <- v11_est; v12_est_ss_uv <- v12_est
-#   v21_est_ss_uv <- v21_est; v22_est_ss_uv <- v22_est
-#
-#   # MSE
-#   mse11_ss_uv <- mse_L2(v11, v11_est)
-#   mse12_ss_uv <- mse_L2(v12, v12_est)
-#   mse21_ss_uv <- mse_L2(v21, v21_est)
-#   mse22_ss_uv <- mse_L2(v22, v22_est)
-#   mse_V_ss_uv <- (mse11_ss_uv + mse11_ss_uv + mse21_ss_uv + mse22_ss_uv) / 4
-#
-#   mse_u1_ss_uv <- mse_L2(u1, u1_est)
-#   mse_u2_ss_uv <- mse_L2(u2, u2_est)
-#   mse_U_ss_uv <- (mse_u1_ss_uv + mse_u1_ss_uv) / 2
-#
-#   # ISE
-#   ISE_u1_ss_uv <- ise(u1, u1_est)
-#   ISE_u2_ss_uv <- ise(u2, u2_est)
-#   ISE_v11_ss_uv <- ise(v11, v11_est)
-#   ISE_v12_ss_uv <- ise(v12, v12_est)
-#   ISE_v21_ss_uv <- ise(v21, v21_est)
-#   ISE_v22_ss_uv <- ise(v22, v22_est)
-#
-#   # Ratio Relative to baseline (SVD)
-#   R_ISE_u1_ss_uv <- ISE_u1_ss_uv/ISE_u1_SVD
-#   R_ISE_u2_ss_uv <- ISE_u2_ss_uv/ISE_u2_SVD
-#   R_ISE_v11_ss_uv <- ISE_v11_ss_uv/ISE_v11_SVD
-#   R_ISE_v12_ss_uv <- ISE_v12_ss_uv/ISE_v12_SVD
-#   R_ISE_v21_ss_uv <- ISE_v21_ss_uv/ISE_v21_SVD
-#   R_ISE_v22_ss_uv <- ISE_v22_ss_uv/ISE_v22_SVD
+#   # Ratio Relative to two-way smooth + sparse
+#   R_ISE_u1_ss_v <- ISE_u1_ss_v/ISE_u1_ss_uv
+#   R_ISE_u2_ss_v <- ISE_u2_ss_v/ISE_u3_ss_uv
+#   R_ISE_v11_ss_v <- ISE_v11_ss_v/ISE_v11_ss_uv
+#   R_ISE_v12_ss_v <- ISE_v12_ss_v/ISE_v12_ss_uv
+#   R_ISE_v21_ss_v <- ISE_v21_ss_v/ISE_v21_ss_uv
+#   R_ISE_v22_ss_v <- ISE_v22_ss_v/ISE_v22_ss_uv
 #
 #
 #   results.u1.table <- data.frame(param = rep("u1", 6),
@@ -639,12 +640,12 @@
 #                                       ISE_u1_sm_v,
 #                                       ISE_u1_ss_v,
 #                                       ISE_u1_ss_uv),
-#                               R_ISE = c(1,
+#                               R_ISE = c(R_ISE_u1_svd,
 #                                         R_ISE_u1_sm_u,
 #                                         R_ISE_u1_ss_u,
 #                                         R_ISE_u1_sm_v,
 #                                         R_ISE_u1_ss_v,
-#                                         R_ISE_u1_ss_uv))
+#                                         1))
 #
 #   results.u2.table <- data.frame(param = rep("u2", 6),
 #                                  method = c("SVD", "Smooth u", "Smooth & Sparse u",
@@ -662,12 +663,12 @@
 #                                          ISE_u2_sm_v,
 #                                          ISE_u2_ss_v,
 #                                          ISE_u2_ss_uv),
-#                                  R_ISE = c(1,
+#                                  R_ISE = c(R_ISE_u2_svd,
 #                                            R_ISE_u2_sm_u,
 #                                            R_ISE_u2_ss_u,
 #                                            R_ISE_u2_sm_v,
 #                                            R_ISE_u2_ss_v,
-#                                            R_ISE_u2_ss_uv))
+#                                            1))
 #
 #   results.v11.table <- data.frame(param = rep("v11", 6),
 #                                  method = c("SVD", "Smooth u", "Smooth & Sparse u",
@@ -685,12 +686,12 @@
 #                                          ISE_v11_sm_v,
 #                                          ISE_v11_ss_v,
 #                                          ISE_v11_ss_uv),
-#                                  R_ISE = c(1,
+#                                  R_ISE = c(R_ISE_v11_svd,
 #                                            R_ISE_v11_sm_u,
 #                                            R_ISE_v11_ss_u,
 #                                            R_ISE_v11_sm_v,
 #                                            R_ISE_v11_ss_v,
-#                                            R_ISE_v11_ss_uv))
+#                                            1))
 #
 #   results.v12.table <- data.frame(param = rep("v12", 6),
 #                                   method = c("SVD", "Smooth u", "Smooth & Sparse u",
@@ -708,12 +709,12 @@
 #                                           ISE_v12_sm_v,
 #                                           ISE_v12_ss_v,
 #                                           ISE_v12_ss_uv),
-#                                   R_ISE = c(1,
+#                                   R_ISE = c(R_ISE_v12_svd,
 #                                             R_ISE_v12_sm_u,
 #                                             R_ISE_v12_ss_u,
 #                                             R_ISE_v12_sm_v,
 #                                             R_ISE_v12_ss_v,
-#                                             R_ISE_v12_ss_uv))
+#                                             1))
 #
 #   results.v21.table <- data.frame(param = rep("v21", 6),
 #                                   method = c("SVD", "Smooth u", "Smooth & Sparse u",
@@ -731,12 +732,12 @@
 #                                           ISE_v21_sm_v,
 #                                           ISE_v21_ss_v,
 #                                           ISE_v21_ss_uv),
-#                                   R_ISE = c(1,
+#                                   R_ISE = c(R_ISE_v21_svd,
 #                                             R_ISE_v21_sm_u,
 #                                             R_ISE_v21_ss_u,
 #                                             R_ISE_v21_sm_v,
 #                                             R_ISE_v21_ss_v,
-#                                             R_ISE_v21_ss_uv))
+#                                             1))
 #
 #   results.v22.table <- data.frame(param = rep("v22", 6),
 #                                   method = c("SVD", "Smooth u", "Smooth & Sparse u",
@@ -754,12 +755,12 @@
 #                                           ISE_v22_sm_v,
 #                                           ISE_v22_ss_v,
 #                                           ISE_v22_ss_uv),
-#                                   R_ISE = c(1,
+#                                   R_ISE = c(R_ISE_v22_svd,
 #                                             R_ISE_v22_sm_u,
 #                                             R_ISE_v22_ss_u,
 #                                             R_ISE_v22_sm_v,
 #                                             R_ISE_v22_ss_v,
-#                                             R_ISE_v22_ss_uv))
+#                                             1))
 #
 #
 #   return(list(N = N, sigma = sigma, v11 = v11, v12 = v12,
