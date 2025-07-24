@@ -122,8 +122,9 @@ opt_alpha_v <- function(X,
         #setTxtProgressBar(pb, step)
       }
     }
-    opt_alpha_Omega_v <- as.matrix(bdiag(lapply(1:n_var, function(j)
-      as.numeric(rep(0, n_var)) * S_alpha_v0[[j]])))
+    opt_alpha_Omega_v <- as.matrix(
+      bdiag(
+        lapply(S_alpha_v0, function(Sj) 0 * Sj)))
 
     return(list(GCV_v = Inf,
                 opt.alpha_v = rep(0, n_var),
@@ -131,6 +132,7 @@ opt_alpha_v <- function(X,
                 GCVdf_v = data.frame(alphas_v, rep(Inf, n_iter)),
                 Omega_v = S_alpha_v0,
                 opt_alpha_Omega_v = opt_alpha_Omega_v))
+
   } else {
     alpha_Omega_u <- alpha_u * Omega_u
     for (i in 1:n_iter) {
@@ -184,8 +186,15 @@ opt_alpha_v <- function(X,
     opt.alpha <- alphas_v[which.min(GCV), ]
     opt_s.alpha <- S_alphas_v[[which.min(GCV)]]
     Omega_v <- Omegas_v[[which.min(GCV)]]
-    opt_alpha_Omega_v <- as.matrix(bdiag(lapply(1:n_var, function(j)
-      as.numeric(opt.alpha) * Omega_v[[j]])))
+    opt_alpha_Omega_v <- as.matrix(
+      bdiag(
+        lapply(seq_len(n_var), function(j) {
+          alpha_j <- as.numeric(opt.alpha[j])
+          Mj      <- Omega_v[[j]][[1]]   # or $Omega, whichever holds your 101×101
+          alpha_j * Mj
+        })
+      )
+    )
 
     return(list(GCV_v = GCV,
                 opt.alpha_v = opt.alpha,

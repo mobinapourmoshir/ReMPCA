@@ -86,7 +86,7 @@
 #                                    parallel = FALSE,
 #                                    weights = 0,
 #                                    smoothness_type = "Second_order",
-#                                    sparse_tuning_type = "soft",
+#                                    sparse_tuning_type = "SCAD",
 #                                    tuning_order = "Sparsity",
 #                                    cv.pick = "min",
 #                                    sparse_tuning_u = NULL,
@@ -153,7 +153,7 @@
 #                                    parallel = FALSE,
 #                                    weights = 0,
 #                                    smoothness_type = "Second_order",
-#                                    sparse_tuning_type = "soft",
+#                                    sparse_tuning_type = "SCAD",
 #                                    tuning_order = "Sparsity",
 #                                    cv.pick = "min",
 #                                    sparse_tuning_u = NULL,
@@ -195,9 +195,9 @@
 #
 #   ###### Sparse Multivariate ######
 #   X1obj <- fdClass(X1, Smoothing_parameter = 0,
-#                    Sparsity_parameter = c(0,69,35)) #round(seq(0,N-1, length.out = round(N/5, digits = 0)), digits = 0))
+#                    Sparsity_parameter = c(0,15,30,35,50,60,69))
 #   X2obj <- fdClass(X2, Smoothing_parameter = 0,
-#                    Sparsity_parameter = c(0,69,35)) #round(seq(0,N-1, length.out = round(N/5, digits = 0)), digits = 0))
+#                    Sparsity_parameter = c(0,15,30,35,50,60,69))
 #   Xobj <- hdobj <- hdClass(list(X1obj,X2obj), Smoothing_parameter = 0,
 #                            Sparsity_parameter = 0)
 #
@@ -213,7 +213,7 @@
 #                                    parallel = FALSE,
 #                                    weights = 0,
 #                                    smoothness_type = "Second_order",
-#                                    sparse_tuning_type = "soft",
+#                                    sparse_tuning_type = "SCAD",
 #                                    tuning_order = "Sparsity",
 #                                    cv.pick = "min",
 #                                    sparse_tuning_u = NULL,
@@ -255,9 +255,9 @@
 #
 #   ###### Smooth + Sparse Multivariate ######
 #   X1obj <- fdClass(X1, Smoothing_parameter = NULL,
-#                    Sparsity_parameter = c(0,69,35)) #round(seq(0,N-1, length.out = round(N/5, digits = 0)), digits = 0))
+#                    Sparsity_parameter = c(0,15,30,35,50,60,69)) #round(seq(0,N-1, length.out = round(N/5, digits = 0)), digits = 0))
 #   X2obj <- fdClass(X2, Smoothing_parameter = NULL,
-#                    Sparsity_parameter = c(0,69,35)) #round(seq(0,N-1, length.out = round(N/5, digits = 0)), digits = 0))
+#                    Sparsity_parameter = c(0,15,30,35,50,60,69)) #round(seq(0,N-1, length.out = round(N/5, digits = 0)), digits = 0))
 #
 #   Xobj <- hdobj <- hdClass(list(X1obj,X2obj), Smoothing_parameter = 0,
 #                            Sparsity_parameter = 0)
@@ -274,7 +274,7 @@
 #                                  parallel = FALSE,
 #                                  weights = 0,
 #                                  smoothness_type = "Second_order",
-#                                  sparse_tuning_type = "soft",
+#                                  sparse_tuning_type = "SCAD",
 #                                  tuning_order = "Sparsity",
 #                                  cv.pick = "min",
 #                                  sparse_tuning_u = NULL,
@@ -366,7 +366,7 @@
 #               mse_multivariate_smooth_sparse = mse_multivariate_ss))
 # }
 #
-# result1 <- OneWaySimulation(N = 101, sigma = 4, random_seed = 50)
+# result1 <- OneWaySimulation(N = 101, sigma = 4, random_seed = 20)
 # result2 <- OneWaySimulation(N = 101, sigma = 4, random_seed = 51)
 #
 # # Plots
@@ -441,6 +441,7 @@
 #
 # combined_list <- append(results_list, results_list1)
 #
+# save(combined_list, file = "combined_list.RData")
 #
 # mse_svd1    <- sapply(results_list, `[[`, "mse_multivariate_svd")
 # mse_smooth1 <- sapply(results_list, `[[`, "mse_multivariate_smooth")
@@ -458,7 +459,7 @@
 # mse_smooth_sparse <- c(mse_ss0,mse_ss1)
 #
 # boxplot(
-#   mse_svd1, mse_smooth1, mse_sparse1, mse_smooth_sparse,
+#   mse_svd0, mse_smooth0, mse_sparse0, mse_ss0,
 #   names = c("SVD","Smooth","Sparse","Smooth+Sparse"),
 #   ylab  = "Multivariate MSE"
 # )
