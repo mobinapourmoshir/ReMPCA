@@ -198,54 +198,7 @@ Electrical_SSV_u1 <- Electrical_power_SSV$PCScores[,1]
 Electrical_SSV_u2 <- Electrical_power_SSV$PCScores[,2]
 Electrical_SSV_u3 <- Electrical_power_SSV$PCScores[,3]
 
-# install.packages("GGally")  # if you haven’t already
-library(ggplot2)
-library(GGally)
-
-# 1) Put your two sets of scores into one data‐frame
-n <- length(Electrical_SVD_u1)
-scores <- data.frame(
-  `PC score 1` = c(Electrical_SVD_u1, Electrical_SSV_u1),
-  `PC score 2` = c(Electrical_SVD_u2, Electrical_SSV_u2),
-  `PC score 3` = c(Electrical_SVD_u3, Electrical_SSV_u3),
-  Method       = factor(rep(c("SVD","SSV"), each = n), levels = c("SVD","SSV"))
-)
-
-# 2) Define two custom panel functions:
-#    Upper triangle: SVD (black)
-upperFn <- function(data, mapping, ...) {
-  ggplot(data = subset(data, Method=="SVD"), mapping = mapping) +
-    geom_point(color = "black", size = 1, alpha = 0.6) +
-    theme_minimal() +
-    theme(panel.grid = element_blank())
-}
-
-#    Lower triangle: SSV (red)
-lowerFn <- function(data, mapping, ...) {
-  ggplot(data = subset(data, Method=="SSV"), mapping = mapping) +
-    geom_point(color = "red",   size = 1, alpha = 0.6) +
-    theme_minimal() +
-    theme(panel.grid = element_blank())
-}
-
-# 3) Build the ggpairs plot
-p <- ggpairs(
-  data    = scores,
-  columns = 1:3,
-  upper   = list(continuous = upperFn),
-  lower   = list(continuous = lowerFn),
-  diag    = list(continuous = wrap("blankDiag")),  # blank diagonal
-  columnLabels = c("PC score 1","PC score 2","PC score 3")
-) +
-  theme(
-    strip.background = element_rect(fill = "grey80", colour = NA),
-    axis.title       = element_text(size = 10),
-    axis.text        = element_text(size = 8)
-  )
-
-print(p)
-
-
+plot(data.frame(Electrical_SVD_u1,Electrical_SVD_u2,Electrical_SVD_u3), col= c('red', 'navyblue','darkgreen'))
 
 
 
