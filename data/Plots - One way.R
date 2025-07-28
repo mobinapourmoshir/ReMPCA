@@ -56,6 +56,66 @@
 #
 # dev.off()
 #
+# ######################## log
+# pdf("MSE_boxplots_log_colored.pdf", width = 13, height = 9)
+# par(
+#   mfrow = c(1,2),
+#   mar   = c(5, 6, 4, 1),
+#   oma = c(0, 0, 0, 0),
+#   mgp   = c(4, 1, 0)
+# )
+#
+# methods <- c("SVD","Smooth","Sparse","Smooth+\nSparse")
+# cols    <- c("#1b9e77","darkgoldenrod1","#7570b3","brown1")
+#
+# # compute joint log‐limits
+# ymin  <- min(c(svd_pc1, smooth_pc1, sparse_pc1, ss_pc1,
+#                svd_pc2, smooth_pc2, sparse_pc2, ss_pc2))
+# ymax  <- max(c(svd_pc1, smooth_pc1, sparse_pc1, ss_pc1,
+#                svd_pc2, smooth_pc2, sparse_pc2, ss_pc2))
+# loglim <- 10^c(floor(log10(ymin)), ceiling(log10(ymax)))
+#
+# # PC1
+# boxplot(
+#   svd_pc1, smooth_pc1, sparse_pc1, ss_pc1,
+#   names   = methods,
+#   col     = cols,          # ← use your colors
+#   notch   = TRUE,
+#   outline = FALSE,
+#   main    = "PC 1: Distribution of MSE",
+#   ylab    = "MSE (log scale)",
+#   las     = 1,
+#   log     = "y",
+#   ylim    = loglim
+# )
+# grid(nx = NA, ny = NULL, col = "lightgray", lty = "dotted")
+#
+# # PC2
+# boxplot(
+#   svd_pc2, smooth_pc2, sparse_pc2, ss_pc2,
+#   names   = methods,
+#   col     = cols,          # ← same colors here too
+#   notch   = TRUE,
+#   outline = FALSE,
+#   main    = "PC 2: Distribution of MSE",
+#   ylab    = "",
+#   las     = 1,
+#   log     = "y",
+#   yaxt    = "n",
+#   ylim    = loglim
+# )
+# grid(nx = NA, ny = NULL, col = "lightgray", lty = "dotted")
+#
+# dev.off()
+#
+#
+#
+#
+#
+#
+#
+#
+#
 # ###################################
 # #        Box Plot - MSE           #
 # ###################################
@@ -152,19 +212,21 @@
 # library(tidyr)
 # library(kableExtra)
 #
-# # --- 1) build your long summaries as before ---
+# # --- 1) build your long summaries as before, but immediately log10() the Values ---
 # pc1_df <- data.frame(
 #   Method = rep(c("SVD","Smooth","Sparse","Smooth+Sparse"), each = length(svd_pc1)),
 #   PC     = "FPC1",
-#   Values = c(svd_pc1, smooth_pc1, sparse_pc1, ss_pc1)
+#   Values = log10(c(svd_pc1, smooth_pc1, sparse_pc1, ss_pc1))
 # )
 # pc2_df <- data.frame(
 #   Method = rep(c("SVD","Smooth","Sparse","Smooth+Sparse"), each = length(svd_pc2)),
 #   PC     = "FPC2",
-#   Values = c(svd_pc2, smooth_pc2, sparse_pc2, ss_pc2)
+#   Values = log10(c(svd_pc2, smooth_pc2, sparse_pc2, ss_pc2))
 # )
+#
 # df_all <- bind_rows(pc1_df, pc2_df)
 #
+# # --- 2) compute summaries on the log10‐scale values ---
 # summaries <- df_all %>%
 #   group_by(Method, PC) %>%
 #   summarize(
@@ -175,7 +237,7 @@
 #     .groups = "drop"
 #   )
 #
-# # --- 2) split into two tables ---
+# # --- 3) split into two tables and print as before ---
 # table_pc1 <- summaries %>%
 #   filter(PC == "FPC1") %>%
 #   select(-PC)
@@ -189,25 +251,25 @@
 #   kbl(
 #     format    = "latex",
 #     booktabs  = TRUE,
-#     digits    = 5,                        # show 7 significant digits
-#     caption   = "PC 1: Quartiles and Mean by Method",
+#     digits    = 5,
+#     caption   = "PC 1: Quartiles and Mean of log$_{10}$(MSE) by Method",
 #     label     = "tab:pc1",
 #     col.names = c("Method", "Q1", "Median", "Mean", "Q3")
 #   ) %>%
 #   kable_styling(latex_options = "hold_position")
 #
-#
-#
+# # PC 2 table → LaTeX
 # table_pc2 %>%
 #   kbl(
 #     format    = "latex",
 #     booktabs  = TRUE,
-#     digits    = 4,
-#     caption   = "PC 2: Quartiles and Mean by Method",
+#     digits    = 5,
+#     caption   = "PC 2: Quartiles and Mean of log$_{10}$(MSE) by Method",
 #     label     = "tab:pc2",
 #     col.names = c("Method", "Q1", "Median", "Mean", "Q3")
 #   ) %>%
-#   kable_styling(latex_options = c("hold_position"))
+#   kable_styling(latex_options = "hold_position")
+#
 #
 #
 #
