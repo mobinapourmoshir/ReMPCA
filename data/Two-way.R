@@ -846,3 +846,46 @@ TwoWaySimulation <- function(N, sigma,random_seed){
 
 result1 <- TwoWaySimulation(N = 101, sigma = 0.05, random_seed =50)
 
+
+nrep <- 100
+seeds <- sample(1:300, size = 100, replace = FALSE)
+results_list <- lapply(seeds, function(s) {
+  set.seed(s)  # initialize RNG
+  TwoWaySimulation(N = 101, sigma = 0.05, random_seed = s)
+})
+
+save(results_list, file = "Simulation2_list.RData")
+
+# Combine all ResultsTabels into one big data frame
+all_results <- do.call(rbind, lapply(results_list, function(x) x$ResultsTabel))
+
+# Compute mean ISE and mean R_ISE for each combination of parameter and method
+colnames(all_results)[colnames(all_results) == "R ISE"] <- "R_ISE"
+
+
+library(tidyr)
+library(dplyr)
+
+# First compute summary if not already done
+summary_df <- all_results %>%
+  group_by(param, method) %>%
+  summarise(
+    mean_ISE = mean(ISE, na.rm = TRUE),
+    mean_R_ISE = mean(R_ISE, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Wide table for ISE
+ise_table <- summary_df %>%
+  select(method, param, mean_ISE) %>%
+  pivot_wider(names_from = param, values_from = mean_ISE)
+
+View(ise_table)
+
+# Wide table for R_ISE
+r_ise_table <- summary_df %>%
+  select(method, param, mean_R_ISE) %>%
+  pivot_wider(names_from = param, values_from = mean_R_ISE)
+
+View(r_ise_table)
+
