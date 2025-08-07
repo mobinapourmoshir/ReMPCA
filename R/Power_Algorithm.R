@@ -114,7 +114,7 @@ power_algo <- function(data,
     warning("Algorithm did not converge within the maximum number of iterations.")
   }
 
-  if (!conditional) u_new <- u_new / norm_vec(u_new)
+  #if (!conditional) u_new <- u_new / norm_vec(u_new)
 
   return(list(v_new = v_new,
               u_new = u_new,
