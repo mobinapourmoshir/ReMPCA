@@ -191,11 +191,11 @@ points(-Motion_SSV_v32, type = 'l', col = 'red', lwd=2,xlab='Time')
 # Sparsity and Smoothness on u and v #
 X1obj <- fdClass(t(as.matrix(motion_sense_data$user_acceleration)),
                  Smoothing_parameter = 0,
-                 Sparsity_parameter =c(0,4,45,91,95)) #round(seq(0,95, length.out = round(96/4, digits = 0)), digits = 0))
+                 Sparsity_parameter =round(seq(0,95, length.out = round(96/4, digits = 0)), digits = 0))
 
 X2obj <- fdClass(t(as.matrix(motion_sense_data$pitch_attitude)),
                  Smoothing_parameter = 0,
-                 Sparsity_parameter =c(0,4,45,91,95)) #round(seq(0,95, length.out = round(96/4, digits = 0)), digits = 0))
+                 Sparsity_parameter =round(seq(0,95, length.out = round(96/4, digits = 0)), digits = 0))
 
 
 Xobj <- hdClass(list(X1obj,X2obj),
@@ -213,8 +213,8 @@ Motion_Sense_SS_UV <- ReMPCA(hd = Xobj,
                              parallel = FALSE,
                              weights = c(w1,w2),
                              smoothness_type = "Second_order",
-                             sparse_tuning_type = "soft",
-                             tuning_order = "Smoothness",
+                             sparse_tuning_type = "hard",
+                             tuning_order = "Sparsity",
                              cv.pick = "min",
                              sparse_tuning_u = NULL,
                              sparse_tuning_v = NULL,
@@ -230,20 +230,34 @@ Motion_SS_UV_v22 <- Motion_Sense_SS_UV$PCFunctions[[2]][[2]]
 Motion_SS_UV_v31 <- Motion_Sense_SS_UV$PCFunctions[[3]][[1]]
 Motion_SS_UV_v32 <- Motion_Sense_SS_UV$PCFunctions[[3]][[2]]
 
-
-par(mfrow = c(2,3))
-matplot(-Motion_SVD_v11, type = 'l', main = 'v11',xlab='Time', ylab='User acceleration', lwd=2)
-points(-Motion_SS_UV_v11, type = 'l', col = 'red', lwd=2,xlab='Time')
-matplot(-Motion_SVD_v21, type = 'l', main = 'v21', lwd=2,xlab='Time')
-points(-Motion_SS_UV_v21, type = 'l', col = 'red', lwd=2,xlab='Time')
-matplot(-Motion_SVD_v31, type = 'l', main = 'v31', lwd=2,xlab='Time')
-points(-Motion_SS_UV_v31, type = 'l', col = 'red', lwd=2,xlab='Time')
-matplot(-Motion_SVD_v12, type = 'l', main = 'v12', lwd=2,xlab='Time', ylab='Pitch attitude')
-points(-Motion_SS_UV_v12, type = 'l', col = 'red', lwd=2,xlab='Time')
-matplot(-Motion_SVD_v22, type = 'l', main = 'v22', lwd=2,xlab='Time')
-points(-Motion_SS_UV_v22, type = 'l', col = 'red', lwd=2,xlab='Time')
-matplot(-Motion_SVD_v32, type = 'l', main = 'v32', lwd=2,xlab='Time')
-points(-Motion_SS_UV_v32, type = 'l', col = 'red', lwd=2,xlab='Time')
+pdf("Motion Sense PCS.pdf", width=10, height=5)
+par(
+  mfrow  = c(2, 3),
+  # bottom, left, top, right margins in lines:
+  #   - very small bottom on the top row (we'll draw only bottom-row axes)
+  #   - just enough left for col‑1 y‑labels
+  #   - tiny residues on col‑2/3
+  mar    = c(3, 3.5, 1.2, 1),
+  # outer margins: only bottom for the “Time” label
+  oma    = c(2.2, 0, 0, 0),
+  mgp    = c(1.8, 0.4, 0),   # pull axis titles and labels in
+  tcl    = -0.2,            # shorter ticks
+  xaxs   = "i",             # no 4% padding on X
+  yaxs   = "i"              # no 4% padding on Y
+)
+matplot(-Motion_SVD_v11, type = 'l', main = 'PC1', ylab='User acceleration', lwd=1.5, col = 'gray',xaxt = "n")
+points(-Motion_SS_UV_v11, type = 'l', col = 'black', lwd=2)
+matplot(-Motion_SVD_v21, type = 'l', main = 'PC2', lwd=1.5,ylab = "", col = 'gray',xaxt = "n")
+points(-Motion_SS_UV_v21, type = 'l', col = 'black', lwd=2)
+matplot(-Motion_SVD_v31, type = 'l', main = 'PC3', lwd=1.5,ylab = "", col = 'gray',xaxt = "n")
+points(-Motion_SS_UV_v31, type = 'l', col = 'black', lwd=2)
+matplot(-Motion_SVD_v12, type = 'l', lwd=1.5,xlab='Time', ylab='Pitch attitude', col = 'gray')
+points(-Motion_SS_UV_v12, type = 'l', col = 'black', lwd=2,xlab='Time')
+matplot(-Motion_SVD_v22, type = 'l', lwd=1.5,xlab='Time', col = 'gray',ylab = "")
+points(-Motion_SS_UV_v22, type = 'l', col = 'black', lwd=2,xlab='Time')
+matplot(-Motion_SVD_v32, type = 'l', lwd=1.5,xlab='Time', col = 'gray',ylab = "")
+points(-Motion_SS_UV_v32, type = 'l', col = 'black', lwd=2,xlab='Time')
+dev.off()
 
 
 plot(Motion_Sense_SVD$PCScores[,1], main = 'PC scores 1')
