@@ -278,10 +278,7 @@
 #
 #
 #
-#
-# w1 <- 1 / mean( apply(motion_sense_data$user_acceleration, 2, var) )
-# w2 <- 1 / mean( apply(motion_sense_data$pitch_attitude, 2, var) )
-#
+# ########## PC scores Plot
 # X1obj <- fdClass(t(as.matrix(motion_sense_data$user_acceleration)),
 #                  Smoothing_parameter = 0,
 #                  Sparsity_parameter =0)#round(seq(0,95, length.out = round(96/4, digits = 0)), digits = 0))
@@ -315,22 +312,76 @@
 #                              smooth_tuning_v = NULL)#list(4.485274e-05, 4.485274e-05))
 #
 #
-# plot(Motion_Sense_SS_UV$PCScores[,1])
-# abline(h=0,col='red')
+# Motion_Sense_SVD_Scores <- ReMPCA(hd = Xobj,
+#                              centerhds = TRUE,
+#                              num_pcs = 3,
+#                              nfolds_u = 5,
+#                              nfolds_v = NULL,
+#                              thresh = 1e-10,
+#                              maxit = 100,
+#                              tuning_iter = 1,
+#                              parallel = FALSE,
+#                              weights = 0, #c(w1,w2),
+#                              smoothness_type = "Second_order",
+#                              sparse_tuning_type = "hard",
+#                              tuning_order = "Sparsity",
+#                              cv.pick = "1se",
+#                              sparse_tuning_u = NULL,
+#                              sparse_tuning_v = NULL,
+#                              smooth_tuning_u = NULL,
+#                              smooth_tuning_v = NULL)#list(4.485274e-05, 4.485274e-05))
 #
 #
-# # Clustering
-# x <- Motion_Sense_SS_UV$PCScores[,1]
-# x_mat <- matrix(x, ncol = 1)
-# set.seed(123)
-# kmeans_result <- kmeans(x_mat, centers = 4)
-# cluster_labels <- kmeans_result$cluster
-# print(cluster_labels)
-# result_df <- data.frame(score = x, cluster = cluster_labels)
+# pdf("Motion Sense PC Scores.pdf", width=10, height=4)
+# par(mfrow= c(1,2),
+#     mar = c(0, 4, 1, 2))
+# #plot(Motion_Sense_SS_UV$PCScores[,1])
+# #abline(h=0,col='red')
 #
-# plot(x, col = cluster_labels, pch = 19, main = "K-means Clustering (4 clusters)")
-# #abline(h = kmeans_result$centers, col = 1:4, lty = 2)
+# activity <- c(rep("Jogging", 24),
+#               rep("Standing", 24),
+#               rep("Walking", 24),
+#               rep("Sitting", 24))
 #
 #
+# activity_colors <- c("Jogging"  = "cadetblue4",
+#                      "Standing" = "coral",
+#                      "Walking"  = "aquamarine3",
+#                      "Sitting"  = "darkgoldenrod1")
+#
+# # Plot 1
+# # Plot with colors based on activity
+# plot(Motion_Sense_SVD_Scores$PCScores[, 1],
+#      col  = activity_colors[activity],
+#      pch  = 19,                 # solid circles
+#      xlab = "",
+#      ylab = "PC1 Score",
+#      main = "MFPCA")
+# #abline(h = 0, col = "gray", lwd = 0.5)
+#
+# # Add legend
+# legend("bottomright",
+#        legend = names(activity_colors),
+#        col    = activity_colors,
+#        pch    = 19)
+#
+#
+# # Plot 2
+# # Plot with colors based on activity
+# plot(Motion_Sense_SS_UV$PCScores[, 1],
+#      col  = activity_colors[activity],
+#      pch  = 19,                 # solid circles
+#      xlab = "",
+#      ylab = "PC1 Score",
+#      main = "Two-way Smooth and Sparse MFPCA")
+# #abline(h = 0, col = "gray", lwd = 0.5)
+#
+# # Add legend
+# legend("bottomright",
+#        legend = names(activity_colors),
+#        col    = activity_colors,
+#        pch    = 19)
+#
+# dev.off()
 #
 #
