@@ -107,3 +107,138 @@
 #   )
 #   ggsave("Smoothness_and_Sparsity_on_v.pdf", p6, width = 6, height = 6)
 # })
+#
+#
+# ############### Plot and table of ISE, R_ISE
+# # Combine all ResultsTabels into one big data frame
+# all_results <- do.call(rbind, lapply(results_list, function(x) x$ResultsTabel))
+#
+# # Compute mean ISE and mean R_ISE for each combination of parameter and method
+# colnames(all_results)[colnames(all_results) == "R ISE"] <- "R_ISE"
+#
+#
+# library(tidyr)
+# library(dplyr)
+#
+# # First compute summary if not already done
+# summary_df <- all_results %>%
+#   group_by(param, method) %>%
+#   summarise(
+#     mean_ISE = mean(ISE, na.rm = TRUE),
+#     mean_R_ISE = mean(R_ISE, na.rm = TRUE),
+#     .groups = "drop"
+#   )
+#
+# # Wide table for ISE
+# ise_table <- summary_df %>%
+#   select(method, param, mean_ISE) %>%
+#   pivot_wider(names_from = param, values_from = mean_ISE)
+#
+# View(ise_table)
+#
+# # Wide table for R_ISE
+# r_ise_table <- summary_df %>%
+#   select(method, param, mean_R_ISE) %>%
+#   pivot_wider(names_from = param, values_from = mean_R_ISE)
+#
+# View(r_ise_table)
+#
+# # LateX code
+# library(knitr)
+# ise_table_formatted <- ise_table %>%
+#   mutate(across(-method, ~ sprintf("%.5f", .)))
+#
+# kable(ise_table_formatted, format = "latex", booktabs = TRUE,
+#       caption = "Mean ISE for each method and parameter", label = "ISE")
+#
+# kable(ise_table, format = "latex", digits = 4, booktabs = TRUE,
+#       caption = "Mean ISE for each method and parameter")
+#
+# kable(r_ise_table[-3,], format = "latex", digits = 4, booktabs = TRUE,
+#       caption = "Mean Relative ISE for each method and parameter")
+#
+#
+# library(dplyr)
+# library(tidyr)
+# library(knitr)
+#
+# # Reshape and compute v1 and v2
+# ise_table <- summary_df %>%
+#   select(method, param, mean_ISE) %>%
+#   pivot_wider(names_from = param, values_from = mean_ISE) %>%
+#   mutate(
+#     v1 = (v11 + v21) / 2,
+#     v2 = (v12 + v22) / 2
+#   ) %>%
+#   select(method, u1, u2, v1, v2) %>%
+#   arrange(desc(u1))  # Sort in decreasing order of u1
+#
+# # Format for LaTeX with 5 decimal places
+# ise_table_formatted <- ise_table %>%
+#   mutate(across(-method, ~ sprintf("%.5f", .)))
+#
+# # Create LaTeX table
+# kable(ise_table_formatted, format = "latex", booktabs = TRUE,
+#       caption = "Mean ISE for each method and parameter",
+#       label = "table: ISE")
+#
+#
+#
+# r_ise_table <- summary_df %>%
+#   select(method, param, mean_R_ISE) %>%
+#   pivot_wider(names_from = param, values_from = mean_R_ISE) %>%
+#   mutate(
+#     v1 = (v11 + v21) / 2,
+#     v2 = (v12 + v22) / 2
+#   ) %>%
+#   select(method, u1, u2, v1, v2) %>%
+#   arrange(desc(u1))
+#
+# # Format and show LaTeX table, excluding row 3
+# kable(r_ise_table[-6, ], format = "latex", digits = 4, booktabs = TRUE,
+#       caption = "Mean Relative ISE for each method and parameter",
+#       label = "table: R")
+#
+#
+# ############## Box Plot of ISE
+# library(dplyr)
+# library(tidyr)
+# library(ggplot2)
+#
+# # 1) Bind all simulations + compute v1, v2 per sim/method
+# all_results <- dplyr::bind_rows(
+#   lapply(seq_along(results_list), function(i)
+#     dplyr::mutate(results_list[[i]]$ResultsTabel, sim = i))
+# )
+#
+# wide <- all_results %>%
+#   filter(param %in% c("v11","v12","v21","v22")) %>%
+#   select(sim, method, param, ISE) %>%
+#   pivot_wider(names_from = param, values_from = ISE)
+#
+# long_v <- wide %>%
+#   mutate(v1 = (v11 + v21)/2,
+#          v2 = (v12 + v22)/2) %>%
+#   select(sim, method, v1, v2) %>%
+#   pivot_longer(cols = c(v1, v2), names_to = "component", values_to = "ISE")
+#
+# # Desired method order (edit strings to match yours exactly)
+# method_levels <- c("SVD",
+#                    "Smooth & Sparse u",
+#                    "Smooth & Sparse v",
+#                    "Two-way Smoothness",
+#                    "Two-way Sparsity",
+#                    "Smooth & Sparse u & v")
+#
+# long_v$method    <- factor(long_v$method, levels = method_levels)
+# long_v$component <- factor(long_v$component, levels = c("v1","v2"))
+#
+# # 2) Boxplot: two boxes per method (v1, v2)
+# ggplot(long_v, aes(x = method, y = ISE, fill = component)) +
+#   geom_boxplot(position = position_dodge(width = 0.75), width = 0.6, outlier_size = 0.8) +
+#   labs(x = "Method", y = "ISE", fill = "Component") +
+#   theme_minimal(base_size = 12) +
+#   theme(axis.text.x = element_text(angle = 25, hjust = 1))
+#
+#
+#
