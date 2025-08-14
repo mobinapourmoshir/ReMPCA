@@ -1,0 +1,67 @@
+---
+title: "Regularized Multivariate Two-way Functional Principal Component Analysis"
+title: "Regularized Multivariate Two-way Functional Principal Component Analysis"
+author: |
+  Mobina Pourmoshir\\
+  \small\texttt{mobina.pourmoshir@marquette.edu}
+institute: |
+  Department of Mathematical and Statistical Sciences\\
+  Marquette University
+date: "Sep 2025"
+
+format:
+  beamer:
+    theme: CambridgeUS
+    colortheme: crane
+    aspectratio: 169
+    slide-level: 2
+
+header-includes:
+  - |
+    \setbeamertemplate{footline}{%
+      \leavevmode%
+      \hbox{%
+        \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}Mobina Pourmoshir\end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=.34\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}Regularized Multivariate Two-way FPCA\end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{2ex}\end{beamercolorbox}%
+      }%
+      \vskip0pt%
+    }
+    \titlegraphic{\vspace{8mm}\includegraphics[width=0.18\textwidth]{MU.png}}
+---
+
+## Outline
+
+-   Introduction & Background\
+-   A SVD Approach for Regularized Multivariate Functional Principal Component Analysis\
+-   Two-way Regularized Multivariate Functional Principal Component Analysis
+-   Future Work\
+-   References
+
+------------------------------------------------------------------------
+
+## Introduction & Background
+
+A quick intro slide.
+
+------------------------------------------------------------------------
+
+## A Functional SVD Approach for Regularized Multivariate Functional Principal Component Analysis
+
+Content here.
+
+------------------------------------------------------------------------
+
+## Two-way Regularized Multivariate Functional Principal Component Analysis
+
+Content here.
+
+------------------------------------------------------------------------
+
+## Future Work
+
+Bullets.
+
+------------------------------------------------------------------------
+
+## References
