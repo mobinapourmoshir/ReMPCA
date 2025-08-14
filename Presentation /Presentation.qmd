@@ -5,7 +5,7 @@ institute: |
   Department of Mathematical and Statistical Sciences
   \par
   Marquette University
-#date: "Sep 2025"
+date: "Sep 2025"
 
 format:
   beamer:
@@ -14,17 +14,20 @@ format:
     aspectratio: 169
     slide-level: 2
 
-# LaTeX customizations
 header-includes:
   - |
-    % ----- Colors -----
-    \definecolor{darknavy}{RGB}{10,38,71}     % deep navy
-    \definecolor{MUgold}{HTML}{FFC72C}        % Marquette gold
+    \setbeamertemplate{section page}[none]
+    \AtBeginSection[]{}
+    %==================== packages & colors ====================
+    \usepackage{tikz}
+    \usepackage{enumitem}
+    \definecolor{darknavy}{RGB}{10,38,71}  % deep navy
+    \definecolor{MUgold}{HTML}{FFC72C}     % Marquette gold
 
-    % Talk title in dark navy
+    % Title text in dark navy
     \setbeamercolor{title}{fg=darknavy}
 
-    % ----- Solid (non-gradient) gold bars -----
+    % Solid (non-gradient) gold bars + foot colors
     \setbeamercolor{palette primary}{bg=MUgold, fg=black}
     \setbeamercolor{palette secondary}{bg=MUgold, fg=black}
     \setbeamercolor{palette tertiary}{bg=MUgold, fg=black}
@@ -33,7 +36,7 @@ header-includes:
     \setbeamercolor{title in head/foot}{bg=MUgold,  fg=black}
     \setbeamercolor{date in head/foot}{bg=MUgold,   fg=black}
 
-    % ----- Footline: name | short title | X / N -----
+    %==================== header & footer (default) ====================
     \setbeamertemplate{footline}{%
       \leavevmode%
       \hbox{%
@@ -43,64 +46,81 @@ header-includes:
       }%
       \vskip0pt%
     }
-
-    % ----- Header: section navigation across the gold bar -----
     \setbeamertemplate{headline}{%
       \begin{beamercolorbox}[wd=\paperwidth,ht=2.6ex,dp=1ex,left]{palette primary}
         \hspace*{1ex}\insertsectionnavigationhorizontal{\paperwidth}{}{}
       \end{beamercolorbox}%
     }
-    % colors for current vs non-current section labels in header
     \setbeamercolor{section in head/foot}{fg=black,bg=MUgold}
     \setbeamercolor{section in head/foot shaded}{fg=black!55,bg=MUgold}
 
-    % ----- Title slide logo (pulled upward slightly) -----
-    \titlegraphic{\vspace{-4mm}\includegraphics[width=0.18\textwidth]{MU.png}}
----
+    %==================== small MU logo on ALL non-title slides ====================
+    \newcommand{\withlogo}{%
+      \usebackgroundtemplate{%
+        \begin{tikzpicture}[remember picture,overlay]
+          \node[anchor=south east, xshift=-2mm, yshift=2mm]
+            at (current page.south east)
+            {\includegraphics[width=0.12\textwidth]{MU.png}};
+        \end{tikzpicture}%
+      }%
+    }
+    \newcommand{\nologo}{\usebackgroundtemplate{}}
 
+    % Turn the small logo on by default (applies to non-title slides)
+    \AtBeginDocument{\withlogo}
+
+    %==================== Custom TITLE PAGE ====================
+    % Suppress header/footer & small logo, and show a large centered logo
+    \makeatletter
+    \let\oldtitlepage\titlepage
+    \renewcommand{\titlepage}{%
+      \begingroup
+        \nologo
+        \setbeamertemplate{headline}{}%
+        \setbeamertemplate{footline}{}%
+        \begin{center}
+          {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle\par}
+          \vspace{1.2em}
+          {\insertauthor\par}
+          \vspace{0.6em}
+          {\insertinstitute\par}
+          \vspace{0.8em}
+          {\insertdate\par}
+          \vspace{1.2em}
+          \includegraphics[width=0.18\textwidth]{MU.png} % LARGE logo on title
+        \end{center}
+      \endgroup
+    }
+    \makeatother
+---
 
 # Outline
 
--   Introduction & Background\
--   A SVD Approach for Regularized Multivariate Functional Principal Component Analysis\
--   Two-way Regularized Multivariate Functional Principal Component Analysis
--   Conclusion &Future Work\
+\begin{enumerate}[label=\arabic*., leftmargin=*]
+  \item \hyperlink{sec:intro}{\textbf{Introduction \& Background}}
+  \item \hyperlink{sec:svd}{\textbf{A SVD Approach for Regularized Multivariate FPCA}}
+  \item \hyperlink{sec:two_way}{\textbf{Two-way Regularized Multivariate FPCA}}
+  \item \hyperlink{sec:conclusion}{\textbf{Conclusion \& Future Work}}
+\end{enumerate}
 
-------------------------------------------------------------------------
+# Introduction {auto-animate="true"}
+\hypertarget{sec:intro}{}
 
-# Introduction 
-## Slide A
+Functional Data Analysis:
 
-
-Text…
-
-
-
----
-
-# Regularized MFPCA
-
-## Slide B
-Text…
+-   Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points. \
+-   These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare. \
+-   Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes.\
 
 
----
+# Regularized MFPCA {auto-animate="true"}
 
-# Two-way Regularized MFPCA
+\hypertarget{sec:svd}{}
 
+# Two-way Regularized MFPCA {auto-animate="true"}
 
-## Slide C
-Text…
+\hypertarget{sec:two_way}{}
 
+# Conclusion & Future Work {auto-animate="true"}
 
----
-
-# Conclusion &Future Work
-
-## Slide D
-Text…
-
-
-
-
-
+\hypertarget{sec:conclusion}{}
