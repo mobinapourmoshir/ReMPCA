@@ -57,33 +57,42 @@ header-includes:
 -   Introduction & Background\
 -   A SVD Approach for Regularized Multivariate Functional Principal Component Analysis\
 -   Two-way Regularized Multivariate Functional Principal Component Analysis
--   Future Work\
--   References
+-   Conclusion &Future Work\
 
 ------------------------------------------------------------------------
 
-## Introduction & Background
+# Introduction 
+## Slide A
+Text…
 
-A quick intro slide.
 
-------------------------------------------------------------------------
 
-## A Functional SVD Approach for Regularized Multivariate Functional Principal Component Analysis
+---
 
-Content here.
+# Regularized MFPCA
+## Slide B
+Text…
 
-------------------------------------------------------------------------
 
-## Two-way Regularized Multivariate Functional Principal Component Analysis
+---
 
-Content here.
+# Two-way Regularized MFPCA
+## Slide C
+Text…
 
-------------------------------------------------------------------------
 
-## Future Work
+---
 
-Bullets.
+# Future Work
+## Slide D
+Text…
 
-------------------------------------------------------------------------
 
-## References
+---
+
+# Conclusion
+## Slide E
+Text…
+
+
+
