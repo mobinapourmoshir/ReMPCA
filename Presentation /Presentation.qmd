@@ -5,7 +5,7 @@ institute: |
   Department of Mathematical and Statistical Sciences
   \par
   Marquette University
-date: "Sep 2025"
+#date: "Sep 2025"
 
 format:
   beamer:
@@ -14,26 +14,26 @@ format:
     aspectratio: 169
     slide-level: 2
 
+# LaTeX customizations
 header-includes:
   - |
-    \definecolor{darknavy}{RGB}{0,0,102}
+    % ----- Colors -----
+    \definecolor{darknavy}{RGB}{10,38,71}     % deep navy
+    \definecolor{MUgold}{HTML}{FFC72C}        % Marquette gold
+
+    % Talk title in dark navy
     \setbeamercolor{title}{fg=darknavy}
-    \definecolor{MUgold}{HTML}{FFC72C}     % gold
-    \setbeamercolor{title}{fg=darknavy} % Make title dark navy
-    
-    
-    % --- SOLID (NON-GRADIENT) bars in header/footer ---
-    % Make all palette stripes the SAME gold so there's no light-to-dark effect
+
+    % ----- Solid (non-gradient) gold bars -----
     \setbeamercolor{palette primary}{bg=MUgold, fg=black}
     \setbeamercolor{palette secondary}{bg=MUgold, fg=black}
     \setbeamercolor{palette tertiary}{bg=MUgold, fg=black}
     \setbeamercolor{palette quaternary}{bg=MUgold, fg=black}
-    % And match the footline boxes
     \setbeamercolor{author in head/foot}{bg=MUgold, fg=black}
     \setbeamercolor{title in head/foot}{bg=MUgold,  fg=black}
     \setbeamercolor{date in head/foot}{bg=MUgold,   fg=black}
 
-    % --- Custom solid footline (your existing layout kept) ---
+    % ----- Footline: name | short title | X / N -----
     \setbeamertemplate{footline}{%
       \leavevmode%
       \hbox{%
@@ -43,16 +43,23 @@ header-includes:
       }%
       \vskip0pt%
     }
-    
-     % --- Move the logo UP on the title slide ---
-    % Reduce vertical space before the logo (negative vspace pulls it upward)
-    \titlegraphic{\vspace{-6mm}\includegraphics[width=0.18\textwidth]{MU.png}}
 
-    % (Optional) remove title-box drop shadow if you dislike it
-    % \useoutertheme{default}
+    % ----- Header: section navigation across the gold bar -----
+    \setbeamertemplate{headline}{%
+      \begin{beamercolorbox}[wd=\paperwidth,ht=2.6ex,dp=1ex,left]{palette primary}
+        \hspace*{1ex}\insertsectionnavigationhorizontal{\paperwidth}{}{}
+      \end{beamercolorbox}%
+    }
+    % colors for current vs non-current section labels in header
+    \setbeamercolor{section in head/foot}{fg=black,bg=MUgold}
+    \setbeamercolor{section in head/foot shaded}{fg=black!55,bg=MUgold}
+
+    % ----- Title slide logo (pulled upward slightly) -----
+    \titlegraphic{\vspace{-4mm}\includegraphics[width=0.18\textwidth]{MU.png}}
 ---
 
-## Outline
+
+# Outline
 
 -   Introduction & Background\
 -   A SVD Approach for Regularized Multivariate Functional Principal Component Analysis\
@@ -63,6 +70,8 @@ header-includes:
 
 # Introduction 
 ## Slide A
+
+
 Text…
 
 
@@ -70,6 +79,7 @@ Text…
 ---
 
 # Regularized MFPCA
+
 ## Slide B
 Text…
 
@@ -77,22 +87,20 @@ Text…
 ---
 
 # Two-way Regularized MFPCA
+
+
 ## Slide C
 Text…
 
 
 ---
 
-# Future Work
+# Conclusion &Future Work
+
 ## Slide D
 Text…
 
 
----
-
-# Conclusion
-## Slide E
-Text…
 
 
 
