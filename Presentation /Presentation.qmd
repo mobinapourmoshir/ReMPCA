@@ -1,11 +1,9 @@
 ---
 title: "Regularized Multivariate Two-way Functional Principal Component Analysis"
-title: "Regularized Multivariate Two-way Functional Principal Component Analysis"
-author: |
-  Mobina Pourmoshir\\
-  \small\texttt{mobina.pourmoshir@marquette.edu}
+author: "Mobina Pourmoshir"
 institute: |
-  Department of Mathematical and Statistical Sciences\\
+  Department of Mathematical and Statistical Sciences
+  \par
   Marquette University
 date: "Sep 2025"
 
@@ -18,6 +16,24 @@ format:
 
 header-includes:
   - |
+    \definecolor{darknavy}{RGB}{0,0,102}
+    \setbeamercolor{title}{fg=darknavy}
+    \definecolor{MUgold}{HTML}{FFC72C}     % gold
+    \setbeamercolor{title}{fg=darknavy} % Make title dark navy
+    
+    
+    % --- SOLID (NON-GRADIENT) bars in header/footer ---
+    % Make all palette stripes the SAME gold so there's no light-to-dark effect
+    \setbeamercolor{palette primary}{bg=MUgold, fg=black}
+    \setbeamercolor{palette secondary}{bg=MUgold, fg=black}
+    \setbeamercolor{palette tertiary}{bg=MUgold, fg=black}
+    \setbeamercolor{palette quaternary}{bg=MUgold, fg=black}
+    % And match the footline boxes
+    \setbeamercolor{author in head/foot}{bg=MUgold, fg=black}
+    \setbeamercolor{title in head/foot}{bg=MUgold,  fg=black}
+    \setbeamercolor{date in head/foot}{bg=MUgold,   fg=black}
+
+    % --- Custom solid footline (your existing layout kept) ---
     \setbeamertemplate{footline}{%
       \leavevmode%
       \hbox{%
@@ -27,7 +43,13 @@ header-includes:
       }%
       \vskip0pt%
     }
-    \titlegraphic{\vspace{8mm}\includegraphics[width=0.18\textwidth]{MU.png}}
+    
+     % --- Move the logo UP on the title slide ---
+    % Reduce vertical space before the logo (negative vspace pulls it upward)
+    \titlegraphic{\vspace{-6mm}\includegraphics[width=0.18\textwidth]{MU.png}}
+
+    % (Optional) remove title-box drop shadow if you dislike it
+    % \useoutertheme{default}
 ---
 
 ## Outline
