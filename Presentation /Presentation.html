@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Mobina Pourmoshir">
 
-<title>presentation</title>
+<title>Regularized Multivariate Two-way Functional Principal Component Analysis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -33,66 +34,122 @@ ul.task-list li input[type="checkbox"] {
 <script src="Presentation_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="Presentation_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="Presentation_files/libs/bootstrap/bootstrap-1bc8a17f135ab3d594c857e9f48e611b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+</head><body class="fullcontent">\setbeamertemplate{section page}[none]
+\AtBeginSection[]{}
+\usepackage{enumitem}
+\definecolor{darknavy}{RGB}{0,0,102}
+\setbeamercolor{title}{fg=darknavy}
+\definecolor{MUgold}{HTML}{FFC72C}     % gold
+\setbeamercolor{title}{fg=darknavy} % Make title dark navy
 
 
-</head>
+% --- SOLID (NON-GRADIENT) bars in header/footer ---
+% Make all palette stripes the SAME gold so there's no light-to-dark effect
+\setbeamercolor{palette primary}{bg=MUgold, fg=black}
+\setbeamercolor{palette secondary}{bg=MUgold, fg=black}
+\setbeamercolor{palette tertiary}{bg=MUgold, fg=black}
+\setbeamercolor{palette quaternary}{bg=MUgold, fg=black}
+% And match the footline boxes
+\setbeamercolor{author in head/foot}{bg=MUgold, fg=black}
+\setbeamercolor{title in head/foot}{bg=MUgold,  fg=black}
+\setbeamercolor{date in head/foot}{bg=MUgold,   fg=black}
 
-<body class="fullcontent">
+
+%==================== header &amp; footer (default) ====================
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}Mobina Pourmoshir\end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.34\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}Regularized Multivariate Two-way FPCA\end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{2ex}\end{beamercolorbox}%
+  }%
+  \vskip0pt%
+}
+
+\setbeamertemplate{headline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.6ex,dp=1ex,left]{palette primary}
+    \hspace*{1ex}\insertsectionnavigationhorizontal{\paperwidth}{}{}
+  \end{beamercolorbox}%
+}
+\setbeamercolor{section in head/foot}{fg=black,bg=MUgold}
+\setbeamercolor{section in head/foot shaded}{fg=black!55,bg=MUgold}
+
+ % --- Move the logo UP on the title slide ---
+% Reduce vertical space before the logo (negative vspace pulls it upward)
+\titlegraphic{\vspace{-6mm}\includegraphics[width=0.18\textwidth]{MU.png}}
+
+% (Optional) remove title-box drop shadow if you dislike it
+% \useoutertheme{default}
+
+
+
+
+
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Regularized Multivariate Two-way Functional Principal Component Analysis</h1>
+</div>
 
 
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Mobina Pourmoshir <a href="mailto:mobina.pourmoshir@marquette.com" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            Department of Mathematical and Statistical Sciences
+            </p><p>Marquette University</p>
+          <p></p>
+      </div>
+  </div>
 
-<p>title: “My Thesis Title” author: “Mehdi Maadooliat” format: beamer: theme: “CambridgeUS” colortheme: “crane” outertheme: “smoothbars” fontsize: 11pt aspectratio: 169 slide-level: 2 header-includes: -</p>
+<div class="quarto-title-meta">
+
+      
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="outline" class="level1">
+<h1>Outline</h1>
+
+</section>
+<section id="introduction" class="level1" data-auto-animate="true">
+<h1 data-auto-animate="true">Introduction</h1>
+<p>Functional Data Analysis:</p>
 <ul>
-<li><ul>
-<li></li>
-<li>short-title: “My Thesis” short-author: “Mehdi Maadooliat” —</li>
-</ul></li>
+<li>Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points.<br>
+</li>
+<li>These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare.<br>
+</li>
+<li>Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes.<br>
+</li>
 </ul>
-<section id="outline" class="level2">
-<h2 class="anchored" data-anchor-id="outline">Outline</h2>
-<div class="columns">
-<div class="column" style="width:100%;">
-<ol type="1">
-<li><strong>Outline</strong><br>
-</li>
-<li>Introduction &amp; Background<br>
-</li>
-<li>Chapter 2<br>
-</li>
-<li>Chapter 3<br>
-</li>
-<li>Future Work<br>
-</li>
-<li>References<br>
-</li>
-</ol>
-</div>
-</div>
-<hr>
 </section>
-<section id="introduction-background" class="level2">
-<h2 class="anchored" data-anchor-id="introduction-background">Introduction &amp; Background</h2>
-<hr>
+<section id="regularized-mfpca" class="level1" data-auto-animate="true">
+<h1 data-auto-animate="true">Regularized MFPCA</h1>
+
 </section>
-<section id="chapter-2" class="level2">
-<h2 class="anchored" data-anchor-id="chapter-2">Chapter 2</h2>
-<hr>
+<section id="two-way-regularized-mfpca" class="level1" data-auto-animate="true">
+<h1 data-auto-animate="true">Two-way Regularized MFPCA</h1>
+
 </section>
-<section id="chapter-3" class="level2">
-<h2 class="anchored" data-anchor-id="chapter-3">Chapter 3</h2>
-<hr>
-</section>
-<section id="future-work" class="level2">
-<h2 class="anchored" data-anchor-id="future-work">Future Work</h2>
-<hr>
-</section>
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
+<section id="conclusion-future-work" class="level1" data-auto-animate="true">
+<h1 data-auto-animate="true">Conclusion &amp; Future Work</h1>
+
 </section>
 
 </main>

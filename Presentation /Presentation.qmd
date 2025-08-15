@@ -1,11 +1,14 @@
 ---
 title: "Regularized Multivariate Two-way Functional Principal Component Analysis"
-author: "Mobina Pourmoshir"
+author:
+    name: "Mobina Pourmoshir"
+    email: "mobina.pourmoshir@marquette.edu"
 institute: |
   Department of Mathematical and Statistical Sciences
   \par
   Marquette University
 #date: "Sep 2025"
+editor: visual
 
 format:
   beamer:
@@ -16,6 +19,57 @@ format:
 
 header-includes:
   - |
+    % ---- Fancy glossy numbered label (TikZ) ----
+    \usepackage{tikz}
+    \usetikzlibrary{shadings}
+    \definecolor{darknavy}{RGB}{10,38,71} % already in your file; harmless to repeat
+    % Make \shorthandoff a no-op if babel isn't loaded
+    \providecommand{\shorthandoff}[1]{}
+
+    \newcommand*\fancynum[1]{%
+      \begingroup
+      \shorthandoff{:;!?}%
+      \begin{tikzpicture}[baseline=(c.base)]
+        % glossy sphere-style circle
+        \shade[ball color=darknavy] (0,0) circle (1.35ex);
+        % white number on top, bold & tiny
+        \node[font=\scriptsize\bfseries, text=white] (c) at (0,0) {#1};
+      \end{tikzpicture}%
+      \endgroup
+    }
+            
+    \AtBeginDocument{%
+      \author[Mobina Pourmoshir]{Mobina Pourmoshir\\\small\texttt{mobina.pourmoshir@marquette.edu}}%
+    }
+    \setbeamertemplate{section page}[none]
+    \AtBeginSection[]{}
+    \definecolor{darknavy}{RGB}{0,0,102}
+    \definecolor{MUgold}{HTML}{FFC72C}
+    \setbeamercolor{title}{fg=darknavy}
+    \setbeamercolor{palette primary}{bg=MUgold, fg=black}
+    \setbeamercolor{palette secondary}{bg=MUgold, fg=black}
+    \setbeamercolor{palette tertiary}{bg=MUgold, fg=black}
+    \setbeamercolor{palette quaternary}{bg=MUgold, fg=black}
+    \setbeamercolor{author in head/foot}{bg=MUgold, fg=black}
+    \setbeamercolor{title in head/foot}{bg=MUgold,  fg=black}
+    \setbeamercolor{date in head/foot}{bg=MUgold,   fg=black}
+    \titlegraphic{\vspace{-6mm}\includegraphics[width=0.18\textwidth]{MU.png}}
+    \setbeamertemplate{footline}{%
+      \leavevmode
+      \hbox{%
+        \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}Mobina Pourmoshir\end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=.34\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}Regularized Multivariate Two-way FPCA\end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{2ex}\end{beamercolorbox}%
+      }
+      \vskip0pt
+    }
+    \setbeamertemplate{headline}{%
+      \begin{beamercolorbox}[wd=\paperwidth,ht=2.6ex,dp=1ex,left]{palette primary}
+        \hspace*{1ex}\insertsectionnavigationhorizontal{\paperwidth}{}{}
+      \end{beamercolorbox}
+    }
+    
+    
     \setbeamertemplate{section page}[none]
     \AtBeginSection[]{}
     \usepackage{enumitem}
@@ -66,22 +120,31 @@ header-includes:
 
 
 # Outline
-
-\begin{enumerate}[label=\arabic*., leftmargin=*]
-  \item \hyperlink{sec:intro}{\textbf{Introduction \& Background}}
-  \item \hyperlink{sec:svd}{\textbf{A SVD Approach for Regularized Multivariate FPCA}}
-  \item \hyperlink{sec:two_way}{\textbf{Two-way Regularized Multivariate FPCA}}
-  \item \hyperlink{sec:conclusion}{\textbf{Conclusion \& Future Work}}
+            
+\begin{enumerate}[label=\protect\fancynum{\arabic*},
+                  leftmargin=*, labelsep=0.8em, itemsep=0.9em, font=\normalfont]
+  \item \hyperlink{sec:intro}{Introduction \& Background}
+  \item \hyperlink{sec:svd}{A SVD Approach for Regularized Multivariate FPCA}
+  \item \hyperlink{sec:two_way}{Two-way Regularized Multivariate FPCA}
+  \item \hyperlink{sec:conclusion}{Conclusion \& Future Work}
 \end{enumerate}
+
+
 
 # Introduction {auto-animate="true"}
 \hypertarget{sec:intro}{}
 
-Functional Data Analysis:
+\large\bfseries\textcolor{darknavy}{Functional Data Analysis:}
 
--   Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points. \
--   These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare. \
--   Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes.\
+\small\normalfont
+\begin{itemize}
+  \item Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points.
+  \pause
+  \item These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare.
+  \pause
+  \item Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes.
+\end{itemize}
+
 
 
 # Regularized MFPCA {auto-animate="true"}
