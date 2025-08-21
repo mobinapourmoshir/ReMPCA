@@ -34,7 +34,59 @@ ul.task-list li input[type="checkbox"] {
 <script src="Presentation_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="Presentation_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="Presentation_files/libs/bootstrap/bootstrap-1bc8a17f135ab3d594c857e9f48e611b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
-</head><body class="fullcontent">\setbeamertemplate{section page}[none]
+</head><body class="fullcontent">\usepackage{multimedia}
+% ---- Fancy glossy numbered label (TikZ) ----
+\usepackage{tikz}
+\usetikzlibrary{shadings}
+\definecolor{darknavy}{RGB}{10,38,71} % already in your file; harmless to repeat
+% Make \shorthandoff a no-op if babel isn't loaded
+\providecommand{\shorthandoff}[1]{}
+
+\newcommand*\fancynum[1]{%
+  \begingroup
+  \shorthandoff{:;!?}%
+  \begin{tikzpicture}[baseline=(c.base)]
+    % glossy sphere-style circle
+    \shade[ball color=darknavy] (0,0) circle (1.35ex);
+    % white number on top, bold &amp; tiny
+    \node[font=\scriptsize\bfseries, text=white] (c) at (0,0) {#1};
+  \end{tikzpicture}%
+  \endgroup
+}
+
+\AtBeginDocument{%
+  \author[Mobina Pourmoshir]{Mobina Pourmoshir\\\small\texttt{mobina.pourmoshir@marquette.edu}}%
+}
+\setbeamertemplate{section page}[none]
+\AtBeginSection[]{}
+\definecolor{darknavy}{RGB}{0,0,102}
+\definecolor{MUgold}{HTML}{FFC72C}
+\setbeamercolor{title}{fg=darknavy}
+\setbeamercolor{palette primary}{bg=MUgold, fg=black}
+\setbeamercolor{palette secondary}{bg=MUgold, fg=black}
+\setbeamercolor{palette tertiary}{bg=MUgold, fg=black}
+\setbeamercolor{palette quaternary}{bg=MUgold, fg=black}
+\setbeamercolor{author in head/foot}{bg=MUgold, fg=black}
+\setbeamercolor{title in head/foot}{bg=MUgold,  fg=black}
+\setbeamercolor{date in head/foot}{bg=MUgold,   fg=black}
+\titlegraphic{\vspace{-6mm}\includegraphics[width=0.18\textwidth]{MU.png}}
+\setbeamertemplate{footline}{%
+  \leavevmode
+  \hbox{%
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}Mobina Pourmoshir\end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.34\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}Regularized Multivariate Two-way FPCA\end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{2ex}\end{beamercolorbox}%
+  }
+  \vskip0pt
+}
+\setbeamertemplate{headline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.6ex,dp=1ex,left]{palette primary}
+    \hspace*{1ex}\insertsectionnavigationhorizontal{\paperwidth}{}{}
+  \end{beamercolorbox}
+}
+
+
+\setbeamertemplate{section page}[none]
 \AtBeginSection[]{}
 \usepackage{enumitem}
 \definecolor{darknavy}{RGB}{0,0,102}
@@ -101,7 +153,7 @@ ul.task-list li input[type="checkbox"] {
   <div class="quarto-title-meta-heading">Affiliation</div>
   
     <div class="quarto-title-meta-contents">
-    <p class="author">Mobina Pourmoshir <a href="mailto:mobina.pourmoshir@marquette.com" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+    <p class="author">Mobina Pourmoshir <a href="mailto:mobina.pourmoshir@marquette.edu" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
   </div>
   <div class="quarto-title-meta-contents">
         <p class="affiliation">
@@ -129,15 +181,17 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="introduction" class="level1" data-auto-animate="true">
 <h1 data-auto-animate="true">Introduction</h1>
-<p>Functional Data Analysis:</p>
-<ul>
-<li>Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points.<br>
-</li>
-<li>These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare.<br>
-</li>
-<li>Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes.<br>
-</li>
-</ul>
+<p></p>
+<section id="sec-intro" class="level2">
+<h2 class="anchored" data-anchor-id="sec-intro">Introduction</h2>
+<p>{}</p>
+</section>
+<section id="nest-page" class="level2">
+<h2 class="anchored" data-anchor-id="nest-page">Nest page</h2>
+<video width="640" height="360" controls="" autoplay="" muted="">
+<source src="Curves.mp4" type="video/mp4">
+<p>Your browser does not support the video tag. </p>
+</video></section>
 </section>
 <section id="regularized-mfpca" class="level1" data-auto-animate="true">
 <h1 data-auto-animate="true">Regularized MFPCA</h1>

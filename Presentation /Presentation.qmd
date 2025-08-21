@@ -16,9 +16,19 @@ format:
     colortheme: crane
     aspectratio: 169
     slide-level: 2
+    auto-play-media: true
+    pdf-engine: pdflatex
 
 header-includes:
   - |
+    \makeatletter
+    % Load enumitem only for non-beamer docs, so <+-> works in beamer
+    \@ifclassloaded{beamer}{}{%
+      \usepackage{enumitem}%
+    }
+    \makeatother
+    
+    \usepackage{multimedia}
     % ---- Fancy glossy numbered label (TikZ) ----
     \usepackage{tikz}
     \usetikzlibrary{shadings}
@@ -72,7 +82,6 @@ header-includes:
     
     \setbeamertemplate{section page}[none]
     \AtBeginSection[]{}
-    \usepackage{enumitem}
     \definecolor{darknavy}{RGB}{0,0,102}
     \setbeamercolor{title}{fg=darknavy}
     \definecolor{MUgold}{HTML}{FFC72C}     % gold
@@ -121,8 +130,11 @@ header-includes:
 
 # Outline
             
-\begin{enumerate}[label=\protect\fancynum{\arabic*},
-                  leftmargin=*, labelsep=0.8em, itemsep=0.9em, font=\normalfont]
+\setbeamertemplate{enumerate item}{\fancynum{\insertenumlabel}}
+
+\begin{enumerate}
+  \setlength{\itemsep}{0.9em}   % vertical spacing between items
+  \setlength{\leftmargini}{2.2em} % left margin for level 1 enumerate
   \item \hyperlink{sec:intro}{Introduction \& Background}
   \item \hyperlink{sec:svd}{A SVD Approach for Regularized Multivariate FPCA}
   \item \hyperlink{sec:two_way}{Two-way Regularized Multivariate FPCA}
@@ -134,16 +146,44 @@ header-includes:
 # Introduction {auto-animate="true"}
 \hypertarget{sec:intro}{}
 
-\large\bfseries\textcolor{darknavy}{Functional Data Analysis:}
+\Large\bfseries\textcolor{darknavy}{Functional Data Analysis:}
 
 \small\normalfont
-\begin{itemize}
-  \item Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points.
-  \pause
-  \item These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare.
-  \pause
-  \item Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes.
-\end{itemize}
+\begin{columns}[T,onlytextwidth]
+  % -------- Left: bullets (come one by one) ----------
+  \begin{column}{0.62\textwidth}
+  {\small\normalfont
+  \begin{itemize}
+    \item<1-> Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points.
+    \item<2-> These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare.
+    \item<3-> Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes.
+  \end{itemize}}
+  \end{column}
+
+  % -------- Right: image ----------
+  \begin{column}{0.38\textwidth}
+    % show from the first bullet onward
+    \only<1->{\centering\includegraphics[width=\linewidth]{images/FDA1.png}}
+  \end{column}
+\end{columns}
+
+
+## Next page
+
+\small\normalfont
+::: incremental 
+- Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points. 
+
+- These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare. 
+![](images/FDA1.png){.absolute bottom=0 left=300 width="150"} 
+
+- Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes. 
+:::
+
+
+
+
+
 
 
 
