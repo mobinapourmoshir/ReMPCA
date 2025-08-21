@@ -1,24 +1,32 @@
 ---
 title: "Regularized Multivariate Two-way Functional Principal Component Analysis"
 author:
-  name: "Mobina Pourmoshir"
-  email: "mobina.pourmoshir@marquette.edu"
+    name: "Mobina Pourmoshir"
+    email: "mobina.pourmoshir@marquette.edu"
 institute: |
-  Department of Mathematical and Statistical Sciences\\
+  Department of Mathematical and Statistical Sciences
+  \par
   Marquette University
+#date: "Sep 2025"
+editor: visual
 
 format:
   beamer:
-    pdf-engine: pdflatex
     theme: CambridgeUS
     colortheme: crane
     aspectratio: 169
+    slide-level: 2
     auto-play-media: true
+    pdf-engine: pdflatex
+
 bibliography: ref.bib
 link-citations: true
 
+
+
 header-includes:
   - |
+    \AtBeginEnvironment{CSLReferences}{\tiny}
     \makeatletter
     % Load enumitem only for non-beamer docs, so <+-> works in beamer
     \@ifclassloaded{beamer}{}{%
@@ -165,7 +173,9 @@ header-includes:
   \end{column}
 \end{columns}
 
-# Functional Principal Component Analysis {auto-animate="true"}
+
+
+## Functional Principal Component Analysis {auto-animate="true"}
 
 ::: incremental
 - Functional PCA (FPCA): Extension of classical PCA to functional data; finds orthogonal functions capturing main variation [@ramsay2005functional].
@@ -183,6 +193,11 @@ header-includes:
 
 
 
+
+
+
+
+
 # Regularized MFPCA {auto-animate="true"}
 
 \hypertarget{sec:svd}{}
@@ -196,12 +211,5 @@ header-includes:
 \hypertarget{sec:conclusion}{}
 
 
-
 # References
-\tiny
-::: {#refs}
-:::
-\normalsize
-
-
 
