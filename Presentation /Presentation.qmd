@@ -1,23 +1,21 @@
 ---
 title: "Regularized Multivariate Two-way Functional Principal Component Analysis"
 author:
-    name: "Mobina Pourmoshir"
-    email: "mobina.pourmoshir@marquette.edu"
+  name: "Mobina Pourmoshir"
+  email: "mobina.pourmoshir@marquette.edu"
 institute: |
-  Department of Mathematical and Statistical Sciences
-  \par
+  Department of Mathematical and Statistical Sciences\\
   Marquette University
-#date: "Sep 2025"
-editor: visual
 
 format:
   beamer:
+    pdf-engine: pdflatex
     theme: CambridgeUS
     colortheme: crane
     aspectratio: 169
-    slide-level: 2
     auto-play-media: true
-    pdf-engine: pdflatex
+bibliography: ref.bib
+link-citations: true
 
 header-includes:
   - |
@@ -147,7 +145,6 @@ header-includes:
 \hypertarget{sec:intro}{}
 
 \Large\bfseries\textcolor{darknavy}{Functional Data Analysis:}
-
 \small\normalfont
 \begin{columns}[T,onlytextwidth]
   % -------- Left: bullets (come one by one) ----------
@@ -160,30 +157,29 @@ header-includes:
   \end{itemize}}
   \end{column}
 
-  % -------- Right: image ----------
+  % -------- Right: images ----------
   \begin{column}{0.38\textwidth}
-    % show from the first bullet onward
-    \only<1->{\centering\includegraphics[width=\linewidth]{images/FDA1.png}}
+    \vspace{-1.5em}
+    \only<1->{\centering\includegraphics[height=0.4\textheight]{images/FDA2.png}\par}
+    \only<2->{\centering\includegraphics[height=0.4\textheight]{images/FDA1.png}\par}
   \end{column}
 \end{columns}
 
+# Functional Principal Component Analysis {auto-animate="true"}
 
-## Next page
+::: incremental
+- Functional PCA (FPCA): Extension of classical PCA to functional data; finds orthogonal functions capturing main variation [@ramsay2005functional].
 
-\small\normalfont
-::: incremental 
-- Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points. 
+- Purpose: Dimension reduction and uncovering hidden patterns.
 
-- These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare. 
-![](images/FDA1.png){.absolute bottom=0 left=300 width="150"} 
+- Advancements in FPCA:
+  - Smoothed FPCA: Adds roughness penalties for smoothness [@silverman1996smoothed; @huang2008functional].
+  - Sparse FPCA: Enforces sparsity for interpretability [@huang2008sparse; @SparsePCA2020].
+  - Multivariate FPCA (MFPCA): Extends FPCA to multivariate functions [@silverman1996smoothed; @Happ_2018].
+  - Regularized MFPCA: Penalties improve estimation & interpretability [@haghbin2023regMFPCA].
 
-- Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes. 
+- Impact: More adaptable, robust, and applicable across diverse scientific and business problems.
 :::
-
-
-
-
-
 
 
 
@@ -198,3 +194,14 @@ header-includes:
 # Conclusion & Future Work {auto-animate="true"}
 
 \hypertarget{sec:conclusion}{}
+
+
+
+# References
+\tiny
+::: {#refs}
+:::
+\normalsize
+
+
+
