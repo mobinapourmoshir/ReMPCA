@@ -400,7 +400,8 @@ where $a=3.7$ (\cite{fan2001}).
 - **Sparsity parameter**: Tuning parameter controlling number of non-zero loadings in $v$ ($0 =$ dense, $p =$ full sparsity).  
 
 ```{=latex}
-\begin{block}{Algorithm: K-fold CV for Sparsity Tuning}
+\begin{block}{Algorithm: K-fold CV Tuning Parameter Selection - Degree of sparsity}
+\label{algo:CvSparse}
 \small
 \begin{enumerate}[<+->]
    \item Randomly group the rows of side-by-side data matrix $X$ into $K$ roughly equal-sized groups, denoted as $X^1,...,X^K$. 
@@ -535,15 +536,61 @@ where $a=3.7$ (\cite{fan2001}).
 - The smoothing parameter $\pmb{\alpha}$ is selected via generalized cross-validation (GCV), defined as
     ```{=latex}
   \vspace{-1.5em}
-  $$
+\begin{equation}\label{eq:MGCV one-way}
 	\text{GCV}(\pmb{\alpha}) = \frac{1}{M} \frac{\Vert ({I} - \pmb{S}(\pmb{\alpha})) (\mathbf{X}^T u) \Vert^2}{\left(1 - \frac{1}{M} \text{tr} \{\mathbf{S}(\pmb{\alpha})\}\right)^2}.
-	$$
+\end{equation}
     ```
 :::
 
 
 
+## Penalized Sparse Multivariate FPCA
+::: incremental
 
+- **Goal:** Extend sparse FPCA to multivariate functional data, imposing **sparsity** (select important regions) and **smoothness** (reduce noise).
+- **Sparsity penalties:** Soft, hard, or SCAD thresholding \cite{huang2008sparse,sparseRegression2017,SparsePCA2020}.  
+-  $v \in \mathbb{R}^M, \, M=\sum_{i=1}^p m_i$ and control parameter: $\pmb{\gamma}=(\gamma_1,\ldots,\gamma_p)$, where $\gamma_i$ ranges from 0 (no sparsity) to $m_i$ for each variable.  
+
+    ```{=latex}
+\begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
+\small
+\begin{enumerate}[<+->]
+  \item \textbf{Initialization:}
+        Compute rank-one SVD of $\pmb{X}$, $\pmb{X}\approx s,u,v^\top$, and set $u \gets s,u$.
+  \item \textbf{Iterate until convergence:}
+    \begin{enumerate}
+      \item \textbf{Update left singular vector:} $u \leftarrow \pmb{X}v$
+      \item \textbf{Update right singular vector:} $v \leftarrow \pmb{h_\gamma}\,\pmb{X}^\top u$
+      \item \textbf{Normalize right singular vector:} $v \leftarrow \dfrac{v}{\lVert v\rVert}$
+    \end{enumerate}
+\end{enumerate}
+\end{block}
+    ```
+
+:::
+
+## Smooth and Sparse Multivariate FPCA
+::: incremental
+- The combined implementation of smoothness and sparsity on the loading vector $v$ in multivariate functional data is achieved by the following algorithm:
+
+```{=latex}
+\begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
+\small
+\begin{enumerate}[<+->]
+  \item Initialize unit vectors $u$ and $v$ using SVD of $\pmb{X}$ (best rank-one approximation of $\pmb{X}$) 
+   \item Repeat till convergence 
+   \begin{enumerate}
+     \item ${u} \leftarrow\pmb{X}{v}$
+     \item ${v} \leftarrow \pmb{S}(\pmb{\alpha}) \pmb{h}(\gamma_v) \pmb{X}^\top {u}$ 
+     \item ${v}\leftarrow \frac{{v}}{\Vert {v}\Vert}$
+   \end{enumerate}
+   \item Update $\pmb{X} = \pmb{X} -\sigma uv^\top$ and proceed to find the next principal component. 
+\end{enumerate}
+\end{block}
+```
+
+- \hyperlink{algo:CvSparse}{Algorithm: CV Tuning for Sparsity} and equation \eqref{eq:MGCV one-way} are used to tune the sparsity level via K‐fold cross‐validation (CV) and the smoothing parameter via generalized cross‐validation (GCV), respectively.
+:::
 
 # Two-way Regularized MFPCA {auto-animate="true"}
 \hypertarget{sec:two_way}{}
