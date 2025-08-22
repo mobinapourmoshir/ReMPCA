@@ -442,25 +442,127 @@ where $a=3.7$ (\cite{fan2001}).
 :::
 
 
-
-
-
-
-
-
-
-
 # Regularized MFPCA {auto-animate="true"}
-
 \hypertarget{sec:svd}{}
+::: incremental
+- **Context**  
+  - Univariate FDA → one curve per subject  
+  - **Multivariate FDA** → vector of curves per subject (EEG, growth, pollution)  
+  - MFPCA → **joint modes of variation** across functions  
+
+- **Challenges**  
+  - Discretization & irregular grids → noise, missing data  
+  - High dimensionality → unstable eigenfunctions  
+  - Cross-function correlation → requires joint smoothness  
+
+- **Proposed Solution: Penalized SVD**  
+  - **Smoothness penalties**: roughness on derivatives  
+  - **Sparsity penalties**: $\ell_1$/SCAD shrinkage  
+  - **Block-diagonal roughness matrix** for cross-function structure  
+
+- **Impact**  
+  - Produces **smooth, sparse, interpretable** joint modes  
+  - More stable & applicable to high-dimensional multivariate FDA
+:::
+
+
+## Methodology: Multivariate Functional Data Framework
+::: incremental
+- A multivariate functional dataset is formed by **concatenating $p$ functional data matrices**.  
+  - Each variable: $X_i \in \mathbb{R}^{n \times m_i}$  where $n$: number of observations and $m_i$: grid points
+
+- **Rank-one approximation** (per variable):  
+  $$
+  X_i \approx u_i v_i^\top, 
+  \quad u_i \in \mathbb{R}^n, \; v_i \in \mathbb{R}^{m_i}
+  $$
+
+- **Full data matrix**:  $\mathbf{X} = [X_1 \; X_2 \; \cdots \; X_p]  \in \mathbb{R}^{n \times \sum_{i=1}^p m_i}$
+
+- **Block structure example**:  
+  $$
+  X_i =
+  \begin{bmatrix}
+  x_{1i}(t_{i1}) & \cdots & x_{1i}(t_{i,m_i}) \\
+  \vdots & \ddots & \vdots \\
+  x_{ni}(t_{i1}) & \cdots & x_{ni}(t_{i,m_i})
+  \end{bmatrix}, \quad
+  \mathbf{X} = [X_1 \; X_2 \; \dots \; X_p]
+  $$
+::: 
+
+## Penalized Smooth MFPCA {auto-animate="true"}
+
+::: incremental
+- Standard FPCA loadings may be noisy; smoothness penalties (via block-diagonal $\Omega_i$) improve structure and interpretability.  
+
+- Let $\pmb{X} \in \mathbb{R}^{n \times M}$ denote multivariate functional data, where $M = \sum_{i=1}^p m_i$.  
+  Its best rank-one approximation is $\pmb{X} \approx u v^\top$,  
+  with $u \in \mathbb{R}^n$ (score vector) and $v \in \mathbb{R}^M$ (loading vector).  
+  A smoothness penalty is imposed on $v$.  
+
+- The block-diagonal penalty matrix is  $\pmb{\Omega} = \operatorname{blockdiag}\bigl(\Omega_1, \Omega_2, \dots, \Omega_p\bigr),$
+  where each $\Omega_i \in \mathbb{R}^{m_i \times m_i}$ is a univariate roughness penalty matrix.  
+
+- The penalized reconstruction error is  
+  $$
+  \min_{u,v} \; \lVert \pmb{X} - uv^\top \rVert_F^2 
+  + \pmb{\alpha}^\top \big(v^\top \pmb{\Omega} v\big),
+  $$
+  where $\pmb{\alpha} = (\alpha_1, \dots, \alpha_p)^\top$ controls smoothness.  
+
+:::
+
+
+# MFPCA Power Algorithm
+::: incremental
+```{=latex}
+        \begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
+\small
+\begin{enumerate}[<+->]
+  \item Initialize $v$.
+  \item Repeat until convergence:
+    \begin{enumerate}
+      \item $u \leftarrow \mathbf{X}v$
+      \item $v \leftarrow (I + \boldsymbol{\alpha}\boldsymbol{\Omega})^{-1}\mathbf{X}^\top u$
+      \item $v \leftarrow v / \lVert v \rVert$
+    \end{enumerate}
+  \item Update $\mathbf{X} \leftarrow \mathbf{X} - \sigma u v^\top$ to extract the next PC.
+\end{enumerate}
+\end{block}
+```
+- The smoothing operator is $\pmb{S}(\pmb{\alpha}) = \big(I + \pmb{\alpha}\pmb{\Omega}\big)^{-1} \in \mathbb{R}^{M \times M}$. 
+- The smoothing parameter $\pmb{\alpha}$ is selected via generalized cross-validation (GCV), defined as
+    ```{=latex}
+  \vspace{-1.5em}
+  $$
+	\text{GCV}(\pmb{\alpha}) = \frac{1}{M} \frac{\Vert ({I} - \pmb{S}(\pmb{\alpha})) (\mathbf{X}^T u) \Vert^2}{\left(1 - \frac{1}{M} \text{tr} \{\mathbf{S}(\pmb{\alpha})\}\right)^2}.
+	$$
+    ```
+:::
+
+
+
+
 
 # Two-way Regularized MFPCA {auto-animate="true"}
-
 \hypertarget{sec:two_way}{}
 
-# Conclusion & Future Work {auto-animate="true"}
 
+
+
+
+
+
+
+
+# Conclusion & Future Work {auto-animate="true"}
 \hypertarget{sec:conclusion}{}
+
+
+
+
+
 
 
 # References
