@@ -18,6 +18,7 @@ format:
     slide-level: 2
     auto-play-media: true
     pdf-engine: pdflatex
+    cite-method: natbib
 
 bibliography: ref.bib
 link-citations: true
@@ -26,6 +27,7 @@ link-citations: true
 
 header-includes:
   - |
+    \usepackage{natbib}
     \AtBeginEnvironment{CSLReferences}{\tiny}
     \makeatletter
     % Load enumitem only for non-beamer docs, so <+-> works in beamer
@@ -192,9 +194,30 @@ header-includes:
 :::
 
 
+## Two- way Functional Principal Component Analysis {auto-animate="true"}
 
+::: incremental
+- Two-way functional data: Observations vary along two domains (e.g., time $\times$ space, time $\times$ frequency), with applications in climate, neuroscience, finance, public health, and marketing.
 
+    ```{=latex}
+    % shows ONLY while the first bullet is active
+    \vspace{-1.5em}
+    \only<1>{\centering\includegraphics[width=0.3\linewidth]{images/NDVI.png}\par}
+    \vspace{1.5em}
+    ```
 
+- Extension of FPCA: Huang [@twoway_huang] applied regularization to both left and right singular vectors in SVD.
+
+- Practical challenges:
+  - Data observed on discrete grids (minutes, hours, days).
+  - Issues: measurement noise, irregular sampling, missing data, loss of smoothness.
+
+- Proposed framework:
+  - Unified FPCA for two-way multivariate functional data.
+  - Smoothness penalties preserve functional structure.
+  - Sparsity penalties enhance interpretability.
+  - Effective for dimension reduction in complex datasets.
+:::
 
 
 
