@@ -27,6 +27,8 @@ link-citations: true
 
 header-includes:
   - |
+    \usepackage{amsmath,amssymb,mathtools}
+    \usepackage{algorithm}
     \usepackage{natbib}
     \AtBeginEnvironment{CSLReferences}{\tiny}
     \makeatletter
@@ -219,6 +221,203 @@ header-includes:
   - Effective for dimension reduction in complex datasets.
 :::
 
+
+## Mathematical Foundation of FPCA
+::: incremental
+- **Goal:** Identify functional directions that maximize variance (low-rank approximation of functional data).  For functional data $X \in \mathbb{R}^{n \times m}$ contains the discretized functional observations (rows correspond to subjects, columns to grid points), $v\in\mathbb{R}^m$ represents the estimated principal component (function), and $u\in\mathbb{R}^n$ denotes the associated principal component scores.
+
+- **Reconstruction problem:** 
+    ```{=latex}
+    $$
+    \min_{u,v} \; \|X - uv^\top\|_F^2 = \operatorname{tr}\{(X - uv^\top)(X - uv^\top)^\top\},
+    $$
+    ```
+- **Optimization steps:**
+    ```{=latex}
+    $$
+      \vspace{-1.5em}
+      \text{Fix } v:\; u = \frac{Xv}{v^\top v} 
+      \qquad \text{and}  \qquad
+      \text{Fix } u:\; v = \frac{X^\top u}{u^\top u}
+      \vspace{1.5em}
+    $$
+    ```
+:::
+
+
+## Extensions of FPCA via Regularization
+::: incremental
+- Goal: Balance **variance explanation**, **smoothness**, and **interpretability**.  
+- Reformulate FPCA as a **penalized low-rank approximation** problem:  
+  $$
+  \min_{u,v} \|X - uv^\top\|_F^2 + \mathcal{P}(u,v)
+  $$
+- Two directions:  
+  - **Smooth FPCA:** adds roughness penalty on functions.  
+  - **Sparse FPCA:** adds sparsity penalty on loadings.  
+- Algorithms: Based on iterative **power method** and **thresholding** updates.  
+:::
+
+
+
+## Smooth Functional PCA
+::: incremental
+- Problem setup [@huang2008functional]:  
+  $$
+  \min_{u,v} \|X - uv^\top\|_F^2 + \alpha\, u^\top u \, v^\top \Omega v
+  $$
+  - $X \in \mathbb{R}^{n \times p}$: discretized functional data.  
+  - $u \in \mathbb{R}^n$: scores.  
+  - $v \in \mathbb{R}^p$: loading function.  
+  - $\Omega$: roughness penalty matrix (e.g., integrated squared 2nd derivative). 
+  - $\alpha$: tuning parameter
+  
+- A power algorithm is defined to compute the PCs while incorporating smoothness penalty. 
+- Consider the SVD of $X$ as $X = UDV^\top$, where $U$ and $V$ have orthonormal columns and $D$ is diagonal with ordered singular values.  In particular, for $X = u d v^\top$, $v$ is the first principal component and $u = u d$ gives the associated scores.   With these representations, the power algorithm (described below) converges quickly, typically in only a few iterations.
+
+
+
+:::
+
+
+## Power Algorithm
+::: incremental
+
+```{=latex}
+    \begin{block}{Algorithm: Penalized Power Iteration}
+\begin{enumerate}[<+->] % reveal each step
+  \item Initialize $v$.
+  \item Repeat until convergence:
+    \begin{enumerate}
+      \item $u \leftarrow Xv$
+      \item $v \leftarrow (I + \alpha\Omega)^{-1} X^\top u$
+      \item $v \leftarrow \dfrac{v}{\lVert v \rVert}$ % use \frac if you didn't load amsmath
+    \end{enumerate}
+  \item Update $X \leftarrow X - \sigma\, u v^\top$ and proceed to next component.
+\end{enumerate}
+\end{block}
+```
+- For notational convenience, we define $S(\alpha) = (I +\alpha\Omega)^{-1} \in \mathbb{R}^{m\times m}$, which simplifies expressions involving regularization. The penalty matrix $\Omega$ is set up so that larger values of the quadratic form ${v}^\top {\Omega} {v}$ mean rougher functions. This means that it penalizes functions that change quickly between time points.
+:::
+
+## Tunning Smoothness Parameters
+::: incremental
+- To select the optimal tuning parameters $\alpha$ efficiently, one can use a traditional Cross-Validation (CV) criterion and a computationally efficient closed-form Generalized Cross-Validation (GCV) criterion:
+
+```{=latex}
+  \begin{equation*} 
+	\text{CV}(\alpha) = \frac{1}{m} \sum_{j=1}^m \frac{\left[\{ ({I} - {S}(\alpha)) ({X}^T {u})\}_{jj} \right]^2}{\left(1 -   \{{S}(\alpha)\}_{jj}\right)^2},
+\end{equation*}
+where $\{\cdot\}_{jj}$ denotes the $j$-th diagonal element.
+
+\begin{equation*} 
+	\text{GCV}(\alpha) = \frac{1}{m} \frac{\Vert ({I} - {S}(\alpha)) ({X}^T {u}) \Vert^2}{\left(1 - \frac{1}{m} \operatorname{tr} \{{S}(\alpha)\}\right)^2}.
+\end{equation*}
+```
+:::
+
+
+## Sparse Functional PCA
+
+::: incremental
+- **Standard FPCA loadings are dense → hard to interpret.**  
+  **Sparsity** highlights only the most relevant features, improving interpretability.
+
+- **Dense loadings capture noise → unstable components.**  
+  **Sparsity** filters out uninformative variation, yielding more robust PCs.
+
+- **All grid points contribute equally → no feature selection.**  
+  **Sparsity** acts as built-in feature selection, focusing on key time points or locations.
+- Sparse FPCA formulation [@huang2008sparse]:  
+  $$
+  \min_{u,v} \|X - uv^\top\|_F^2 + p_\gamma(v)
+  $$
+  where $p_\gamma(v)$ is a sparsity-inducing penalty.  
+
+
+:::
+
+## Sparsity penalties
+
+\scriptsize
+- **Lasso (Soft-thresholding):**  
+  $$
+  p^{\text{soft}}_\gamma(|\theta|) = 2 \gamma |\theta|, 
+  \;\xrightarrow[\text{minimizer}]{}\;
+  h_\gamma^{\text{soft}}(y) = \operatorname{sign}(y)(|y|-\gamma)_{+}
+  $$
+
+- **Hard thresholding:**  
+  $$
+  p^{\text{hard}}_\gamma(|\theta|) = \gamma^2 I(|\theta| \neq 0), 
+  \;\xrightarrow[\text{minimizer}]{}\;
+  h_\gamma^{\text{hard}}(y) = I(|y|>\gamma)\, y
+  $$
+
+- **SCAD penalty:**  
+  $$
+  p^{\text{SCAD}}_\gamma(|\theta|) =
+  \begin{cases}
+    2\gamma|\theta|, & |\theta|\leq \gamma, \\
+    \dfrac{\theta^2 - 2 a \gamma|\theta| + \gamma^2}{a-1}, & \gamma < |\theta|\leq a\gamma, \\
+    \dfrac{(a+1)\gamma^2}{2}, & |\theta| > a\gamma,
+  \end{cases}
+  \;\xrightarrow[\text{minimizer}]{}\;
+  h_\gamma^{\text{SCAD}}(y) =
+  \begin{cases}
+    \operatorname{sign}(y)(|y|-\gamma)_{+}, & |y| \leq 2\gamma, \\
+    \dfrac{(a-1)y - \operatorname{sign}(y)a\gamma}{a-2}, & 2\gamma < |y|\leq a\gamma, \\
+    y, & |y| > a\gamma,
+  \end{cases}
+  $$
+\normalsize
+
+where $a=3.7$ (\cite{fan2001}).
+ 
+
+
+
+## sFPCA-rSVD Algorithm
+
+
+```{=latex}
+\begin{block}{Algorithm: sFPCA-rSVD}
+\begin{enumerate}[<+->]  % reveal each step
+  \item \textbf{Initialization:}  
+        Compute the best rank-one approximation of $X$ using singular value decomposition (SVD),  
+        where $X \approx s u v^\top$, and set $u \leftarrow s u$.
+  \item \textbf{Iterate until convergence:}  
+    \begin{enumerate}
+      \item \textbf{Update Left Singular Vector:} $u \leftarrow Xv$
+      \item \textbf{Update Right Singular Vector:} $v \leftarrow h_\gamma X^\top u$
+      \item \textbf{Normalize Right Singular Vector:} $v \leftarrow \dfrac{v}{\lVert v \rVert}$
+    \end{enumerate}
+\end{enumerate}
+\end{block}
+```
+
+## Cross-Validation for Sparsity Selection
+- **Sparsity parameter**: Tuning parameter controlling number of non-zero loadings in $v$ ($0 =$ dense, $p =$ full sparsity).  
+
+```{=latex}
+\begin{block}{Algorithm: K-fold CV for Sparsity Tuning}
+\small
+\begin{enumerate}[<+->]
+   \item Randomly group the rows of side-by-side data matrix $X$ into $K$ roughly equal-sized groups, denoted as $X^1,...,X^K$. 
+   \item For each sparse tuning parameter $j \in \{0,1,...,p\}$ (level of sparsity), do the following: 
+   \begin{enumerate}
+     \item For $k = 1,...,K$, let $X^{-k}$ be the data matrix $X$ leaving out $X^k$. Apply Algorithm sFPCA-rSVD on $X^{-k}$ and derive the FPC scores $u^{-k}(j)$. Then project $X^k$ onto $u^{-k}(j)$ to obtain $v^k(j)$.
+     \item Calculate the K-fold CV scores defined as: ($N$ is the number of grid points in $X^k$)
+     \vspace{-1em}
+     \[
+     CV_j = \sum_{k=1}^{K} \frac{\Vert X^k - u^{-k}(j)v^{k}(j)\Vert^2}{N}
+     \]
+     \vspace{-1em}
+   \end{enumerate}
+    \item Select the degree of sparsity as $j_0 = \arg\min\{CV(j)\}$.
+\end{enumerate}
+\end{block}
+```
 
 
 # Regularized MFPCA {auto-animate="true"}
