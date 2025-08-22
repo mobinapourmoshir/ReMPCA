@@ -420,6 +420,36 @@ where $a=3.7$ (\cite{fan2001}).
 ```
 
 
+## Comparison & Tuning
+
+::: incremental
+- **Smooth FPCA:**  
+  - Pros: Produces smooth eigenfunctions.  
+  - Algorithm: Penalized power iteration.  
+  - Tuning: $\alpha$ (smoothness) via CV/GCV.  
+
+- **Sparse FPCA:**  
+  - Pros: Feature selection → interpretable.  
+  - Algorithm: Iterative thresholding.  
+  - Tuning: $\gamma$ (sparsity) via CV.  
+
+- **Combined Approaches:** Smooth + Sparse together.  
+  $$
+  \min_{u,v} \|X - uv^\top\|_F^2 + \alpha v^\top \Omega v + p_\gamma(v)
+  $$  
+
+- Trade-off: **Variance explained vs Interpretability vs Smoothness**.  
+:::
+
+
+
+
+
+
+
+
+
+
 # Regularized MFPCA {auto-animate="true"}
 
 \hypertarget{sec:svd}{}
