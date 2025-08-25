@@ -634,7 +634,14 @@ where $a=3.7$ (\cite{fan2001}).
     ```
 
 ## Simulation: Estimation Performance
+**Scenarios tested:**
 ```{=latex}
+\scriptsize 
+1. Unpenalized Multivariate SVD (baseline)  \\
+2. Smoothed Multivariate SVD (smoothness penalty)\\  
+3. Sparse Multivariate SVD (sparsity penalty)  \\
+4. Sparse + Smoothed Multivariate SVD (combined regularization)  
+\vspace{-6mm}
 \begin{figure}[!h]
   \centering
   \begin{minipage}[t]{0.25\textwidth}\centering
@@ -661,24 +668,79 @@ where $a=3.7$ (\cite{fan2001}).
 ```
 
 
-## Evaluation & Scenarios
-::: incremental
-**Accuracy measures**
-1. **Variable-wise MSE:**  
+## Simulation: Estimation Performance
+
+**Accuracy measures**:
+
+1. Variable-wise MSE: 
    $$\mathrm{MSE}_{k\ell} = \tfrac{1}{m}\sum_{j=1}^m(\hat v_{k\ell}(t_j)-v_{k\ell}(t_j))^2$$
-2. **Replication-averaged MSE:**  
+2. Replication-averaged MSE:
    $$\overline{\mathrm{MSE}}_{k\ell} = \tfrac{1}{R}\sum_{r=1}^R \mathrm{MSE}_{k\ell}^{(r)}$$  
-3. **Multivariate MSE:**  
+3. Multivariate MSE:  
    $$\mathrm{MSE}_\ell^{(\mathrm{multi})} = \tfrac{1}{m}\sum_{j=1}^m\sum_{k=1}^2(\hat v_{k\ell}(t_j)-v_{k\ell}(t_j))^2$$
 
-**Scenarios tested**
-1. **Unpenalized Multivariate SVD** (baseline)  
-2. **Smoothed Multivariate SVD** (smoothness penalty)  
-3. **Sparse Multivariate SVD** (sparsity penalty)  
-4. **Sparse + Smoothed Multivariate SVD** (combined regularization)  
+
+## Simulation: Estimation Performance
+
+- **Performance across four methods (SVD, Smooth, Sparse, Smooth+Sparse):**
+  - Smoothness and/or sparsity **reduce MSE** compared to unregularized SVD.  
+  - **Smooth+Sparse** yields lowest error and most stable estimates.  
+  - Smooth estimator performs consistently well; sparsity alone less effective (esp. for PC2).  
+  - Joint regularization achieves best **bias–variance tradeoff**.  
+
+```{=latex}
+\begin{columns}[T,onlytextwidth]
+  \begin{column}{0.55\textwidth}
+    \centering
+    \includegraphics[height=0.6\textheight]{\detokenize{images/MSE_methods_boxplot-Simulation1.pdf}}\\
+  \end{column}
+  \begin{column}{0.45\textwidth}
+    {\tiny
+    \textbf{PC1: Quartiles and Mean log10(MSE)}\\[0.2em]
+    \begin{tabular}{lrrrr}
+    \hline
+    Method & Q1 & Median & Mean & Q3\\ \hline
+    SVD & -3.41 & -3.35 & -3.34 & -3.28\\
+    Smooth & -4.07 & -3.96 & -3.92 & -3.82\\
+    Sparse & -3.57 & -3.50 & -3.49 & -3.43\\
+    Smooth+Sparse & \textbf{-4.38} & \textbf{-4.28} & \textbf{-4.22} & \textbf{-4.14}\\
+    \hline
+    \end{tabular}\\[0.6em]
+
+    \textbf{PC2: Quartiles and Mean log10(MSE)}\\[0.2em]
+    \begin{tabular}{lrrrr}
+    \hline
+    Method & Q1 & Median & Mean & Q3\\ \hline
+    SVD & -2.84 & -2.79 & -2.79 & -2.75\\
+    Smooth & -3.56 & -3.48 & -3.47 & -3.40\\
+    Sparse & -2.83 & -2.79 & -2.79 & -2.75\\
+    Smooth+Sparse & \textbf{-3.59} & \textbf{-3.50} & \textbf{-3.49} & \textbf{-3.42}\\
+    \hline
+    \end{tabular}
+    }% end \scriptsize scope
+  \end{column}
+\end{columns}
+```
+
+
+
+## Application: Household Power Consumption
+
+::: columns
+::: {.column width="45%"}
+- **Dataset:** Bivariate functional data including active power and voltage consumption [@HouseholdElectricPower] for one household between December 2006 and November 2010.
+- **Scaling:** To equalize the contribution of each variable in the multivariate analysis, we rescale them following [@Happ_2018].
+$\tilde{X}_j(t_i) = \hat{w}_j^{1/2} X_j(t_i),$
+$\hat{w}_j = \left( \frac{1}{m} \sum_{i=1}^{m} \widehat{\mathrm{Var}}(X_j(t_i)) \right)^{-1}.$
 :::
 
+::: {.column width="55%"}
+![](images/Electrical_PCS.pdf){height="0.55\textheight"}
 
+\centering \tiny First 3 PCs: MFPCA (red) vs ReMFPCA (black)
+:::
+:::
+Regularization reduces noise while preserving the dominant daily consumption patterns, enhancing interpretability without losing key structure.
 
 
 # Two-way Regularized MFPCA {auto-animate="true"}
