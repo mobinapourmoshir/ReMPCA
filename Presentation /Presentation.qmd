@@ -592,35 +592,30 @@ where $a=3.7$ (\cite{fan2001}).
 
 
 ## Simulation: Estimation Performance
-::: incremental
-- **Data-generating process:**  Two functional variables:
-    $$
-    X^{(1)}_{ij} = u_{i1} v_{11}(t_j) + u_{i2} v_{12}(t_j) + \epsilon_{ij}^{(1)},
-    \quad
-    X^{(2)}_{ij} = u_{i1} v_{21}(t_j) + u_{i2} v_{22}(t_j) + \epsilon_{ij}^{(2)},
-    $$  
-  - where $u_{i1}\sim N(0,\sigma_1^2),\; u_{i2}\sim N(0,\sigma_2^2)$ and $\epsilon_{ij}^{(k)} \sim N(0,\sigma^2)$  and $n=m=101,\; t_j \in [-1,1]$  
+
+- **Data-generating process:** Two functional variables:
+  $$
+  X^{(1)}_{ij} = u_{i1} v_{11}(t_j) + u_{i2} v_{12}(t_j) + \epsilon_{ij}^{(1)},
+  \quad
+  X^{(2)}_{ij} = u_{i1} v_{21}(t_j) + u_{i2} v_{22}(t_j) + \epsilon_{ij}^{(2)},
+  $$
+  - where $u_{i1}\sim N(0,\sigma_1^2),\; u_{i2}\sim N(0,\sigma_2^2)$, $\epsilon_{ij}^{(k)} \sim N(0,\sigma^2)$, and $n=m=101,\; t_j \in [-1,1]$  
 
 - **True functional PCs:**  
   - Variable 1:  
   
-      ```{=latex}
-      \only<+->{%
-      \vspace{-8mm}
-      $$
-        v_{11}(t)=\tfrac{t+\sin(\pi t)}{s_1},\qquad
-        v_{12}(t)=\tfrac{\cos(3\pi t)}{s_2}
-      $$
-      }
-      ```
-  - Variable 2:
-
-    ```{=latex}
-    \vspace{-8mm}
-    \only<+->{%
-    \begingroup
-    \renewcommand{\arraystretch}{0.8}%
-    \[
+  ```{=latex}
+  \vspace{-10mm}
+    $$
+      v_{11}(t)=\tfrac{t+\sin(\pi t)}{s_1},\qquad
+      v_{12}(t)=\tfrac{\cos(3\pi t)}{s_2}
+    $$
+    ```
+  - Variable 2:  
+  
+  ```{=latex}
+  \vspace{-8mm}
+    $$
       v_{21}(t)=
       \begin{cases}
         \dfrac{\sin(3\pi t)}{s_3}, & t \in \bigl(-\tfrac13,\tfrac13\bigr),\\
@@ -633,55 +628,55 @@ where $a=3.7$ (\cite{fan2001}).
         \dfrac{\sin(\pi t)}{s_4}, & t \ge \tfrac13,\\
         0, & \text{otherwise}.
       \end{cases}
-    \]
-    \endgroup
-
+    $$
     \smallskip
-    Here, $s_1,s_2,s_3,s_4$ ensure unit $L^2$ norm.
-    }
+    Here, $s_1,s_2,s_3,s_4$ are normalizing constants ensuring unit $L^2$ norm.
     ```
-:::
 
 ## Simulation: Estimation Performance
-
 ```{=latex}
-\begin{figure}[!b]
+\begin{figure}[!h]
   \centering
-  % Top row
-  \only<1->{%
-    \begin{subfigure}[t]{0.42\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figures/MFPCA-PC-Simulation1.pdf}
-      \caption{MFPCA}
-    \end{subfigure}}
-  \hfill
-  \only<2->{%
-    \begin{subfigure}[t]{0.42\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figures/SmoothMFPCA-PC-Simulation1.pdf}
-      \caption{Smooth MFPCA}
-    \end{subfigure}}
-  
-  \\[-2.5em] % tighten vertical gap
-
-  % Bottom row
-  \only<3->{%
-    \begin{subfigure}[t]{0.42\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figures/SparseMFPCA-PC-Simulation1.pdf}
-      \caption{Sparse MFPCA}
-    \end{subfigure}}
-  \hfill
-  \only<4->{%
-    \begin{subfigure}[t]{0.42\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figures/SmSpMFPCA-PC-Simulation1.pdf}
-      \caption{Smooth + Sparse MFPCA}
-    \end{subfigure}}
-
-  \caption{Estimated FPCs (red) vs true FPCs (black).}
+  \begin{minipage}[t]{0.25\textwidth}\centering
+    \onslide<1->{%
+      \includegraphics[width=\linewidth]{\detokenize{images/MFPCA-PC-Simulation1.pdf}}%
+      }
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.25\textwidth}\centering
+    \onslide<2->{%
+      \includegraphics[width=\linewidth]{\detokenize{images/SmoothMFPCA-PC-Simulation1.pdf}}%
+      }
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.25\textwidth}\centering
+    \onslide<3->{%
+      \includegraphics[width=\linewidth]{\detokenize{images/SparseMFPCA-PC-Simulation1.pdf}}%
+      }
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.25\textwidth}\centering
+    \onslide<4->{%
+      \includegraphics[width=\linewidth]{\detokenize{images/SmSpMFPCA-PC-Simulation1.pdf}}%
+      }
+  \end{minipage}
 \end{figure}
+```
 
+
+## Evaluation & Scenarios
+::: incremental
+**Accuracy measures**
+1. **Variable-wise MSE:**  
+   $$\mathrm{MSE}_{k\ell} = \tfrac{1}{m}\sum_{j=1}^m(\hat v_{k\ell}(t_j)-v_{k\ell}(t_j))^2$$
+2. **Replication-averaged MSE:**  
+   $$\overline{\mathrm{MSE}}_{k\ell} = \tfrac{1}{R}\sum_{r=1}^R \mathrm{MSE}_{k\ell}^{(r)}$$  
+3. **Multivariate MSE:**  
+   $$\mathrm{MSE}_\ell^{(\mathrm{multi})} = \tfrac{1}{m}\sum_{j=1}^m\sum_{k=1}^2(\hat v_{k\ell}(t_j)-v_{k\ell}(t_j))^2$$
+
+**Scenarios tested**
+1. **Unpenalized Multivariate SVD** (baseline)  
+2. **Smoothed Multivariate SVD** (smoothness penalty)  
+3. **Sparse Multivariate SVD** (sparsity penalty)  
+4. **Sparse + Smoothed Multivariate SVD** (combined regularization)  
+:::
 
 
 
@@ -690,20 +685,8 @@ where $a=3.7$ (\cite{fan2001}).
 \hypertarget{sec:two_way}{}
 
 
-
-
-
-
-
-
-
 # Conclusion & Future Work {auto-animate="true"}
 \hypertarget{sec:conclusion}{}
-
-
-
-
-
 
 
 # References
