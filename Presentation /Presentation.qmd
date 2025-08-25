@@ -550,7 +550,6 @@ where $a=3.7$ (\cite{fan2001}).
 - **Goal:** Extend sparse FPCA to multivariate functional data, imposing **sparsity** (select important regions) and **smoothness** (reduce noise).
 - **Sparsity penalties:** Soft, hard, or SCAD thresholding \cite{huang2008sparse,sparseRegression2017,SparsePCA2020}.  
 -  $v \in \mathbb{R}^M, \, M=\sum_{i=1}^p m_i$ and control parameter: $\pmb{\gamma}=(\gamma_1,\ldots,\gamma_p)$, where $\gamma_i$ ranges from 0 (no sparsity) to $m_i$ for each variable.  
-
     ```{=latex}
 \begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
 \small
@@ -566,7 +565,6 @@ where $a=3.7$ (\cite{fan2001}).
 \end{enumerate}
 \end{block}
     ```
-
 :::
 
 ## Smooth and Sparse Multivariate FPCA
@@ -589,8 +587,104 @@ where $a=3.7$ (\cite{fan2001}).
 \end{block}
 ```
 
-- \hyperlink{algo:CvSparse}{Algorithm: CV Tuning for Sparsity} and equation \eqref{eq:MGCV one-way} are used to tune the sparsity level via K‐fold cross‐validation (CV) and the smoothing parameter via generalized cross‐validation (GCV), respectively.
+- \hyperlink{algo:CvSparse}{Algorithm CV Tuning for Sparsity} and equation \eqref{eq:MGCV one-way} are used to tune the sparsity level via K‐fold CV and the smoothing parameter via GCV, respectively.
 :::
+
+
+## Simulation: Estimation Performance
+::: incremental
+- **Data-generating process:**  Two functional variables:
+    $$
+    X^{(1)}_{ij} = u_{i1} v_{11}(t_j) + u_{i2} v_{12}(t_j) + \epsilon_{ij}^{(1)},
+    \quad
+    X^{(2)}_{ij} = u_{i1} v_{21}(t_j) + u_{i2} v_{22}(t_j) + \epsilon_{ij}^{(2)},
+    $$  
+  - where $u_{i1}\sim N(0,\sigma_1^2),\; u_{i2}\sim N(0,\sigma_2^2)$ and $\epsilon_{ij}^{(k)} \sim N(0,\sigma^2)$  and $n=m=101,\; t_j \in [-1,1]$  
+
+- **True functional PCs:**  
+  - Variable 1:  
+  
+      ```{=latex}
+      \only<+->{%
+      \vspace{-8mm}
+      $$
+        v_{11}(t)=\tfrac{t+\sin(\pi t)}{s_1},\qquad
+        v_{12}(t)=\tfrac{\cos(3\pi t)}{s_2}
+      $$
+      }
+      ```
+  - Variable 2:
+
+    ```{=latex}
+    \vspace{-8mm}
+    \only<+->{%
+    \begingroup
+    \renewcommand{\arraystretch}{0.8}%
+    \[
+      v_{21}(t)=
+      \begin{cases}
+        \dfrac{\sin(3\pi t)}{s_3}, & t \in \bigl(-\tfrac13,\tfrac13\bigr),\\
+        0, & \text{otherwise},
+      \end{cases}
+      \qquad
+      v_{22}(t)=
+      \begin{cases}
+        \dfrac{\sin(2\pi t)}{s_4}, & t \le -\tfrac13,\\
+        \dfrac{\sin(\pi t)}{s_4}, & t \ge \tfrac13,\\
+        0, & \text{otherwise}.
+      \end{cases}
+    \]
+    \endgroup
+
+    \smallskip
+    Here, $s_1,s_2,s_3,s_4$ ensure unit $L^2$ norm.
+    }
+    ```
+:::
+
+## Simulation: Estimation Performance
+
+```{=latex}
+\begin{figure}[!b]
+  \centering
+  % Top row
+  \only<1->{%
+    \begin{subfigure}[t]{0.42\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figures/MFPCA-PC-Simulation1.pdf}
+      \caption{MFPCA}
+    \end{subfigure}}
+  \hfill
+  \only<2->{%
+    \begin{subfigure}[t]{0.42\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figures/SmoothMFPCA-PC-Simulation1.pdf}
+      \caption{Smooth MFPCA}
+    \end{subfigure}}
+  
+  \\[-2.5em] % tighten vertical gap
+
+  % Bottom row
+  \only<3->{%
+    \begin{subfigure}[t]{0.42\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figures/SparseMFPCA-PC-Simulation1.pdf}
+      \caption{Sparse MFPCA}
+    \end{subfigure}}
+  \hfill
+  \only<4->{%
+    \begin{subfigure}[t]{0.42\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figures/SmSpMFPCA-PC-Simulation1.pdf}
+      \caption{Smooth + Sparse MFPCA}
+    \end{subfigure}}
+
+  \caption{Estimated FPCs (red) vs true FPCs (black).}
+\end{figure}
+
+
+
+
 
 # Two-way Regularized MFPCA {auto-animate="true"}
 \hypertarget{sec:two_way}{}
