@@ -74,7 +74,7 @@ header-includes:
     \setbeamercolor{author in head/foot}{bg=MUgold, fg=black}
     \setbeamercolor{title in head/foot}{bg=MUgold,  fg=black}
     \setbeamercolor{date in head/foot}{bg=MUgold,   fg=black}
-    \titlegraphic{\vspace{-6mm}\includegraphics[width=0.18\textwidth]{MU.png}}
+    \titlegraphic{\vspace{-6mm}\includegraphics[width=0.18\textwidth]{images/MU.png}}
     \setbeamertemplate{footline}{%
       \leavevmode
       \hbox{%
@@ -132,7 +132,7 @@ header-includes:
     
      % --- Move the logo UP on the title slide ---
     % Reduce vertical space before the logo (negative vspace pulls it upward)
-    \titlegraphic{\vspace{-6mm}\includegraphics[width=0.18\textwidth]{MU.png}}
+    \titlegraphic{\vspace{-6mm}\includegraphics[width=0.18\textwidth]{images/MU.png}}
 
     % (Optional) remove title-box drop shadow if you dislike it
     % \useoutertheme{default}
@@ -1296,4 +1296,5 @@ $$
 
 
 # References
+
 
