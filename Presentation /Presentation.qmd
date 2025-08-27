@@ -838,12 +838,22 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
   \min_{u,v} \|\pmb X - uv^\top\|_F^2 + 
   \sum_j \mathcal P_j^{[\alpha]}(u,v)
   $$
-- Penalties: smoothness, sparsity (soft/hard thresholding, SCAD, group lasso).  
-- Iterative updates:  
-  - $u \leftarrow \pmb S_u^{[\alpha_u]} \; \pmb h_u^{[\gamma_u]}(\pmb X v)$  
-  - $v \leftarrow \pmb S_v^{[\alpha_v]} \; \pmb h_v^{[\gamma_v]}(\pmb X^\top u)$ 
-  - Normalize $v$.  
-- Alternate until convergence.  
+- Penalties: smoothness, sparsity (soft/hard thresholding, SCAD, group lasso, etc.).  
+    ```{=latex}
+\begin{block}{Algorithm: Two-way Smooth + Sparse MFPCA (Sequential Power)}\label{algo:twoway-smsp}
+\small
+\begin{enumerate}[<+->]
+  \item \textbf{Initialization:} Rank-one SVD of $\pmb X$: $\pmb X \approx s\,u^{(0)} {v^{(0)}}^\top$; set $u \leftarrow s\,u^{(0)}$, $v \leftarrow v^{(0)}$.
+  \item \textbf{Repeat until convergence:}
+    \begin{enumerate}
+      \item $u \leftarrow \pmb S_u^{[\alpha_u]}\; \pmb h_u^{[\gamma_u]}(\pmb X\,v)$
+      \item $v \leftarrow \pmb S_v^{[\pmb{\alpha}_v]}\; \pmb h_v^{[\pmb{\gamma}_v]}(\pmb X^\top u)$
+      \item $v \leftarrow v/\lVert v\rVert$
+    \end{enumerate}
+  \item $\pmb X \leftarrow \pmb X - \sigma\,u\,v^\top$ to extract the next component.
+\end{enumerate}
+\end{block}
+    ```
 :::
 
 ## Chess Board
@@ -889,7 +899,120 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 \end{figure}
 ```
 
-  
+## Selection of Regularization Parameters
+
+- Four sets of tuning parameters:  
+  - $\alpha_u$: smoothness of $u$,  $\gamma_u$: sparsity of $u$  
+  - $\pmb{\alpha}_v$: smoothness of $v$,  $\pmb{\gamma}_v$: sparsity of $v$  
+
+- **Challenge:** Ordering of tuning (smoothness vs. sparsity) affects convergence and solutions.  
+
+- **Strategy: Conditional tuning**  
+  1. Initialize all penalties at 0.  
+  2. Tune $\gamma_u$ via $K$-fold CV.  
+  3. Sequentially tune $\gamma_{v,i}$ using Algorithm~\ref{alg:cv}.  
+  4. With sparsity fixed, tune $\alpha_u$ by GCV.  
+  5. Tune $\alpha_{v,i}$ using two-way GCV.  
+  6. Iterate steps 2–5 until stable.  
+
+- This alternating scheme **isolates sparsity vs. smoothness** while ensuring accuracy + interpretability.  
+
+## K-Fold CV algorithm for Sparsity
+```{=latex}
+\footnotesize
+\begin{columns}[T,onlytextwidth]
+
+% ===================== Left: Plain K-fold CV =====================
+\begin{column}{0.48\textwidth}
+\begin{block}{K-Fold CV (Row Sparsity)}
+\begin{enumerate}[<+->]
+  \item Split $\pmb X\in\mathbb R^{n\times M}$ into $K$ column groups 
+        $\{\pmb X^{(1)},\dots,\pmb X^{(K)}\}$.
+  \item For each $\gamma_j$ and $k=1,\dots,K$:
+    \begin{enumerate}
+      \item Train on $\pmb X^{(-k)}$, estimate $u_j^{(-k)}$.
+      \item Validate: $v_j^{(k)}=\pmb X^{(k)\top}u_j^{(-k)}$.
+      \item Fold error:
+        \[
+          \mathrm{Err}^{(k)}_j=\tfrac{1}{\tilde M}\,
+          \|\pmb X^{(k)}-u_j^{(-k)}(v_j^{(k)})^\top\|_F^2.
+        \]
+    \end{enumerate}
+  \item CV score: $\widehat{\mathrm{CV}}_j=\tfrac{1}{K}\sum_k \mathrm{Err}^{(k)}_j$.
+  \item Select $j_0=\arg\min_j \widehat{\mathrm{CV}}_j$.
+\end{enumerate}
+\end{block}
+\end{column}
+
+% ===================== Right: 1-SE Rule =====================
+\begin{column}{0.48\textwidth}
+\begin{block}{K-Fold CV + 1-SE Rule}
+\begin{enumerate}[<+->]
+  \item Use same folds to collect $\mathrm{Err}^{(k)}_j$.
+  \item Compute mean $\widehat{\mathrm{CV}}_j$ and SE $\widehat{\mathrm{SE}}_j$:
+    \[
+    \widehat{\mathrm{SE}}_j=\sqrt{\tfrac{1}{K(K-1)}\sum_k
+    (\mathrm{Err}^{(k)}_j-\widehat{\mathrm{CV}}_j)^2}.
+    \]
+  \item Let $j^\star=\arg\min_j \widehat{\mathrm{CV}}_j$.
+  \item Choose sparsest $j_0$ with
+    $\widehat{\mathrm{CV}}_j \le
+     \widehat{\mathrm{CV}}_{j^\star}+\widehat{\mathrm{SE}}_{j^\star}$.
+\end{enumerate}
+\end{block}
+\end{column}
+
+\end{columns}
+```
+
+## K-Fold CV algorithm for Sparsity
+```{=latex}
+\footnotesize
+\begin{columns}[T,onlytextwidth]
+
+% ===================== Left: Plain K-fold CV =====================
+\begin{column}{0.48\textwidth}
+\begin{block}{K-Fold CV (Column Sparsity)}
+\begin{enumerate}[<+->]
+  \item Split $\pmb X\in\mathbb R^{n\times M}$ into $K$ row groups 
+        $\{\pmb X^{(1)},\dots,\pmb X^{(K)}\}$.
+  \item For each $\gamma_j$ and $k=1,\dots,K$:
+    \begin{enumerate}
+      \item Train on $\pmb X^{(-k)}$, estimate $v_j^{(-k)}$.
+      \item Validate: $u_j^{(k)}=\pmb X^{(k)} v_j^{(-k)}$.
+      \item Fold error:
+        \[
+          \mathrm{Err}^{(k)}_j=\tfrac{1}{\tilde n}\,
+          \|\pmb X^{(k)}-u_j^{(k)}(v_j^{(-k)})^\top\|_F^2.
+        \]
+    \end{enumerate}
+  \item CV score: $\widehat{\mathrm{CV}}_j=\tfrac{1}{K}\sum_k \mathrm{Err}^{(k)}_j$.
+  \item Select $j_0=\arg\min_j \widehat{\mathrm{CV}}_j$.
+\end{enumerate}
+\end{block}
+\end{column}
+
+% ===================== Right: 1-SE Rule =====================
+\begin{column}{0.48\textwidth}
+\begin{block}{K-Fold CV + 1-SE Rule}
+\begin{enumerate}[<+->]
+  \item Use same folds to collect $\mathrm{Err}^{(k)}_j$.
+  \item Compute mean $\widehat{\mathrm{CV}}_j$ and SE $\widehat{\mathrm{SE}}_j$:
+    \[
+    \widehat{\mathrm{SE}}_j=\sqrt{\tfrac{1}{K(K-1)}\sum_k
+    (\mathrm{Err}^{(k)}_j-\widehat{\mathrm{CV}}_j)^2}.
+    \]
+  \item Let $j^\star=\arg\min_j \widehat{\mathrm{CV}}_j$.
+  \item Choose sparsest $j_0$ with
+    $\widehat{\mathrm{CV}}_j \le
+     \widehat{\mathrm{CV}}_{j^\star}+\widehat{\mathrm{SE}}_{j^\star}$.
+\end{enumerate}
+\end{block}
+\end{column}
+
+\end{columns}
+```
+
 
 # Conclusion & Future Work {auto-animate="true"}
 \hypertarget{sec:conclusion}{}
