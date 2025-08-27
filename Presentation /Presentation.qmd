@@ -1014,6 +1014,70 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 ```
 
 
+## Variance Explained: Classical vs Regularized FPCA
+
+::: incremental
+- **Classical FPCA:** Loadings $v_j$ orthonormal; scores $u_j=Xv_j$ uncorrelated.  
+  Variance explained by first $J$ PCs:
+  $$
+  \sum_{j=1}^J \|u_j\|^2
+  = \mathrm{trace}\!\big(V_J^\top X^\top X\,V_J\big),\qquad
+  V_J=[v_1,\dots,v_J].
+  $$
+
+- **Issue under regularization:** smoothness/sparsity break orthogonality → scores become correlated → naive sum $\sum \|u_j\|^2$ **double-counts** variance (cf. Huang et al., 2008).
+:::
+
+
+## Subspace-Projection Definition of Explained Variance
+
+::: incremental
+- Normalize loadings and stack:
+  $$
+  V_J=[v_1,\dots,v_J],\qquad v_j \leftarrow \frac{v_j}{\|v_j\|}.
+  $$
+
+- **Orthogonal projector onto span\((v_1,\dots,v_J)\):**
+  $$
+  H_J=V_J\,(V_J^\top V_J)^{-1} V_J^\top,\qquad
+  H_J^2=H_J,\; H_J^\top=H_J.
+  $$
+
+- Projected data and explained variance:
+  $$
+  X_J=X H_J,\qquad
+  \mathsf{V}_{\text{tot}}=\mathrm{tr}(X^\top X),\qquad
+  \mathcal{V}_J=\|X_J\|_F^2=\mathrm{tr}\!\big(H_J X^\top X H_J\big).
+  $$
+:::
+
+
+## PVE, Incremental PVE, and Properties
+
+::: incremental
+- Incremental variance:
+  $$
+  \Delta\mathcal{V}_j=\mathcal{V}_j-\mathcal{V}_{j-1},\qquad \mathcal{V}_0=0.
+  $$
+
+- **Proportion of variance explained (PVE):**
+  $$
+  \mathrm{PVE}(J)=\frac{\mathcal{V}_J}{\mathsf{V}_{\text{tot}}},\qquad
+  \mathrm{pve}_j=\frac{\Delta\mathcal{V}_j}{\mathsf{V}_{\text{tot}}}
+  =\mathrm{PVE}(j)-\mathrm{PVE}(j-1).
+  $$
+
+- **Key properties:**  
+  • No double-counting (works with correlated scores).  
+  • Reduces to classical PCA when $V_J^\top V_J=I_J$.  
+  • Monotone in $J$ ($\mathcal{V}_J$ increases).  
+  • $\Delta\mathcal{V}_j$ = unique variance added by component $j$.
+:::
+
+
+
+
+
 # Conclusion & Future Work {auto-animate="true"}
 \hypertarget{sec:conclusion}{}
 
