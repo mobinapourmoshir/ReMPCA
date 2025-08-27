@@ -27,6 +27,7 @@ link-citations: true
 
 header-includes:
   - |
+    \usepackage{subcaption}
     \usepackage{amsmath,amssymb,mathtools}
     \usepackage{algorithm}
     \usepackage{natbib}
@@ -1074,12 +1075,224 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
   • $\Delta\mathcal{V}_j$ = unique variance added by component $j$.
 :::
 
+## Simulation: Two-way Functional Data 
+- **Data-generating process:** $X^{(1)}_{ij} = u_{i1} v_{11}(t_j) + u_{i2} v_{12}(t_j) + \epsilon_{ij}^{(1)}, \quad X^{(2)}_{ij} = u_{i1} v_{21}(t_j) + u_{i2} v_{22}(t_j) + \epsilon_{ij}^{(2)},$
+- **Latent scores:** generated as smooth functions  
+    ```{=latex}
+    \vspace{-4mm}
+  $$
+  u_{1}(s)=\begin{cases}
+  \sin(\pi s), & s>0, \\ 
+  0, & \text{otherwise},
+  \end{cases}
+  \quad
+  u_{2}(s)=\sin(2\pi s),\quad s\in[-1,1].
+  $$
+    ```
 
+- **Functional PCs:**  
+  - Variable 1: $v_{11}(t)=\tfrac{t+\sin(\pi t)}{s_1},\qquad v_{12}(t)=\tfrac{\cos(3\pi t)}{s_2}$
+  - Variable 2:  
+  
+    ```{=latex}
+  \vspace{-8mm}
+    $$
+      v_{21}(t)=
+      \begin{cases}
+        \dfrac{\sin(3\pi t)}{s_3}, & t \in \bigl(-\tfrac13,\tfrac13\bigr),\\
+        0, & \text{otherwise},
+      \end{cases}
+      \qquad
+      v_{22}(t)=
+      \begin{cases}
+        \dfrac{\sin(2\pi t)}{s_4}, & t \le -\tfrac13,\\
+        \dfrac{\sin(\pi t)}{s_4}, & t \ge \tfrac13,\\
+        0, & \text{otherwise}.
+      \end{cases}
+    $$
+    ```
+  
+  
+  
+## Evaluation Metrics 
+- **Integrated Squared Error (ISE):**  
+  For replicate $r$ and component $u_1$:  
+  $$
+  \mathrm{ISE}_r^{(u_1,\text{method})}
+  = \frac{1}{m}\sum_{j=1}^m
+  \Big(u_1(t_j) - \widehat u_1^{(\text{method})}(t_j)\Big)^2.
+  $$
+- **Relative ISE (R\_ISE):** ratio vs best method  
+  $$
+  R_r^{(u_1,\text{method})}
+  = \frac{\mathrm{ISE}_r^{(u_1,\text{method})}}
+         {\mathrm{ISE}_r^{(u_1,\text{best})}}.
+  $$
+- **Monte Carlo averages:**  
+  $$
+  \overline{R}^{(u_1,\text{method})}
+  = \frac{1}{N}\sum_{r=1}^N R_r^{(u_1,\text{method})}, 
+  \qquad
+  \mathrm{SE}\big(\overline{R}\big)
+  = \sqrt{\frac{1}{N(N-1)}\sum_{r=1}^N
+  \Big(R_r - \overline{R}\Big)^2}.
+  $$
 
+## Simulation Results
+```{=latex}
+\centering
+\begin{minipage}[t]{0.32\textwidth}\centering
+  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - SVD.pdf}}\\
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}\centering
+  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Smoothness_and_Sparsity_on_u.pdf}}\\
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}\centering
+  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Smoothness_and_Sparsity_on_v.pdf}}\\
+\end{minipage}
+```
+
+## Simulation Results
+```{=latex}
+\centering
+\begin{minipage}[t]{0.32\textwidth}\centering
+  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - SVD.pdf}}\\
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}\centering
+  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Smoothness_and_Sparsity_on_u.pdf}}\\
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\textwidth}\centering
+  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Smoothness_and_Sparsity_on_v.pdf}}\\
+\end{minipage}
+```
+
+## Simulation Results
+```{=latex}
+\begin{columns}[T,onlytextwidth]
+
+% -------- Left table: ISE --------
+\begin{column}{0.51\textwidth}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+
+\begin{block}{Table 3: Mean ISE for each method and parameter}
+\begin{tabular}{lrrrr}
+\toprule
+Method              & u1     & u2     & v1       & v2       \\
+\midrule
+SVD                 & 0.3651 & 0.1587 & 0.00005  & 0.00010  \\
+Smooth+Sparse $v$   & 0.3651 & 0.1587 & \textbf{0.00002} & \textbf{0.00002} \\
+Smooth+Sparse $u$   & \textbf{0.3650} & \textbf{0.1584} & 0.00005  & 0.00010  \\
+Two-way Smoothness  & \textbf{0.3650} & 0.1585 & \textbf{0.00002} & \textbf{0.00002} \\
+Two-way Sparsity    & 0.3651 & 0.1586 & 0.00004  & 0.00009  \\
+\textbf{Two-way Sm+Sp} & \textbf{0.3650} & \textbf{0.1584} & \textbf{0.00002} & \textbf{0.00002} \\
+\bottomrule
+\end{tabular}
+\end{block}
+
+\end{column}
+
+% -------- Right table: Relative ISE --------
+\begin{column}{0.43\textwidth}
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+
+\begin{block}{Table 4: Mean Relative ISE for each method and parameter}
+\begin{tabular}{lrrrr}
+\toprule
+Method              & u1   & u2   & v1    & v2    \\
+\midrule
+SVD                 & 1.000 & 1.001 & 8.21  & 5.23 \\
+Two-way Sparsity    & 1.000 & 1.001 & 7.71  & 4.61 \\
+Smooth+Sparse $v$   & 1.000 & 1.001 & 1.05  & \textbf{1.01} \\
+Smooth+Sparse $u$   & \textbf{1.000} & \textbf{1.000} & 8.19  & 5.21 \\
+Two-way Smoothness  & \textbf{1.000} & \textbf{1.000} & \textbf{1.00} & 1.21 \\
+\bottomrule
+\end{tabular}
+\end{block}
+
+\end{column}
+
+\end{columns}
+```
+
+- Two-way Smooth+Sparse consistently yields the lowest errors across $u$ and $v$.
+
+## Application: Motion Sense Data
+
+- **Dataset:** Acceleration and pitch from 24 people, 4 activities (jogging, walking, sitting, standing), about 2–3 min each.
+- **Goal:** Compare SVD vs **two-way sparse + smooth ReMFPCA** on these multivariate functional signals.
+- **Rescaling (Happ & Greven, 2018):** balance variables so each contributes equally.
+  
+$$
+\hat{w}_j=\left(\frac{1}{m}\sum_{i=1}^m \widehat{\mathrm{Var}}\!\big(X_j(t_i)\big)\right)^{-1},
+\qquad
+\tilde{X}_j(t_i)=\hat{w}_j^{1/2}X_j(t_i).
+$$
+
+- **Penalties used:** smoothness + sparsity on loadings $v$; sparsity on scores $u$ (treated as random effects).
+
+## Results: Functional PCs (SVD vs ReMFPCA)
+
+::: columns
+::: {.column width="100%"}
+![](images/Motion Sense PCS.pdf){width="92%"}
+:::
+:::
+
+- **SVD (gray):** noisy, high-frequency wiggles.
+- **ReMFPCA (black):** smoother, more interpretable PCs capturing dominant structure.
+
+## Results: PC Scores and Interpretation
+
+::: columns
+::: {.column width="100%"}
+![](images/Motion Sense PC Scores.pdf){width="70%"}
+:::
+:::
+
+- Sparsity on scores: **PC1 scores for walking about 0** (partially standing too).
+- Interpretation: walking contributes little to PC1; removing it **improves interpretability** without hurting fit.
+- Takeaway: **Two-way smooth + sparse ReMFPCA** yields cleaner PCs and activity-informative scores.
 
 
 # Conclusion & Future Work {auto-animate="true"}
 \hypertarget{sec:conclusion}{}
+
+- **Unified FPCA Framework**  
+  - Combines **smoothness** (denoise, interpretability) + **sparsity** (variable selection).  
+  - Extends from **univariate → multivariate → two-way functional data**.  
+
+- **Methodology**  
+  - Penalized SVD with roughness + $\ell_1$ penalties.  
+  - Two-way regularization: smoothness & sparsity on both **scores ($u$)** and **loadings ($v$)**.  
+  - Efficient parameter tuning: **conditional GCV** & **K-fold CV** (with 1-SE rule).  
+
+- **Results**  
+  - Simulations & applications (mortality, call-center, image data).  
+  - Outperforms one-way or single-penalty methods.  
+  - Produces **low-rank, denoised, interpretable components**.  
+  
+  
+## Accessible Implementation: R Package & Future Work
+
+- Implemented in **R package `ReMPCA` (GitHub)**  
+  - Univariate & multivariate FPCA with penalties.  
+  - Two-way MFPCA for matrix-valued functions.  
+  - Automated tuning (CV, GCV, 1-SE rule).  
+  - Diagnostic tools: variance explained, visualization, heatmaps.  
+  - Early support for **hybrid data (scalar + functional + image)**.  
+- **Hybrid Data Extensions**  
+  - Image–Functional Hybrid PCA → simultaneous dimension reduction.  
+  - Scalar–Functional Integration → joint low-dim space.  
+  - Nonlinear Extensions → kernel FPCA, neural nets.  
+- **Applications:**  
+  - Neuroimaging  
+  - Personalized medicine  
+  - Environmental monitoring  
+**Takeaway:**  Smooth + sparse + two-way FPCA offers a **theoretical foundation, practical algorithms, and open software** to enable next-generation functional data analysis.
 
 
 # References
