@@ -745,7 +745,151 @@ Regularization reduces noise while preserving the dominant daily consumption pat
 
 # Two-way Regularized MFPCA {auto-animate="true"}
 \hypertarget{sec:two_way}{}
+::: incremental
+- **Two-way functional data:** Each observation is a *matrix of curves*, with smooth variation across **two domains**  (e.g., time × space in air quality, time × channels in EEG).  
+- **Limitation of standard FPCA [@ramsay2005functional]:**  
+  - Focuses on one domain (often time).  
+  - Penalties applied only to loadings → ignores structure in second domain.  
+  - Results may be rough or overly dense along the unpenalized axis.  
+- **Two-way FPCA [@twoway_huang]:**  
+  - Introduced **smoothness penalties** on both scores and loadings.  
+  - Produces coherent, interpretable *component surfaces* instead of jagged approximations.  
+- **Our contribution:**  
+  - Extend to **multivariate functional data** (multiple functional variables).  
+  - Combine **smoothness + sparsity penalties** in both directions.  
+  - Result: Low-rank, interpretable, noise-robust principal components for high-dimensional applications.  
+  
+:::
+  
 
+## Two-way Smoothed MFPCA: Setup & Penalty
+
+::: incremental
+- Two-way multivariate functional data: $\pmb X \in \mathbb{R}^{n\times M}, \quad M=\sum_{i=1}^p m_i.$  
+
+- Roughness matrices: $\pmb\Omega_u\in\mathbb{R}^{n\times n},\;\pmb\Omega_v\in\mathbb{R}^{M\times M}$ (symmetric, non-negative definite).  
+
+- Smoothers: $\pmb S_u(\alpha_u)=(I+\alpha_u\,\pmb\Omega_u)^{-1}, \qquad \pmb S_v(\pmb\alpha_v)=(I+\pmb\alpha_v\,\pmb\Omega_v)^{-1}.$
+
+- Penalized rank-one reconstruction:  
+  $$
+  \min_{u,v}\;\|\pmb X-uv^\top\|_F^2+\mathcal P(u,v)
+  $$
+
+- Penalty [@twoway_huang]:  $\mathcal P(u,v;\alpha_u,\pmb\alpha_v) = u^\top(\alpha_u\pmb\Omega_u)u\,\|v\|^2 + \|u\|^2\,v^\top(\pmb\alpha_v\pmb\Omega_v)v + u^\top(\alpha_u\pmb\Omega_u)u\; v^\top(\pmb\alpha_v\pmb\Omega_v)v.$
+
+- Multivariate $v$:  $\pmb\Omega_v=\operatorname{blockdiag}(\Omega_1,\ldots,\Omega_p).$
+:::
+
+
+## Two-way Smoothed MFPCA: Conditional GCV
+
+::: incremental
+- Minimizers:  
+    ```{=latex}
+    \vspace{-3mm}
+    \small
+\[
+u=\frac{\pmb S_u(\alpha_u)\,\pmb X v}{v^\top (I+\pmb{\alpha}_v\,\pmb{\Omega}_v)\,v}
+=\frac{\pmb S_u(\alpha_u)}{1+\pmb{\alpha}_v\,\pmb R_v(v)}\;\frac{\pmb X v}{\|v\|^2},
+\qquad
+v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega}_u)\,u}
+=\frac{\pmb S_v(\pmb{\alpha}_v)}{1+\alpha_u\,\pmb R_u(u)}\;\frac{\pmb X^\top u}{\|u\|^2}.
+\]
+    ```
+
+- Rayleigh quotients:  $\pmb R_u(u)=\frac{u^\top\pmb\Omega_u u}{\|u\|^2}, \qquad \pmb R_v(v)=\frac{v^\top\pmb\Omega_v v}{\|v\|^2}.$
+
+- Conditional GCV criteria:  
+    ```{=latex}
+    \vspace{-4mm}
+  \small
+\[
+\mathrm{GCV}_u(\alpha_u;\pmb{\alpha}_v)=
+\frac{\tfrac1n\left\|\Big(I-\tfrac{\pmb S_u(\alpha_u)}{1+\pmb{\alpha}_v\,\pmb R_v(v)}\Big)\tfrac{\pmb X v}{\|v\|^2}\right\|^2}
+{\Big(1-\tfrac1n\,\mathrm{tr}\!\big(\tfrac{\pmb S_u(\alpha_u)}{1+\pmb{\alpha}_v\,\pmb R_v(v)}\big)\Big)^2},
+\qquad
+\mathrm{GCV}_v(\pmb{\alpha}_v;\alpha_u)=
+\frac{\tfrac1m\left\|\Big(I-\tfrac{\pmb S_v(\pmb{\alpha}_v)}{1+\alpha_u\,\pmb R_u(u)}\Big)\tfrac{\pmb X^\top u}{\|u\|^2}\right\|^2}
+{\Big(1-\tfrac1m\,\mathrm{tr}\!\big(\tfrac{\pmb S_v(\pmb{\alpha}_v)}{1+\alpha_u\,\pmb R_u(u)}\big)\Big)^2}.
+\]
+    ```
+
+- **Optimization:** Alternate updates of $u$ and $v$ using GCV until convergence → two-way regularized components.  
+:::
+
+
+## Two-way Smooth + Sparse MFPCA
+
+::: incremental
+- **Goal:** Extract components that are **low-rank, smooth, and sparse**.  
+- **Why?**
+  - Smoothness → coherent variation across subjects & functions.  
+  - Sparsity → highlights key observations & time regions.  
+- **Novelty:** First framework to combine **both** in two-way functional data.  
+- **Result:** Robust, interpretable, noise-resistant components for high-dimensional data.  
+:::
+
+## Sequential Power Algorithm
+
+::: incremental
+- Data matrix $\pmb{X}$: seek $u, v$ solving:
+  $$
+  \min_{u,v} \|\pmb X - uv^\top\|_F^2 + 
+  \sum_j \mathcal P_j^{[\alpha]}(u,v)
+  $$
+- Penalties: smoothness, sparsity (soft/hard thresholding, SCAD, group lasso).  
+- Iterative updates:  
+  - $u \leftarrow \pmb S_u^{[\alpha_u]} \; \pmb h_u^{[\gamma_u]}(\pmb X v)$  
+  - $v \leftarrow \pmb S_v^{[\alpha_v]} \; \pmb h_v^{[\gamma_v]}(\pmb X^\top u)$ 
+  - Normalize $v$.  
+- Alternate until convergence.  
+:::
+
+## Chess Board
+```{=latex}
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/True.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/svd_Reconstructed.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/Lasso_reconstructed.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/u1plots.pdf}
+    \end{subfigure}
+
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/NoisyChessboard.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/smooth_reconstructed.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/pic.compress.pdf}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/v1plots.pdf}
+    \end{subfigure}
+    \captionsetup{font=small, justification=centering}
+    \caption{Regularized PCA results for the chessboard using the first principal component.}
+    \label{fig:chess}
+\end{figure}
+```
+
+  
 
 # Conclusion & Future Work {auto-animate="true"}
 \hypertarget{sec:conclusion}{}
