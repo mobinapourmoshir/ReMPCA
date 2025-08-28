@@ -479,7 +479,7 @@ where $a=3.7$ (\cite{fan2001}).
   \quad u_i \in \mathbb{R}^n, \; v_i \in \mathbb{R}^{m_i}
   $$
 
-- **Full data matrix**:  $\mathbf{X} = [X_1 \; X_2 \; \cdots \; X_p]  \in \mathbb{R}^{n \times \sum_{i=1}^p m_i}$
+- **Full data matrix**:  $\mathbf{X} = [X_1\quad X_2\quad \cdots\quad X_p]  \in \mathbb{R}^{n \times \sum_{i=1}^p m_i}$
 
 - **Block structure example**:  
   $$
@@ -489,7 +489,7 @@ where $a=3.7$ (\cite{fan2001}).
   \vdots & \ddots & \vdots \\
   x_{ni}(t_{i1}) & \cdots & x_{ni}(t_{i,m_i})
   \end{bmatrix}, \quad
-  \mathbf{X} = [X_1 \; X_2 \; \dots \; X_p]
+  \mathbf{X} = [X_1\quad X_2\quad \cdots\quad X_p]
   $$
 ::: 
 
@@ -503,7 +503,7 @@ where $a=3.7$ (\cite{fan2001}).
   with $u \in \mathbb{R}^n$ (score vector) and $v \in \mathbb{R}^M$ (loading vector).  
   A smoothness penalty is imposed on $v$.  
 
-- The block-diagonal penalty matrix is  $\pmb{\Omega} = \operatorname{blockdiag}\bigl(\Omega_1, \Omega_2, \dots, \Omega_p\bigr),$
+- The block-diagonal penalty matrix is  $\pmb{\Omega} = \operatorname{diag}\bigl(\Omega_1, \Omega_2, \dots, \Omega_p\bigr),$
   where each $\Omega_i \in \mathbb{R}^{m_i \times m_i}$ is a univariate roughness penalty matrix.  
 
 - The penalized reconstruction error is  
@@ -555,13 +555,13 @@ where $a=3.7$ (\cite{fan2001}).
 \begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
 \small
 \begin{enumerate}[<+->]
-  \item \textbf{Initialization:}
+  \item {Initialization:}
         Compute rank-one SVD of $\pmb{X}$, $\pmb{X}\approx s,u,v^\top$, and set $u \gets s,u$.
-  \item \textbf{Iterate until convergence:}
+  \item {Iterate until convergence:}
     \begin{enumerate}
-      \item \textbf{Update left singular vector:} $u \leftarrow \pmb{X}v$
-      \item \textbf{Update right singular vector:} $v \leftarrow \pmb{h_\gamma}\,\pmb{X}^\top u$
-      \item \textbf{Normalize right singular vector:} $v \leftarrow \dfrac{v}{\lVert v\rVert}$
+      \item {Update left singular vector:} $u \leftarrow \pmb{X}v$
+      \item {Update right singular vector:} $v \leftarrow \pmb{h_\gamma}\,\pmb{X}^\top u$
+      \item {Normalize right singular vector:} $v \leftarrow \dfrac{v}{\lVert v\rVert}$
     \end{enumerate}
 \end{enumerate}
 \end{block}
@@ -779,7 +779,7 @@ Regularization reduces noise while preserving the dominant daily consumption pat
 
 - Penalty [@twoway_huang]:  $\mathcal P(u,v;\alpha_u,\pmb\alpha_v) = u^\top(\alpha_u\pmb\Omega_u)u\,\|v\|^2 + \|u\|^2\,v^\top(\pmb\alpha_v\pmb\Omega_v)v + u^\top(\alpha_u\pmb\Omega_u)u\; v^\top(\pmb\alpha_v\pmb\Omega_v)v.$
 
-- Multivariate $v$:  $\pmb\Omega_v=\operatorname{blockdiag}(\Omega_1,\ldots,\Omega_p).$
+- Multivariate $v$:  $\pmb\Omega_v=\operatorname{diag}(\Omega_1,\ldots,\Omega_p).$
 :::
 
 
@@ -844,8 +844,8 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 \begin{block}{Algorithm: Two-way Smooth + Sparse MFPCA (Sequential Power)}\label{algo:twoway-smsp}
 \small
 \begin{enumerate}[<+->]
-  \item \textbf{Initialization:} Rank-one SVD of $\pmb X$: $\pmb X \approx s\,u^{(0)} {v^{(0)}}^\top$; set $u \leftarrow s\,u^{(0)}$, $v \leftarrow v^{(0)}$.
-  \item \textbf{Repeat until convergence:}
+  \item {Initialization:} Rank-one SVD of $\pmb X$: $\pmb X \approx s\,u^{(0)} {v^{(0)}}^\top$; set $u \leftarrow s\,u^{(0)}$, $v \leftarrow v^{(0)}$.
+  \item {Repeat until convergence:}
     \begin{enumerate}
       \item $u \leftarrow \pmb S_u^{[\alpha_u]}\; \pmb h_u^{[\gamma_u]}(\pmb X\,v)$
       \item $v \leftarrow \pmb S_v^{[\pmb{\alpha}_v]}\; \pmb h_v^{[\pmb{\gamma}_v]}(\pmb X^\top u)$
@@ -1038,11 +1038,11 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
   V_J=[v_1,\dots,v_J],\qquad v_j \leftarrow \frac{v_j}{\|v_j\|}.
   $$
 
-- **Orthogonal projector onto span\((v_1,\dots,v_J)\):**
+- Orthogonal projector onto span $(v_1,\dots,v_J)$:
   $$
   H_J=V_J\,(V_J^\top V_J)^{-1} V_J^\top,\qquad
-  H_J^2=H_J,\; H_J^\top=H_J.
   $$
+  where $H_{J}$ is a a symmetric idempotent matrix. ($H_{J}^{2}=H_{J},\; H_{J}^{\top}=H_{J}$)
 
 - Projected data and explained variance:
   $$
