@@ -861,28 +861,43 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 
 ## Two-way Smooth + Sparse MFPCA
 
-::: incremental
 - **Goal:** Extract components that are **low-rank, smooth, and sparse**.  
+
+::: {.fragment style="height: 0.5em"}
+:::
+
 - **Why?**
   - Smoothness → coherent variation across subjects & functions.  
   - Sparsity → highlights key observations & time regions.  
-- **Novelty:** First framework to combine **both** in two-way functional data.  
-- **Result:** Robust, interpretable, noise-resistant components for high-dimensional data.  
+
+::: {.fragment style="height: 0.5em"}
 :::
 
-## Sequential Power Algorithm
+- **Novelty:** First framework to combine **both** in two-way functional data.  
 
-::: incremental
+::: {.fragment style="height: 0.5em"}
+:::
+
+- **Result:** Robust, interpretable, noise-resistant components for high-dimensional data.  
+
+
+## Sequential Power Algorithm
 - Data matrix $\pmb{X}$: seek $u, v$ solving:
   $$
   \min_{u,v} \|\pmb X - uv^\top\|_F^2 + 
   \sum_j \mathcal P_j^{[\alpha]}(u,v)
   $$
 - Penalties: smoothness, sparsity (soft/hard thresholding, SCAD, group lasso, etc.).  
-    ```{=latex}
+
+```{=latex}
+\pause
+```
+
+```{=latex}
 \begin{block}{Algorithm: Two-way Smooth + Sparse MFPCA (Sequential Power)}\label{algo:twoway-smsp}
+\label{algo:SSPower}
 \small
-\begin{enumerate}[<+->]
+\begin{enumerate}
   \item {Initialization:} Rank-one SVD of $\pmb X$: $\pmb X \approx s\,u^{(0)} {v^{(0)}}^\top$; set $u \leftarrow s\,u^{(0)}$, $v \leftarrow v^{(0)}$.
   \item {Repeat until convergence:}
     \begin{enumerate}
@@ -893,49 +908,40 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
   \item $\pmb X \leftarrow \pmb X - \sigma\,u\,v^\top$ to extract the next component.
 \end{enumerate}
 \end{block}
-    ```
-:::
+```
+
+
 
 ## Chess Board
 ```{=latex}
 \begin{figure}[h!]
-    \centering
-    \begin{subfigure}[b]{0.24\textwidth}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/True.pdf}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.24\textwidth}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/svd_Reconstructed.pdf}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.24\textwidth}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/Lasso_reconstructed.pdf}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.24\textwidth}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/u1plots.pdf}
-    \end{subfigure}
+\centering
 
-    \begin{subfigure}[b]{0.24\textwidth}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/NoisyChessboard.pdf}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.24\textwidth}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/smooth_reconstructed.pdf}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.24\textwidth}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/pic.compress.pdf}
-    \end{subfigure}
-    \begin{subfigure}[b]{0.24\textwidth}
-        \centering
-        \includegraphics[width=0.8\textwidth]{images/v1plots.pdf}
-    \end{subfigure}
-    \captionsetup{font=small, justification=centering}
-    \caption{Regularized PCA results for the chessboard using the first principal component.}
-    \label{fig:chess}
+\begin{subfigure}[b]{0.24\textwidth}\centering
+\uncover<1->{\includegraphics[width=.8\textwidth]{images/True.pdf}}
+\end{subfigure}
+\begin{subfigure}[b]{0.24\textwidth}\centering
+\uncover<2->{\includegraphics[width=.8\textwidth]{images/svd_Reconstructed.pdf}}
+\end{subfigure}
+\begin{subfigure}[b]{0.24\textwidth}\centering
+\uncover<3->{\includegraphics[width=.8\textwidth]{images/Lasso_reconstructed.pdf}}
+\end{subfigure}
+\begin{subfigure}[b]{0.24\textwidth}\centering
+\uncover<4->{\includegraphics[width=.8\textwidth]{images/u1plots.pdf}}
+\end{subfigure}
+
+\begin{subfigure}[b]{0.24\textwidth}\centering
+\uncover<5->{\includegraphics[width=.8\textwidth]{images/NoisyChessboard.pdf}}
+\end{subfigure}
+\begin{subfigure}[b]{0.24\textwidth}\centering
+\uncover<6->{\includegraphics[width=.8\textwidth]{images/smooth_reconstructed.pdf}}
+\end{subfigure}
+\begin{subfigure}[b]{0.24\textwidth}\centering
+\uncover<7->{\includegraphics[width=.8\textwidth]{images/pic.compress.pdf}}
+\end{subfigure}
+\begin{subfigure}[b]{0.24\textwidth}\centering
+\uncover<8->{\includegraphics[width=.8\textwidth]{images/v1plots.pdf}}
+\end{subfigure}
 \end{figure}
 ```
 
@@ -947,10 +953,14 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 
 - **Challenge:** Ordering of tuning (smoothness vs. sparsity) affects convergence and solutions.  
 
+```{=latex}
+\pause
+```
+
 - **Strategy: Conditional tuning**  
   1. Initialize all penalties at 0.  
   2. Tune $\gamma_u$ via $K$-fold CV.  
-  3. Sequentially tune $\gamma_{v,i}$ using Algorithm~\ref{alg:cv}.  
+  3. Sequentially tune $\gamma_{v,i}$ using \hyperlink{algo:SSPower}{Algorithm:Two-way Smooth + Sparse MFPCA}.
   4. With sparsity fixed, tune $\alpha_u$ by GCV.  
   5. Tune $\alpha_{v,i}$ using two-way GCV.  
   6. Iterate steps 2–5 until stable.  
@@ -965,7 +975,7 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 % ===================== Left: Plain K-fold CV =====================
 \begin{column}{0.48\textwidth}
 \begin{block}{K-Fold CV (Row Sparsity)}
-\begin{enumerate}[<+->]
+\begin{enumerate}
   \item Split $\pmb X\in\mathbb R^{n\times M}$ into $K$ column groups 
         $\{\pmb X^{(1)},\dots,\pmb X^{(K)}\}$.
   \item For each $\gamma_j$ and $k=1,\dots,K$:
@@ -987,7 +997,7 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 % ===================== Right: 1-SE Rule =====================
 \begin{column}{0.48\textwidth}
 \begin{block}{K-Fold CV + 1-SE Rule}
-\begin{enumerate}[<+->]
+\begin{enumerate}
   \item Use same folds to collect $\mathrm{Err}^{(k)}_j$.
   \item Compute mean $\widehat{\mathrm{CV}}_j$ and SE $\widehat{\mathrm{SE}}_j$:
     \[
@@ -1013,7 +1023,7 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 % ===================== Left: Plain K-fold CV =====================
 \begin{column}{0.48\textwidth}
 \begin{block}{K-Fold CV (Column Sparsity)}
-\begin{enumerate}[<+->]
+\begin{enumerate}
   \item Split $\pmb X\in\mathbb R^{n\times M}$ into $K$ row groups 
         $\{\pmb X^{(1)},\dots,\pmb X^{(K)}\}$.
   \item For each $\gamma_j$ and $k=1,\dots,K$:
@@ -1035,7 +1045,7 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 % ===================== Right: 1-SE Rule =====================
 \begin{column}{0.48\textwidth}
 \begin{block}{K-Fold CV + 1-SE Rule}
-\begin{enumerate}[<+->]
+\begin{enumerate}
   \item Use same folds to collect $\mathrm{Err}^{(k)}_j$.
   \item Compute mean $\widehat{\mathrm{CV}}_j$ and SE $\widehat{\mathrm{SE}}_j$:
     \[
@@ -1195,13 +1205,13 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 ```{=latex}
 \centering
 \begin{minipage}[t]{0.32\textwidth}\centering
-  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - SVD.pdf}}\\
+  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Two-Way_Smoothness.pdf}}\\
 \end{minipage}\hfill
 \begin{minipage}[t]{0.32\textwidth}\centering
-  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Smoothness_and_Sparsity_on_u.pdf}}\\
+  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Two-Way_Sparsity.pdf}}\\
 \end{minipage}\hfill
 \begin{minipage}[t]{0.32\textwidth}\centering
-  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Smoothness_and_Sparsity_on_v.pdf}}\\
+  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Two-way_Sparsity_and_Smoothness.pdf}}\\
 \end{minipage}
 ```
 
@@ -1277,7 +1287,7 @@ $$
 
 ::: columns
 ::: {.column width="100%"}
-![](images/Motion Sense PCS.pdf){width="92%"}
+![](images/Motion Sense PCS.pdf){width="92%" fig-align="center"}
 :::
 :::
 
@@ -1288,7 +1298,7 @@ $$
 
 ::: columns
 ::: {.column width="100%"}
-![](images/Motion Sense PC Scores.pdf){width="70%"}
+![](images/Motion Sense PC Scores.pdf){width="70%" fig-align="center"}
 :::
 :::
 
@@ -1304,10 +1314,16 @@ $$
   - Combines **smoothness** (denoise, interpretability) + **sparsity** (variable selection).  
   - Extends from **univariate → multivariate → two-way functional data**.  
 
+::: {.fragment style="height: 0.5em"}
+:::
+
 - **Methodology**  
   - Penalized SVD with roughness + $\ell_1$ penalties.  
   - Two-way regularization: smoothness & sparsity on both **scores ($u$)** and **loadings ($v$)**.  
   - Efficient parameter tuning: **conditional GCV** & **K-fold CV** (with 1-SE rule).  
+
+::: {.fragment style="height: 0.5em"}
+:::
 
 - **Results**  
   - Simulations & applications (mortality, call-center, image data).  
