@@ -109,6 +109,8 @@ header-includes:
     \setbeamercolor{author in head/foot}{bg=MUgold, fg=black}
     \setbeamercolor{title in head/foot}{bg=MUgold,  fg=black}
     \setbeamercolor{date in head/foot}{bg=MUgold,   fg=black}
+    \setbeamercolor{section in head/foot}{fg=black,bg=MUgold}
+    \setbeamercolor{section in head/foot shaded}{fg=black!20,bg=MUgold}
     
 
     %==================== header & footer (default) ====================
@@ -128,7 +130,7 @@ header-includes:
       \end{beamercolorbox}%
     }
     \setbeamercolor{section in head/foot}{fg=black,bg=MUgold}
-    \setbeamercolor{section in head/foot shaded}{fg=black!55,bg=MUgold}
+    \setbeamercolor{section in head/foot shaded}{fg=black!20,bg=MUgold}
     
      % --- Move the logo UP on the title slide ---
     % Reduce vertical space before the logo (negative vspace pulls it upward)
@@ -164,17 +166,17 @@ header-includes:
   \begin{column}{0.62\textwidth}
   {\small\normalfont
   \begin{itemize}
-    \item<1-> Functional data are observations that vary continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points.
-    \item<2-> These data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare.
-    \item<3-> Functional Data Analysis (FDA) is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes.
+    \item<1-> \textbf{Functional data} are observations that change continuously over a domain (like time, space, or wavelength) and are often visualized as curves, trajectories, or functions rather than isolated points.
+    \item<2-> In practice, these data are often recorded at discrete time points or grid locations, even though they originate from continuous processes in areas like engineering, finance, environmental science, and healthcare.
+    \item<3-> \textbf{Functional Data Analysis (FDA)} is a statistical framework that treats these observations as realizations of smooth underlying functions, allowing for more accurate modeling and interpretation of continuous processes.
   \end{itemize}}
   \end{column}
 
   % -------- Right: images ----------
   \begin{column}{0.38\textwidth}
     \vspace{-1.5em}
-    \only<1->{\centering\includegraphics[height=0.4\textheight]{images/FDA2.png}\par}
-    \only<2->{\centering\includegraphics[height=0.4\textheight]{images/FDA1.png}\par}
+    \only<1->{\centering\includegraphics[height=0.35\textheight]{images/FDA2.png}\par}
+    \only<2->{\centering\includegraphics[height=0.35\textheight]{images/FDA1.png}\par}
   \end{column}
 \end{columns}
 
@@ -182,25 +184,21 @@ header-includes:
 
 ## Functional Principal Component Analysis {auto-animate="true"}
 
-::: incremental
-- Functional PCA (FPCA): Extension of classical PCA to functional data; finds orthogonal functions capturing main variation [@ramsay2005functional].
+- **Functional PCA (FPCA):** An extension of classical PCA for dimension reduction and uncovering hidden patterns in functional data; it identifies orthogonal functions that capture the main sources of variation, preserving the most important information. [@ramsay2005functional].
 
-- Purpose: Dimension reduction and uncovering hidden patterns.
-
-- Advancements in FPCA:
+- **Extensions of FPCA:**
   - Smoothed FPCA: Adds roughness penalties for smoothness [@silverman1996smoothed; @huang2008functional].
   - Sparse FPCA: Enforces sparsity for interpretability [@huang2008sparse; @SparsePCA2020].
   - Multivariate FPCA (MFPCA): Extends FPCA to multivariate functions [@silverman1996smoothed; @Happ_2018].
   - Regularized MFPCA: Penalties improve estimation & interpretability [@haghbin2023regMFPCA].
 
-- Impact: More adaptable, robust, and applicable across diverse scientific and business problems.
-:::
+- **Impact:** More adaptable, robust, and applicable across diverse scientific and business problems.
 
 
 ## Two- way Functional Principal Component Analysis {auto-animate="true"}
 
 ::: incremental
-- Two-way functional data: Observations vary along two domains (e.g., time $\times$ space, time $\times$ frequency), with applications in climate, neuroscience, finance, public health, and marketing.
+- **Two-way functional data:** Observations vary along two domains (e.g., time $\times$ space, time $\times$ frequency), with applications in climate, neuroscience, finance, public health, and marketing.
 
     ```{=latex}
     % shows ONLY while the first bullet is active
@@ -208,23 +206,34 @@ header-includes:
     \only<1>{\centering\includegraphics[width=0.3\linewidth]{images/NDVI.png}\par}
     \vspace{1.5em}
     ```
+:::
 
-- Extension of FPCA: Huang [@twoway_huang] applied regularization to both left and right singular vectors in SVD.
+::: {.fragment style="height: 0.6em"}
+::: 
 
-- Practical challenges:
+::: incremental
+- **Extension of FPCA:** Huang [@twoway_huang] applied regularization to both left and right singular vectors in SVD.
+:::
+
+::: {.fragment style="height: 0.6em"}
+:::
+
+- **Practical challenges:**
   - Data observed on discrete grids (minutes, hours, days).
   - Issues: measurement noise, irregular sampling, missing data, loss of smoothness.
 
-- Proposed framework:
+::: {.fragment style="height: 0.6em"}
+:::
+
+- **Proposed framework:**
   - Unified FPCA for two-way multivariate functional data.
   - Smoothness penalties preserve functional structure.
   - Sparsity penalties enhance interpretability.
   - Effective for dimension reduction in complex datasets.
-:::
+  
 
 
-## Mathematical Foundation of FPCA
-::: incremental
+## Foundations of FPCA through Minimizing Reconstruction Error
 - **Goal:** Identify functional directions that maximize variance (low-rank approximation of functional data).  For functional data $X \in \mathbb{R}^{n \times m}$ contains the discretized functional observations (rows correspond to subjects, columns to grid points), $v\in\mathbb{R}^m$ represents the estimated principal component (function), and $u\in\mathbb{R}^n$ denotes the associated principal component scores.
 
 - **Reconstruction problem:** 
@@ -243,21 +252,28 @@ header-includes:
       \vspace{1.5em}
     $$
     ```
-:::
 
 
 ## Extensions of FPCA via Regularization
-::: incremental
-- Goal: Balance **variance explanation**, **smoothness**, and **interpretability**.  
+
+- **Goal:** Balance **variance explanation**, **smoothness**, and **interpretability**. 
+
+::: {.fragment style="height: 0.5em"}
+:::
+
 - Reformulate FPCA as a **penalized low-rank approximation** problem:  
   $$
   \min_{u,v} \|X - uv^\top\|_F^2 + \mathcal{P}(u,v)
   $$
+
 - Two directions:  
   - **Smooth FPCA:** adds roughness penalty on functions.  
   - **Sparse FPCA:** adds sparsity penalty on loadings.  
-- Algorithms: Based on iterative **power method** and **thresholding** updates.  
+
+::: {.fragment style="height: 0.5em"}
 :::
+
+- Algorithms: Based on iterative **power method** and **thresholding** updates.  
 
 
 
@@ -422,7 +438,7 @@ where $a=3.7$ (\cite{fan2001}).
 ```
 
 
-## Comparison & Tuning
+## Overview of Existing Approaches
 
 ::: incremental
 - **Smooth FPCA:**  
@@ -516,7 +532,7 @@ where $a=3.7$ (\cite{fan2001}).
 :::
 
 
-# MFPCA Power Algorithm
+## MFPCA Power Algorithm
 ::: incremental
 ```{=latex}
         \begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
@@ -1296,5 +1312,4 @@ $$
 
 
 # References
-
 
