@@ -273,12 +273,11 @@ header-includes:
 ::: {.fragment style="height: 0.5em"}
 :::
 
-- Algorithms: Based on iterative **power method** and **thresholding** updates.  
+- **Algorithms:** Based on iterative **power method** and **thresholding** updates.  
 
 
 
 ## Smooth Functional PCA
-::: incremental
 - Problem setup [@huang2008functional]:  
   $$
   \min_{u,v} \|X - uv^\top\|_F^2 + \alpha\, u^\top u \, v^\top \Omega v
@@ -288,21 +287,18 @@ header-includes:
   - $v \in \mathbb{R}^p$: loading function.  
   - $\Omega$: roughness penalty matrix (e.g., integrated squared 2nd derivative). 
   - $\alpha$: tuning parameter
-  
+
+::: incremental 
 - A power algorithm is defined to compute the PCs while incorporating smoothness penalty. 
 - Consider the SVD of $X$ as $X = UDV^\top$, where $U$ and $V$ have orthonormal columns and $D$ is diagonal with ordered singular values.  In particular, for $X = u d v^\top$, $v$ is the first principal component and $u = u d$ gives the associated scores.   With these representations, the power algorithm (described below) converges quickly, typically in only a few iterations.
-
-
-
 :::
 
-
 ## Power Algorithm
-::: incremental
 
+::: incremental 
 ```{=latex}
     \begin{block}{Algorithm: Penalized Power Iteration}
-\begin{enumerate}[<+->] % reveal each step
+\begin{enumerate}
   \item Initialize $v$.
   \item Repeat until convergence:
     \begin{enumerate}
@@ -314,8 +310,12 @@ header-includes:
 \end{enumerate}
 \end{block}
 ```
-- For notational convenience, we define $S(\alpha) = (I +\alpha\Omega)^{-1} \in \mathbb{R}^{m\times m}$, which simplifies expressions involving regularization. The penalty matrix $\Omega$ is set up so that larger values of the quadratic form ${v}^\top {\Omega} {v}$ mean rougher functions. This means that it penalizes functions that change quickly between time points.
+
 :::
+
+::: incremental
+- For notational convenience, we define $S(\alpha) = (I +\alpha\Omega)^{-1} \in \mathbb{R}^{m\times m}$, which simplifies expressions involving regularization. The penalty matrix $\Omega$ is set up so that larger values of the quadratic form ${v}^\top {\Omega} {v}$ mean rougher functions. This means that it penalizes functions that change quickly between time points.
+::: 
 
 ## Tunning Smoothness Parameters
 ::: incremental
@@ -325,7 +325,10 @@ header-includes:
   \begin{equation*} 
 	\text{CV}(\alpha) = \frac{1}{m} \sum_{j=1}^m \frac{\left[\{ ({I} - {S}(\alpha)) ({X}^T {u})\}_{jj} \right]^2}{\left(1 -   \{{S}(\alpha)\}_{jj}\right)^2},
 \end{equation*}
-where $\{\cdot\}_{jj}$ denotes the $j$-th diagonal element.
+
+\begin{flushleft}
+\qquad \quad where $\{\cdot\}_{jj}$ denotes the $j$-th diagonal element.
+\end{flushleft}
 
 \begin{equation*} 
 	\text{GCV}(\alpha) = \frac{1}{m} \frac{\Vert ({I} - {S}(\alpha)) ({X}^T {u}) \Vert^2}{\left(1 - \frac{1}{m} \operatorname{tr} \{{S}(\alpha)\}\right)^2}.
@@ -336,28 +339,30 @@ where $\{\cdot\}_{jj}$ denotes the $j$-th diagonal element.
 
 ## Sparse Functional PCA
 
-::: incremental
-- **Standard FPCA loadings are dense → hard to interpret.**  
-  **Sparsity** highlights only the most relevant features, improving interpretability.
-
-- **Dense loadings capture noise → unstable components.**  
-  **Sparsity** filters out uninformative variation, yielding more robust PCs.
-
-- **All grid points contribute equally → no feature selection.**  
-  **Sparsity** acts as built-in feature selection, focusing on key time points or locations.
+- *Standard FPCA loadings are dense, involving linear combinations of all grid points → hard to interpret.*  
+  **Sparsity** highlights only the most relevant features, thereby enhancing interpretability.
+- *Dense loadings capture noise → unstable components.*  
+  **Sparsity** filters out uninformative variation, yielding more robust principal components, reducing dimensionality, and facilitating interpretation.
+- *All grid points contribute equally → no feature selection.*   
+  **Sparsity** acts as an inherent feature selector, focusing attention on key time points or locations.
 - Sparse FPCA formulation [@huang2008sparse]:  
-  $$
-  \min_{u,v} \|X - uv^\top\|_F^2 + p_\gamma(v)
-  $$
-  where $p_\gamma(v)$ is a sparsity-inducing penalty.  
+    ```{=latex}
+    \vspace{-1em}
+    \begin{equation}\label{eq:sparse}
+    \min_{u,v} \|X - uv^\top\|_F^2 + p_\gamma(v)
+    \end{equation}
+    \vspace{-1.5em}
+    \begin{flushleft}
+    \qquad \quad where $p_\gamma(v)$ is a sparsity-inducing penalty. 
+    \end{flushleft}
+    ```
+   
 
-
-:::
 
 ## Sparsity penalties
 
 \scriptsize
-- **Lasso (Soft-thresholding):**  
+- **Soft-thresholding (Lasso):**  
   $$
   p^{\text{soft}}_\gamma(|\theta|) = 2 \gamma |\theta|, 
   \;\xrightarrow[\text{minimizer}]{}\;
@@ -395,11 +400,11 @@ where $a=3.7$ (\cite{fan2001}).
 
 
 ## sFPCA-rSVD Algorithm
-
+To implement the sPCA-rSVD algorithm discussed above, we use the following iterative procedure to minimize the objective function defined in Equation \eqref{eq:sparse}. 
 
 ```{=latex}
 \begin{block}{Algorithm: sFPCA-rSVD}
-\begin{enumerate}[<+->]  % reveal each step
+\begin{enumerate}
   \item \textbf{Initialization:}  
         Compute the best rank-one approximation of $X$ using singular value decomposition (SVD),  
         where $X \approx s u v^\top$, and set $u \leftarrow s u$.
@@ -420,7 +425,7 @@ where $a=3.7$ (\cite{fan2001}).
 \begin{block}{Algorithm: K-fold CV Tuning Parameter Selection - Degree of sparsity}
 \label{algo:CvSparse}
 \small
-\begin{enumerate}[<+->]
+\begin{enumerate}
    \item Randomly group the rows of side-by-side data matrix $X$ into $K$ roughly equal-sized groups, denoted as $X^1,...,X^K$. 
    \item For each sparse tuning parameter $j \in \{0,1,...,p\}$ (level of sparsity), do the following: 
    \begin{enumerate}
@@ -440,7 +445,6 @@ where $a=3.7$ (\cite{fan2001}).
 
 ## Overview of Existing Approaches
 
-::: incremental
 - **Smooth FPCA:**  
   - Pros: Produces smooth eigenfunctions.  
   - Algorithm: Penalized power iteration.  
@@ -457,7 +461,6 @@ where $a=3.7$ (\cite{fan2001}).
   $$  
 
 - Trade-off: **Variance explained vs Interpretability vs Smoothness**.  
-:::
 
 
 # Regularized MFPCA {auto-animate="true"}
