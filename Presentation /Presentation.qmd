@@ -344,7 +344,7 @@ header-includes:
 - *Dense loadings capture noise → unstable components.*  
   **Sparsity** filters out uninformative variation, yielding more robust principal components, reducing dimensionality, and facilitating interpretation.
 - *All grid points contribute equally → no feature selection.*   
-  **Sparsity** acts as an inherent feature selector, focusing attention on key time points or locations.
+  **Sparsity** acts as an inherent feature selector, directing attention to key time points, with most entries reduced to zero while only a few contribute meaningfully to the structure.
 - Sparse FPCA formulation [@huang2008sparse]:  
     ```{=latex}
     \vspace{-1em}
@@ -452,7 +452,7 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
 
 - **Sparse FPCA:**  
   - Pros: Feature selection → interpretable.  
-  - Algorithm: Iterative thresholding.  
+  - Algorithm: sFPCA-rSVD algorithm.  
   - Tuning: $\gamma$ (sparsity) via CV.  
 
 - **Combined Approaches:** Smooth + Sparse together.  
@@ -465,32 +465,31 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
 
 # Regularized MFPCA {auto-animate="true"}
 \hypertarget{sec:svd}{}
-::: incremental
 - **Context**  
-  - Univariate FDA → one curve per subject  
-  - **Multivariate FDA** → vector of curves per subject (EEG, growth, pollution)  
+  - Univariate FDA → **Multivariate FDA** (e.g., simultaneously recorded EEG channels, growth patterns of multiple anatomical measures.)  
   - MFPCA → **joint modes of variation** across functions  
 
 - **Challenges**  
   - Discretization & irregular grids → noise, missing data  
-  - High dimensionality → unstable eigenfunctions  
-  - Cross-function correlation → requires joint smoothness  
+  - High dimensionality and limited sample size → unstable eigenfunctions (sensitive to small fluctuations in the data)
+  - Cross-function correlation → requires enforcing smoothness both within and across functions
 
 - **Proposed Solution: Penalized SVD**  
   - **Smoothness penalties**: roughness on derivatives  
-  - **Sparsity penalties**: $\ell_1$/SCAD shrinkage  
+  - **Sparsity penalties**: Soft, hard, or SCAD 
   - **Block-diagonal roughness matrix** for cross-function structure  
 
 - **Impact**  
   - Produces **smooth, sparse, interpretable** joint modes  
   - More stable & applicable to high-dimensional multivariate FDA
-:::
 
 
 ## Methodology: Multivariate Functional Data Framework
-::: incremental
+
 - A multivariate functional dataset is formed by **concatenating $p$ functional data matrices**.  
   - Each variable: $X_i \in \mathbb{R}^{n \times m_i}$  where $n$: number of observations and $m_i$: grid points
+
+::: incremental
 
 - **Rank-one approximation** (per variable):  
   $$
@@ -499,28 +498,29 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
   $$
 
 - **Full data matrix**:  $\mathbf{X} = [X_1\quad X_2\quad \cdots\quad X_p]  \in \mathbb{R}^{n \times \sum_{i=1}^p m_i}$
-
-- **Block structure example**:  
+ 
   $$
-  X_i =
-  \begin{bmatrix}
-  x_{1i}(t_{i1}) & \cdots & x_{1i}(t_{i,m_i}) \\
-  \vdots & \ddots & \vdots \\
-  x_{ni}(t_{i1}) & \cdots & x_{ni}(t_{i,m_i})
-  \end{bmatrix}, \quad
-  \mathbf{X} = [X_1\quad X_2\quad \cdots\quad X_p]
+  \pmb{X}  = 
+\begin{bmatrix}
+x_{11}(t_{11}) & \cdots & x_{11}(t_{1,m_1}) & \cdots & x_{1p}(t_{p1}) & \cdots & x_{1p}(t_{p,m_p})\\
+\vdots         & \ddots & \vdots             & \ddots & \vdots         & \ddots & \vdots\\
+x_{n1}(t_{11}) & \cdots & x_{n1}(t_{1,m_1}) & \cdots & x_{np}(t_{p1}) & \cdots & x_{np}(t_{p,m_p})
+\end{bmatrix}.
   $$
-::: 
+:::
 
 ## Penalized Smooth MFPCA {auto-animate="true"}
 
-::: incremental
+
 - Standard FPCA loadings may be noisy; smoothness penalties (via block-diagonal $\Omega_i$) improve structure and interpretability.  
+
+::: incremental
 
 - Let $\pmb{X} \in \mathbb{R}^{n \times M}$ denote multivariate functional data, where $M = \sum_{i=1}^p m_i$.  
   Its best rank-one approximation is $\pmb{X} \approx u v^\top$,  
-  with $u \in \mathbb{R}^n$ (score vector) and $v \in \mathbb{R}^M$ (loading vector).  
-  A smoothness penalty is imposed on $v$.  
+  with $u \in \mathbb{R}^n$ (score vector) and $v = [v_1,v_2,..., v_p]^\top \in \mathbb{R}^M$ (loading vector).  
+  A smoothness penalty is imposed on $v$.
+  
 
 - The block-diagonal penalty matrix is  $\pmb{\Omega} = \operatorname{diag}\bigl(\Omega_1, \Omega_2, \dots, \Omega_p\bigr),$
   where each $\Omega_i \in \mathbb{R}^{m_i \times m_i}$ is a univariate roughness penalty matrix.  
@@ -540,7 +540,7 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
 ```{=latex}
         \begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
 \small
-\begin{enumerate}[<+->]
+\begin{enumerate}
   \item Initialize $v$.
   \item Repeat until convergence:
     \begin{enumerate}
@@ -565,36 +565,38 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
 
 
 ## Penalized Sparse Multivariate FPCA
-::: incremental
 
 - **Goal:** Extend sparse FPCA to multivariate functional data, imposing **sparsity** (select important regions) and **smoothness** (reduce noise).
 - **Sparsity penalties:** Soft, hard, or SCAD thresholding \cite{huang2008sparse,sparseRegression2017,SparsePCA2020}.  
--  $v \in \mathbb{R}^M, \, M=\sum_{i=1}^p m_i$ and control parameter: $\pmb{\gamma}=(\gamma_1,\ldots,\gamma_p)$, where $\gamma_i$ ranges from 0 (no sparsity) to $m_i$ for each variable.  
     ```{=latex}
-\begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
-\small
-\begin{enumerate}[<+->]
-  \item {Initialization:}
-        Compute rank-one SVD of $\pmb{X}$, $\pmb{X}\approx s,u,v^\top$, and set $u \gets s,u$.
-  \item {Iterate until convergence:}
-    \begin{enumerate}
-      \item {Update left singular vector:} $u \leftarrow \pmb{X}v$
-      \item {Update right singular vector:} $v \leftarrow \pmb{h_\gamma}\,\pmb{X}^\top u$
-      \item {Normalize right singular vector:} $v \leftarrow \dfrac{v}{\lVert v\rVert}$
-    \end{enumerate}
-\end{enumerate}
-\end{block}
+    \pause
     ```
-:::
+-  Sparsity parameters: $\pmb{\gamma}=(\gamma_1,\ldots,\gamma_p)$, where $\gamma_i$ ranges from 0 (no sparsity) to $m_i$ for each variable.
+```{=latex}
+    \begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
+      \small
+      \begin{enumerate}
+        \item {Initialization:}
+              Compute rank-one SVD of $\pmb{X}$, $\pmb{X}\approx suv^\top$, and set $u \gets su$.
+        \vspace{-0.5em}      
+        \item {Iterate until convergence:}
+          \begin{enumerate}
+            \item {Update left singular vector:} $u \leftarrow \pmb{X}v$
+            \item {Update right singular vector:} $v \leftarrow \pmb{h_\gamma}\,\pmb{X}^\top u$
+            \item {Normalize right singular vector:} $v \leftarrow \dfrac{v}{\lVert v\rVert}$
+          \end{enumerate}
+      \end{enumerate}
+      \end{block}
+```
+
 
 ## Smooth and Sparse Multivariate FPCA
-::: incremental
 - The combined implementation of smoothness and sparsity on the loading vector $v$ in multivariate functional data is achieved by the following algorithm:
 
 ```{=latex}
 \begin{block}{Algorithm: Regularized Power Iteration for Smooth MFPCA}
 \small
-\begin{enumerate}[<+->]
+\begin{enumerate}
   \item Initialize unit vectors $u$ and $v$ using SVD of $\pmb{X}$ (best rank-one approximation of $\pmb{X}$) 
    \item Repeat till convergence 
    \begin{enumerate}
@@ -608,7 +610,7 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
 ```
 
 - \hyperlink{algo:CvSparse}{Algorithm CV Tuning for Sparsity} and equation \eqref{eq:MGCV one-way} are used to tune the sparsity level via K‐fold CV and the smoothing parameter via GCV, respectively.
-:::
+
 
 
 ## Simulation: Estimation Performance
@@ -665,22 +667,22 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
 \begin{figure}[!h]
   \centering
   \begin{minipage}[t]{0.25\textwidth}\centering
-    \onslide<1->{%
+    \onslide<2->{%
       \includegraphics[width=\linewidth]{\detokenize{images/MFPCA-PC-Simulation1.pdf}}%
       }
   \end{minipage}\hfill
   \begin{minipage}[t]{0.25\textwidth}\centering
-    \onslide<2->{%
+    \onslide<3->{%
       \includegraphics[width=\linewidth]{\detokenize{images/SmoothMFPCA-PC-Simulation1.pdf}}%
       }
   \end{minipage}\hfill
   \begin{minipage}[t]{0.25\textwidth}\centering
-    \onslide<3->{%
+    \onslide<4->{%
       \includegraphics[width=\linewidth]{\detokenize{images/SparseMFPCA-PC-Simulation1.pdf}}%
       }
   \end{minipage}\hfill
   \begin{minipage}[t]{0.25\textwidth}\centering
-    \onslide<4->{%
+    \onslide<5->{%
       \includegraphics[width=\linewidth]{\detokenize{images/SmSpMFPCA-PC-Simulation1.pdf}}%
       }
   \end{minipage}
@@ -714,7 +716,9 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
     \centering
     \includegraphics[height=0.6\textheight]{\detokenize{images/MSE_methods_boxplot-Simulation1.pdf}}\\
   \end{column}
+  
   \begin{column}{0.45\textwidth}
+  \vspace*{2em}
     {\tiny
     \textbf{PC1: Quartiles and Mean log10(MSE)}\\[0.2em]
     \begin{tabular}{lrrrr}
@@ -765,31 +769,46 @@ Regularization reduces noise while preserving the dominant daily consumption pat
 
 # Two-way Regularized MFPCA {auto-animate="true"}
 \hypertarget{sec:two_way}{}
-::: incremental
 - **Two-way functional data:** Each observation is a *matrix of curves*, with smooth variation across **two domains**  (e.g., time × space in air quality, time × channels in EEG).  
+```{=latex}
+\pause
+```
 - **Limitation of standard FPCA [@ramsay2005functional]:**  
   - Focuses on one domain (often time).  
   - Penalties applied only to loadings → ignores structure in second domain.  
   - Results may be rough or overly dense along the unpenalized axis.  
+
+```{=latex}
+\pause
+```
+
 - **Two-way FPCA [@twoway_huang]:**  
   - Introduced **smoothness penalties** on both scores and loadings.  
   - Produces coherent, interpretable *component surfaces* instead of jagged approximations.  
+
+```{=latex}
+\pause
+```
+
 - **Our contribution:**  
   - Extend to **multivariate functional data** (multiple functional variables).  
   - Combine **smoothness + sparsity penalties** in both directions.  
   - Result: Low-rank, interpretable, noise-robust principal components for high-dimensional applications.  
-  
-:::
+
   
 
 ## Two-way Smoothed MFPCA: Setup & Penalty
 
-::: incremental
 - Two-way multivariate functional data: $\pmb X \in \mathbb{R}^{n\times M}, \quad M=\sum_{i=1}^p m_i.$  
 
 - Roughness matrices: $\pmb\Omega_u\in\mathbb{R}^{n\times n},\;\pmb\Omega_v\in\mathbb{R}^{M\times M}$ (symmetric, non-negative definite).  
 
+
 - Smoothers: $\pmb S_u(\alpha_u)=(I+\alpha_u\,\pmb\Omega_u)^{-1}, \qquad \pmb S_v(\pmb\alpha_v)=(I+\pmb\alpha_v\,\pmb\Omega_v)^{-1}.$
+
+```{=latex}
+\pause
+```
 
 - Penalized rank-one reconstruction:  
   $$
@@ -799,12 +818,10 @@ Regularization reduces noise while preserving the dominant daily consumption pat
 - Penalty [@twoway_huang]:  $\mathcal P(u,v;\alpha_u,\pmb\alpha_v) = u^\top(\alpha_u\pmb\Omega_u)u\,\|v\|^2 + \|u\|^2\,v^\top(\pmb\alpha_v\pmb\Omega_v)v + u^\top(\alpha_u\pmb\Omega_u)u\; v^\top(\pmb\alpha_v\pmb\Omega_v)v.$
 
 - Multivariate $v$:  $\pmb\Omega_v=\operatorname{diag}(\Omega_1,\ldots,\Omega_p).$
-:::
 
 
 ## Two-way Smoothed MFPCA: Conditional GCV
 
-::: incremental
 - Minimizers:  
     ```{=latex}
     \vspace{-3mm}
@@ -819,6 +836,10 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
     ```
 
 - Rayleigh quotients:  $\pmb R_u(u)=\frac{u^\top\pmb\Omega_u u}{\|u\|^2}, \qquad \pmb R_v(v)=\frac{v^\top\pmb\Omega_v v}{\|v\|^2}.$
+
+```{=latex}
+\pause
+```
 
 - Conditional GCV criteria:  
     ```{=latex}
@@ -836,7 +857,6 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
     ```
 
 - **Optimization:** Alternate updates of $u$ and $v$ using GCV until convergence → two-way regularized components.  
-:::
 
 
 ## Two-way Smooth + Sparse MFPCA
