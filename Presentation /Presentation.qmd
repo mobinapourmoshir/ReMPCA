@@ -28,6 +28,8 @@ link-citations: true
 header-includes:
   - |
     \usepackage{subcaption}
+    \usepackage{amsmath, amssymb}
+    \usepackage{graphicx}
     \usepackage{amsmath,amssymb,mathtools}
     \usepackage{algorithm}
     \usepackage{natbib}
@@ -912,38 +914,52 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 
 
 
-## Chess Board
+## Chessboard
 ```{=latex}
-\begin{figure}[h!]
+\begin{figure}
 \centering
-
-\begin{subfigure}[b]{0.24\textwidth}\centering
-\uncover<1->{\includegraphics[width=.8\textwidth]{images/True.pdf}}
-\end{subfigure}
-\begin{subfigure}[b]{0.24\textwidth}\centering
-\uncover<2->{\includegraphics[width=.8\textwidth]{images/svd_Reconstructed.pdf}}
-\end{subfigure}
-\begin{subfigure}[b]{0.24\textwidth}\centering
-\uncover<3->{\includegraphics[width=.8\textwidth]{images/Lasso_reconstructed.pdf}}
-\end{subfigure}
-\begin{subfigure}[b]{0.24\textwidth}\centering
-\uncover<4->{\includegraphics[width=.8\textwidth]{images/u1plots.pdf}}
-\end{subfigure}
-
-\begin{subfigure}[b]{0.24\textwidth}\centering
-\uncover<5->{\includegraphics[width=.8\textwidth]{images/NoisyChessboard.pdf}}
-\end{subfigure}
-\begin{subfigure}[b]{0.24\textwidth}\centering
-\uncover<6->{\includegraphics[width=.8\textwidth]{images/smooth_reconstructed.pdf}}
-\end{subfigure}
-\begin{subfigure}[b]{0.24\textwidth}\centering
-\uncover<7->{\includegraphics[width=.8\textwidth]{images/pic.compress.pdf}}
-\end{subfigure}
-\begin{subfigure}[b]{0.24\textwidth}\centering
-\uncover<8->{\includegraphics[width=.8\textwidth]{images/v1plots.pdf}}
-\end{subfigure}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{cccc}
+% ---------- Row 1 ----------
+\begin{minipage}[c]{0.23\textwidth}\centering
+  \uncover<1->{\includegraphics[width=.8\linewidth]{images/True.pdf}}
+\end{minipage} &
+\begin{minipage}[c]{0.23\textwidth}\centering
+  \uncover<3->{\includegraphics[width=.8\linewidth]{images/svd_Reconstructed.pdf}}
+\end{minipage} &
+\begin{minipage}[c]{0.23\textwidth}\centering
+  \uncover<5->{\includegraphics[width=.8\linewidth]{images/Lasso_reconstructed.pdf}}
+\end{minipage} &
+\begin{minipage}[c]{0.23\textwidth}\centering
+  \begin{overlayarea}{\linewidth}{.9\linewidth}
+    \only<3>{\includegraphics[width=.8\linewidth]{images/u1plots_SVD.jpg}}%
+    \only<4>{\includegraphics[width=.8\linewidth]{images/u1plots_SVD_Smooth.png}}%
+    \only<5>{\includegraphics[width=.8\linewidth]{images/u1plots_SVD_Smooth_Sparse.png}}%
+    \only<6>{\includegraphics[width=.8\linewidth]{images/u1plots.pdf}}%
+  \end{overlayarea}
+\end{minipage} \\
+% ---------- Row 2 ----------
+\begin{minipage}[c]{0.23\textwidth}\centering
+  \uncover<2->{\includegraphics[width=.8\linewidth]{images/NoisyChessboard.pdf}}
+\end{minipage} &
+\begin{minipage}[c]{0.23\textwidth}\centering
+  \uncover<4->{\includegraphics[width=.8\linewidth]{images/smooth_reconstructed.pdf}}
+\end{minipage} &
+\begin{minipage}[c]{0.23\textwidth}\centering
+  \uncover<6->{\includegraphics[width=.8\linewidth]{images/pic.compress.pdf}}
+\end{minipage} &
+\begin{minipage}[c]{0.23\textwidth}\centering
+  \begin{overlayarea}{\linewidth}{.9\linewidth}
+    \only<3>{\includegraphics[width=.8\linewidth]{images/v1plots_SVD.jpg}}%
+    \only<4>{\includegraphics[width=.8\linewidth]{images/v1plots_SVD_Smooth.png}}%
+    \only<5>{\includegraphics[width=.8\linewidth]{images/v1plots_SVD_Smooth_Sparse.png}}%
+    \only<6>{\includegraphics[width=.8\linewidth]{images/v1plots.pdf}}%
+  \end{overlayarea}
+\end{minipage}
+\end{tabular}
 \end{figure}
 ```
+
 
 ## Selection of Regularization Parameters
 
