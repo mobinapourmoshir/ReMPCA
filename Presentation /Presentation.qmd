@@ -27,6 +27,7 @@ link-citations: true
 
 header-includes:
   - |
+    \usepackage{xcolor}
     \usepackage{subcaption}
     \usepackage{amsmath, amssymb}
     \usepackage{graphicx}
@@ -68,6 +69,9 @@ header-includes:
     \AtBeginSection[]{}
     \definecolor{darknavy}{RGB}{0,0,102}
     \definecolor{MUgold}{HTML}{FFC72C}
+    \definecolor{TitleRed}{HTML}{B90E0A}
+    \definecolor{TitleBlue}{HTML}{1520A6}
+    
     \setbeamercolor{title}{fg=darknavy}
     \setbeamercolor{palette primary}{bg=MUgold, fg=black}
     \setbeamercolor{palette secondary}{bg=MUgold, fg=black}
@@ -97,6 +101,8 @@ header-includes:
     \AtBeginSection[]{}
     \definecolor{darknavy}{RGB}{0,0,102}
     \setbeamercolor{title}{fg=darknavy}
+    \definecolor{DarkGreen}{HTML}{028A0F}
+    \definecolor{Clay}{HTML}{FC6A03}
     \definecolor{MUgold}{HTML}{FFC72C}     % gold
     \setbeamercolor{title}{fg=darknavy} % Make title dark navy
     
@@ -161,7 +167,6 @@ header-includes:
 # Introduction {auto-animate="true"}
 \hypertarget{sec:intro}{}
 
-\Large\bfseries\textcolor{darknavy}{Functional Data Analysis:}
 \small\normalfont
 \begin{columns}[T,onlytextwidth]
   % -------- Left: bullets (come one by one) ----------
@@ -189,15 +194,15 @@ header-includes:
 - **Functional PCA (FPCA):** An extension of classical PCA for dimension reduction and uncovering hidden patterns in functional data; it identifies orthogonal functions that capture the main sources of variation, preserving the most important information. [@ramsay2005functional].
 
 - **Extensions of FPCA:**
-  - Smoothed FPCA: Adds roughness penalties for smoothness [@silverman1996smoothed; @huang2008functional].
-  - Sparse FPCA: Enforces sparsity for interpretability [@huang2008sparse; @SparsePCA2020].
+  - \textcolor{TitleRed}{Smoothed FPCA}: Adds roughness penalties for smoothness [@silverman1996smoothed; @huang2008functional].
+  - \textcolor{TitleBlue}{Sparse FPCA}: Enforces sparsity for interpretability [@huang2008sparse; @SparsePCA2020].
   - Multivariate FPCA (MFPCA): Extends FPCA to multivariate functions [@silverman1996smoothed; @Happ_2018].
   - Regularized MFPCA: Penalties improve estimation & interpretability [@haghbin2023regMFPCA].
 
 - **Impact:** More adaptable, robust, and applicable across diverse scientific and business problems.
 
 
-## Two- way Functional Principal Component Analysis {auto-animate="true"}
+## Two-way Functional Principal Component Analysis {auto-animate="true"}
 
 ::: incremental
 - **Two-way functional data:** Observations vary along two domains (e.g., time $\times$ space, time $\times$ frequency), with applications in climate, neuroscience, finance, public health, and marketing.
@@ -229,8 +234,8 @@ header-includes:
 
 - **Proposed framework:**
   - Unified FPCA for two-way multivariate functional data.
-  - Smoothness penalties preserve functional structure.
-  - Sparsity penalties enhance interpretability.
+  - \textcolor{TitleRed}{Smoothness} penalties preserve functional structure.
+  - \textcolor{TitleBlue}{Sparsity} penalties enhance interpretability.
   - Effective for dimension reduction in complex datasets.
   
 
@@ -269,8 +274,8 @@ header-includes:
   $$
 
 - Two directions:  
-  - **Smooth FPCA:** adds roughness penalty on functions.  
-  - **Sparse FPCA:** adds sparsity penalty on loadings.  
+  - **\textcolor{TitleRed}{Smooth FPCA:}** adds roughness penalty on functions.  
+  - **\textcolor{TitleBlue}{Sparse FPCA:}** adds sparsity penalty on loadings.  
 
 ::: {.fragment style="height: 0.5em"}
 :::
@@ -282,7 +287,7 @@ header-includes:
 ## Smooth Functional PCA
 - Problem setup [@huang2008functional]:  
   $$
-  \min_{u,v} \|X - uv^\top\|_F^2 + \alpha\, u^\top u \, v^\top \Omega v
+  \min_{u,v} \|X - uv^\top\|_F^2 + \color{TitleRed} {\alpha\, u^\top u \, v^\top \Omega v}
   $$
   - $X \in \mathbb{R}^{n \times p}$: discretized functional data.  
   - $u \in \mathbb{R}^n$: scores.  
@@ -305,7 +310,7 @@ header-includes:
   \item Repeat until convergence:
     \begin{enumerate}
       \item $u \leftarrow Xv$
-      \item $v \leftarrow (I + \alpha\Omega)^{-1} X^\top u$
+      \item $v \leftarrow \textcolor{TitleRed}{(I + \alpha\Omega)^{-1} }X^\top u$
       \item $v \leftarrow \dfrac{v}{\lVert v \rVert}$ % use \frac if you didn't load amsmath
     \end{enumerate}
   \item Update $X \leftarrow X - \sigma\, u v^\top$ and proceed to next component.
@@ -316,7 +321,7 @@ header-includes:
 :::
 
 ::: incremental
-- For notational convenience, we define $S(\alpha) = (I +\alpha\Omega)^{-1} \in \mathbb{R}^{m\times m}$, which simplifies expressions involving regularization. The penalty matrix $\Omega$ is set up so that larger values of the quadratic form ${v}^\top {\Omega} {v}$ mean rougher functions. This means that it penalizes functions that change quickly between time points.
+- For notational convenience, we define $\color{TitleRed}{S(\alpha) = (I +\alpha\Omega)^{-1}}$ $\in \mathbb{R}^{m\times m}$, which simplifies expressions involving regularization. The penalty matrix $\Omega$ is set up so that larger values of the quadratic form ${v}^\top {\Omega} {v}$ mean rougher functions. This means that it penalizes functions that change quickly between time points.
 ::: 
 
 ## Tunning Smoothness Parameters
@@ -333,7 +338,7 @@ header-includes:
 \end{flushleft}
 
 \begin{equation*} 
-	\text{GCV}(\alpha) = \frac{1}{m} \frac{\Vert ({I} - {S}(\alpha)) ({X}^T {u}) \Vert^2}{\left(1 - \frac{1}{m} \operatorname{tr} \{{S}(\alpha)\}\right)^2}.
+	\textcolor{TitleRed}{\text{GCV}(\alpha) = \frac{1}{m} \frac{\Vert ({I} - {S}(\alpha)) ({X}^T {u}) \Vert^2}{\left(1 - \frac{1}{m} \operatorname{tr} \{{S}(\alpha)\}\right)^2}}.
 \end{equation*}
 ```
 :::
@@ -351,11 +356,11 @@ header-includes:
     ```{=latex}
     \vspace{-1em}
     \begin{equation}\label{eq:sparse}
-    \min_{u,v} \|X - uv^\top\|_F^2 + p_\gamma(v)
+    \min_{u,v} \|X - uv^\top\|_F^2 + \textcolor{TitleBlue}{p_\gamma(v)}
     \end{equation}
     \vspace{-1.5em}
     \begin{flushleft}
-    \qquad \quad where $p_\gamma(v)$ is a sparsity-inducing penalty. 
+    \qquad \quad where $\textcolor{TitleBlue}{p_\gamma(v)}$ is a sparsity-inducing penalty. 
     \end{flushleft}
     ```
    
@@ -407,14 +412,14 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
 ```{=latex}
 \begin{block}{Algorithm: sFPCA-rSVD}
 \begin{enumerate}
-  \item \textbf{Initialization:}  
+  \item {Initialization:}  
         Compute the best rank-one approximation of $X$ using singular value decomposition (SVD),  
         where $X \approx s u v^\top$, and set $u \leftarrow s u$.
-  \item \textbf{Iterate until convergence:}  
+  \item Iterate until convergence: 
     \begin{enumerate}
-      \item \textbf{Update Left Singular Vector:} $u \leftarrow Xv$
-      \item \textbf{Update Right Singular Vector:} $v \leftarrow h_\gamma X^\top u$
-      \item \textbf{Normalize Right Singular Vector:} $v \leftarrow \dfrac{v}{\lVert v \rVert}$
+      \item {Update Left Singular Vector:} $u \leftarrow Xv$
+      \item {Update Right Singular Vector:} $v \leftarrow \textcolor{TitleBlue}{h_\gamma} X^\top u$
+      \item {Normalize Right Singular Vector:} $v \leftarrow \dfrac{v}{\lVert v \rVert}$
     \end{enumerate}
 \end{enumerate}
 \end{block}
@@ -435,7 +440,7 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
      \item Calculate the K-fold CV scores defined as: ($N$ is the number of grid points in $X^k$)
      \vspace{-1em}
      \[
-     CV_j = \sum_{k=1}^{K} \frac{\Vert X^k - u^{-k}(j)v^{k}(j)\Vert^2}{N}
+     \textcolor{TitleBlue}{CV_j = \sum_{k=1}^{K} \frac{\Vert X^k - u^{-k}(j)v^{k}(j)\Vert^2}{N}}
      \]
      \vspace{-1em}
    \end{enumerate}
@@ -447,21 +452,20 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
 
 ## Overview of Existing Approaches
 
-- **Smooth FPCA:**  
+- **\textcolor{TitleRed}{Smooth FPCA}:**  
   - Pros: Produces smooth eigenfunctions.  
   - Algorithm: Penalized power iteration.  
-  - Tuning: $\alpha$ (smoothness) via CV/GCV.  
+  - Tuning: $\color{TitleRed}\alpha$ (smoothness) via \textcolor{TitleRed}{GCV}.  
 
-- **Sparse FPCA:**  
+- **\textcolor{TitleBlue}{Sparse FPCA}:**  
   - Pros: Feature selection → interpretable.  
   - Algorithm: sFPCA-rSVD algorithm.  
-  - Tuning: $\gamma$ (sparsity) via CV.  
+  - Tuning: $\color{TitleBlue}\gamma$ (sparsity) via \textcolor{TitleBlue}{CV}.  
 
 - **Combined Approaches:** Smooth + Sparse together.  
   $$
-  \min_{u,v} \|X - uv^\top\|_F^2 + \alpha v^\top \Omega v + p_\gamma(v)
+  \min_{u,v} \|X - uv^\top\|_F^2 + \color{TitleRed}{\alpha v^\top \Omega v} \color{black}+ \color{TitleBlue}{p_\gamma(v)}
   $$  
-
 - Trade-off: **Variance explained vs Interpretability vs Smoothness**.  
 
 
@@ -477,8 +481,8 @@ To implement the sPCA-rSVD algorithm discussed above, we use the following itera
   - Cross-function correlation → requires enforcing smoothness both within and across functions
 
 - **Proposed Solution: Penalized SVD**  
-  - **Smoothness penalties**: roughness on derivatives  
-  - **Sparsity penalties**: Soft, hard, or SCAD 
+  - **\textcolor{TitleRed}{Smoothness} penalties**: roughness on derivatives  
+  - **\textcolor{TitleBlue}{Sparsity} penalties**: Soft, hard, or SCAD 
   - **Block-diagonal roughness matrix** for cross-function structure  
 
 - **Impact**  
@@ -524,13 +528,13 @@ x_{n1}(t_{11}) & \cdots & x_{n1}(t_{1,m_1}) & \cdots & x_{np}(t_{p1}) & \cdots &
   A smoothness penalty is imposed on $v$.
   
 
-- The block-diagonal penalty matrix is  $\pmb{\Omega} = \operatorname{diag}\bigl(\Omega_1, \Omega_2, \dots, \Omega_p\bigr),$
+- The block-diagonal penalty matrix is  $\color{TitleRed}{\pmb{\Omega} = \operatorname{diag}\bigl(\Omega_1, \Omega_2, \dots, \Omega_p\bigr)}$,
   where each $\Omega_i \in \mathbb{R}^{m_i \times m_i}$ is a univariate roughness penalty matrix.  
 
 - The penalized reconstruction error is  
   $$
   \min_{u,v} \; \lVert \pmb{X} - uv^\top \rVert_F^2 
-  + \pmb{\alpha}^\top \big(v^\top \pmb{\Omega} v\big),
+  + \color{TitleRed}{\pmb{\alpha}^\top \big(v^\top \pmb{\Omega} v\big)}\color{black}{,}
   $$
   where $\pmb{\alpha} = (\alpha_1, \dots, \alpha_p)^\top$ controls smoothness.  
 
@@ -547,19 +551,19 @@ x_{n1}(t_{11}) & \cdots & x_{n1}(t_{1,m_1}) & \cdots & x_{np}(t_{p1}) & \cdots &
   \item Repeat until convergence:
     \begin{enumerate}
       \item $u \leftarrow \mathbf{X}v$
-      \item $v \leftarrow (I + \boldsymbol{\alpha}\boldsymbol{\Omega})^{-1}\mathbf{X}^\top u$
+      \item $v \leftarrow \textcolor{TitleRed}{(I + \boldsymbol{\alpha}\boldsymbol{\Omega})^{-1}}\mathbf{X}^\top u$
       \item $v \leftarrow v / \lVert v \rVert$
     \end{enumerate}
   \item Update $\mathbf{X} \leftarrow \mathbf{X} - \sigma u v^\top$ to extract the next PC.
 \end{enumerate}
 \end{block}
 ```
-- The smoothing operator is $\pmb{S}(\pmb{\alpha}) = \big(I + \pmb{\alpha}\pmb{\Omega}\big)^{-1} \in \mathbb{R}^{M \times M}$. 
+- The smoothing operator is $\color{TitleRed}{\pmb{S}(\pmb{\alpha}) = \big(I + \pmb{\alpha}\pmb{\Omega}\big)^{-1}} \color{black}\in \mathbb{R}^{M \times M}$. 
 - The smoothing parameter $\pmb{\alpha}$ is selected via generalized cross-validation (GCV), defined as
     ```{=latex}
   \vspace{-1.5em}
 \begin{equation}\label{eq:MGCV one-way}
-	\text{GCV}(\pmb{\alpha}) = \frac{1}{M} \frac{\Vert ({I} - \pmb{S}(\pmb{\alpha})) (\mathbf{X}^T u) \Vert^2}{\left(1 - \frac{1}{M} \text{tr} \{\mathbf{S}(\pmb{\alpha})\}\right)^2}.
+	\textcolor{TitleRed}{\text{GCV}(\pmb{\alpha}) = \frac{1}{M} \frac{\Vert ({I} - \pmb{S}(\pmb{\alpha})) (\mathbf{X}^T u) \Vert^2}{\left(1 - \frac{1}{M} \text{tr} \{\mathbf{S}(\pmb{\alpha})\}\right)^2}}.
 \end{equation}
     ```
 :::
@@ -568,7 +572,7 @@ x_{n1}(t_{11}) & \cdots & x_{n1}(t_{1,m_1}) & \cdots & x_{np}(t_{p1}) & \cdots &
 
 ## Penalized Sparse Multivariate FPCA
 
-- **Goal:** Extend sparse FPCA to multivariate functional data, imposing **sparsity** (select important regions) and **smoothness** (reduce noise).
+- **Goal:** Extend sparse FPCA to multivariate functional data, imposing **\textcolor{TitleBlue}{sparsity}** (select important regions) and **smoothness** (reduce noise).
 - **Sparsity penalties:** Soft, hard, or SCAD thresholding \cite{huang2008sparse,sparseRegression2017,SparsePCA2020}.  
     ```{=latex}
     \pause
@@ -584,7 +588,7 @@ x_{n1}(t_{11}) & \cdots & x_{n1}(t_{1,m_1}) & \cdots & x_{np}(t_{p1}) & \cdots &
         \item {Iterate until convergence:}
           \begin{enumerate}
             \item {Update left singular vector:} $u \leftarrow \pmb{X}v$
-            \item {Update right singular vector:} $v \leftarrow \pmb{h_\gamma}\,\pmb{X}^\top u$
+            \item {Update right singular vector:} $v \leftarrow \textcolor{TitleBlue}{\pmb{h_\gamma}}\,\pmb{X}^\top u$
             \item {Normalize right singular vector:} $v \leftarrow \dfrac{v}{\lVert v\rVert}$
           \end{enumerate}
       \end{enumerate}
@@ -603,7 +607,7 @@ x_{n1}(t_{11}) & \cdots & x_{n1}(t_{1,m_1}) & \cdots & x_{np}(t_{p1}) & \cdots &
    \item Repeat till convergence 
    \begin{enumerate}
      \item ${u} \leftarrow\pmb{X}{v}$
-     \item ${v} \leftarrow \pmb{S}(\pmb{\alpha}) \pmb{h}(\gamma_v) \pmb{X}^\top {u}$ 
+     \item ${v} \leftarrow \textcolor{TitleRed}{\pmb{S}(\pmb{\alpha})} \textcolor{TitleBlue}{\pmb{h}(\gamma_v)} \pmb{X}^\top {u}$ 
      \item ${v}\leftarrow \frac{{v}}{\Vert {v}\Vert}$
    \end{enumerate}
    \item Update $\pmb{X} = \pmb{X} -\sigma uv^\top$ and proceed to find the next principal component. 
@@ -611,7 +615,7 @@ x_{n1}(t_{11}) & \cdots & x_{n1}(t_{1,m_1}) & \cdots & x_{np}(t_{p1}) & \cdots &
 \end{block}
 ```
 
-- \hyperlink{algo:CvSparse}{Algorithm CV Tuning for Sparsity} and equation \eqref{eq:MGCV one-way} are used to tune the sparsity level via K‐fold CV and the smoothing parameter via GCV, respectively.
+- \textcolor{TitleBlue}{\hyperlink{algo:CvSparse}{Algorithm CV Tuning for Sparsity}} and \textcolor{TitleRed}{equation \eqref{eq:MGCV one-way}} are used to tune the sparsity level via K‐fold CV and the smoothing parameter via GCV, respectively.
 
 
 
@@ -794,7 +798,7 @@ Regularization reduces noise while preserving the dominant daily consumption pat
 
 - **Our contribution:**  
   - Extend to **multivariate functional data** (multiple functional variables).  
-  - Combine **smoothness + sparsity penalties** in both directions.  
+  - Combine **\textcolor{TitleRed}{smoothness} + \textcolor{TitleBlue}{sparsity} penalties** in both directions.  
   - Result: Low-rank, interpretable, noise-robust principal components for high-dimensional applications.  
 
   
@@ -806,7 +810,7 @@ Regularization reduces noise while preserving the dominant daily consumption pat
 - Roughness matrices: $\pmb\Omega_u\in\mathbb{R}^{n\times n},\;\pmb\Omega_v\in\mathbb{R}^{M\times M}$ (symmetric, non-negative definite).  
 
 
-- Smoothers: $\pmb S_u(\alpha_u)=(I+\alpha_u\,\pmb\Omega_u)^{-1}, \qquad \pmb S_v(\pmb\alpha_v)=(I+\pmb\alpha_v\,\pmb\Omega_v)^{-1}.$
+- Smoothers: $\color{TitleRed}\pmb S_u(\alpha_u)=(I+\alpha_u\,\pmb\Omega_u)^{-1}, \qquad \pmb S_v(\pmb\alpha_v)=(I+\pmb\alpha_v\,\pmb\Omega_v)^{-1}.$
 
 ```{=latex}
 \pause
@@ -814,7 +818,7 @@ Regularization reduces noise while preserving the dominant daily consumption pat
 
 - Penalized rank-one reconstruction:  
   $$
-  \min_{u,v}\;\|\pmb X-uv^\top\|_F^2+\mathcal P(u,v)
+  \min_{u,v}\;\|\pmb X-uv^\top\|_F^2+ \color{TitleRed} \mathcal P(u,v)
   $$
 
 - Penalty [@twoway_huang]:  $\mathcal P(u,v;\alpha_u,\pmb\alpha_v) = u^\top(\alpha_u\pmb\Omega_u)u\,\|v\|^2 + \|u\|^2\,v^\top(\pmb\alpha_v\pmb\Omega_v)v + u^\top(\alpha_u\pmb\Omega_u)u\; v^\top(\pmb\alpha_v\pmb\Omega_v)v.$
@@ -864,36 +868,25 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 ## Two-way Smooth + Sparse MFPCA
 
 - **Goal:** Extract components that are **low-rank, smooth, and sparse**.  
-
-::: {.fragment style="height: 0.5em"}
-:::
-
-- **Why?**
-  - Smoothness → coherent variation across subjects & functions.  
-  - Sparsity → highlights key observations & time regions.  
-
-::: {.fragment style="height: 0.5em"}
-:::
+  - \textcolor{TitleRed}{Smoothness} → coherent variation across subjects & functions.  
+  - \textcolor{TitleBlue}{Sparsity} → highlights key observations & time regions.  
 
 - **Novelty:** First framework to combine **both** in two-way functional data.  
-
-::: {.fragment style="height: 0.5em"}
-:::
-
-- **Result:** Robust, interpretable, noise-resistant components for high-dimensional data.  
-
-
-## Sequential Power Algorithm
-- Data matrix $\pmb{X}$: seek $u, v$ solving:
-  $$
-  \min_{u,v} \|\pmb X - uv^\top\|_F^2 + 
-  \sum_j \mathcal P_j^{[\alpha]}(u,v)
-  $$
-- Penalties: smoothness, sparsity (soft/hard thresholding, SCAD, group lasso, etc.).  
 
 ```{=latex}
 \pause
 ```
+
+- Data matrix $\pmb{X}$: seek $u, v$ solving:
+  $$
+  \min_{u,v} \|\pmb X - uv^\top\|_F^2 + 
+  \sum_j^J \mathcal P_j^{[\theta]}(u,v)
+  $$
+- $J$ is the number of penalty components, and $\theta$ is the vector of all tuning parameters.
+- The composite penalty $\sum_{j=1}^J \mathcal{P}_j^{(\theta)}(u,v)$ lets us mix regularizers, e.g., \textcolor{TitleRed}{smoothness} with $\color{TitleRed}{\theta=(\alpha_u,\boldsymbol{\alpha}_v)}$ and \textcolor{TitleBlue}{sparsity} with $\textcolor{TitleBlue}{\theta=(\gamma_u,\boldsymbol{\gamma}_v)}$ (controlling sparsity), and can include other structures as needed.
+ 
+
+## Sequential Power Algorithm
 
 ```{=latex}
 \begin{block}{Algorithm: Two-way Smooth + Sparse MFPCA (Sequential Power)}\label{algo:twoway-smsp}
@@ -903,8 +896,8 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
   \item {Initialization:} Rank-one SVD of $\pmb X$: $\pmb X \approx s\,u^{(0)} {v^{(0)}}^\top$; set $u \leftarrow s\,u^{(0)}$, $v \leftarrow v^{(0)}$.
   \item {Repeat until convergence:}
     \begin{enumerate}
-      \item $u \leftarrow \pmb S_u^{[\alpha_u]}\; \pmb h_u^{[\gamma_u]}(\pmb X\,v)$
-      \item $v \leftarrow \pmb S_v^{[\pmb{\alpha}_v]}\; \pmb h_v^{[\pmb{\gamma}_v]}(\pmb X^\top u)$
+      \item $u \leftarrow \textcolor{TitleRed}{\pmb S_u^{[\alpha_u]}}\; \textcolor{TitleBlue}{\pmb h_u^{[\gamma_u]}} (\pmb X\,v)$
+      \item $v \leftarrow \textcolor{TitleRed}{\pmb S_v^{[\pmb{\alpha}_v]}}\; \textcolor{TitleBlue}{\pmb h_v^{[\pmb{\gamma}_v]}}(\pmb X^\top u)$
       \item $v \leftarrow v/\lVert v\rVert$
     \end{enumerate}
   \item $\pmb X \leftarrow \pmb X - \sigma\,u\,v^\top$ to extract the next component.
@@ -912,6 +905,126 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 \end{block}
 ```
 
+- Smoothness parameters are selected with conditional GCV, while sparsity parameters are chosen via cross-validation (CV).
+
+
+## Selection of Regularization Parameters
+
+- Four sets of tuning parameters:  
+  - $\color{TitleRed}{\alpha_u}$: smoothness of $u$,  $\color{TitleBlue}\gamma_u$: sparsity of $u$  
+  - $\color{TitleRed}{\pmb{\alpha}_v}$: smoothness of $v$,  $\color{TitleBlue}\pmb{\gamma}_v$: sparsity of $v$  
+
+- **Challenge:** Ordering of tuning (smoothness vs. sparsity) affects convergence and solutions.  
+
+```{=latex}
+\pause
+```
+
+- **Strategy: Conditional tuning**  
+  1. Initialize all penalties at 0.  
+  2. Tune $\gamma_u$ via $K$-fold CV.  
+  3. Sequentially tune $\gamma_{v,i}$ using \hyperlink{algo:SSPower}{Algorithm:Two-way Smooth + Sparse MFPCA}.
+  4. With sparsity fixed, tune $\alpha_u$ by GCV.  
+  5. Tune $\alpha_{v,i}$ using two-way GCV.  
+  6. Iterate steps 2–5 until stable.  
+
+- This alternating scheme **isolates sparsity vs. smoothness** while ensuring accuracy + interpretability.  
+
+## K-Fold CV algorithm for Sparsity
+```{=latex}
+\footnotesize
+\begin{columns}[T,onlytextwidth]
+
+% ===================== Left: Plain K-fold CV =====================
+\begin{column}{0.48\textwidth}
+\begin{block}{K-Fold CV (\textcolor{Clay}{Row} Sparsity)}
+\begin{enumerate}
+  \item Split $\pmb X\in\mathbb R^{n\times M}$ into $K$ \textcolor{Clay}{column groups} 
+        $\{\pmb X^{(1)},\dots,\pmb X^{(K)}\}$.
+  \item For each $\gamma_j$ and $k=1,\dots,K$:
+    \begin{enumerate}
+      \item Train on $\pmb X^{(-k)}$, estimate $\textcolor{Clay}{u_j^{(-k)}}$.
+      \item Validate: $\textcolor{Clay}{v_j^{(k)}=\pmb X^{(k)\top}u_j^{(-k)}}$.
+      \item Fold error:
+        \[
+          \mathrm{Err}^{(k)}_j=\tfrac{1}{\tilde M}\,
+          \|\pmb X^{(k)}-\textcolor{Clay}{u_j^{(-k)}(v_j^{(k)})^\top}\|_F^2.
+        \]
+    \end{enumerate}
+  \item CV score: $\widehat{\mathrm{CV}}_j=\tfrac{1}{K}\sum_k \mathrm{Err}^{(k)}_j$.
+  \item Select $j_0=\arg\min_j \widehat{\mathrm{CV}}_j$.
+\end{enumerate}
+\end{block}
+\end{column}
+
+% ===================== Right: 1-SE Rule =====================
+\begin{column}{0.48\textwidth}
+\begin{block}{K-Fold CV + 1-SE Rule}
+\begin{enumerate}
+  \item Use same folds to collect $\mathrm{Err}^{(k)}_j$.
+  \item Compute mean $\widehat{\mathrm{CV}}_j$ and SE $\widehat{\mathrm{SE}}_j$:
+    \[
+    \widehat{\mathrm{SE}}_j=\sqrt{\tfrac{1}{K(K-1)}\sum_k
+    (\mathrm{Err}^{(k)}_j-\widehat{\mathrm{CV}}_j)^2}.
+    \]
+  \item Let $j^\star=\arg\min_j \widehat{\mathrm{CV}}_j$.
+  \item Choose sparsest $j_0$ with
+    $\widehat{\mathrm{CV}}_j \le
+     \widehat{\mathrm{CV}}_{j^\star}+\widehat{\mathrm{SE}}_{j^\star}$.
+\end{enumerate}
+\end{block}
+\end{column}
+
+\end{columns}
+```
+
+## K-Fold CV algorithm for Sparsity
+```{=latex}
+\footnotesize
+\begin{columns}[T,onlytextwidth]
+
+% ===================== Left: Plain K-fold CV =====================
+\begin{column}{0.48\textwidth}
+\begin{block}{K-Fold CV (\textcolor{DarkGreen}{Column} Sparsity)}
+\begin{enumerate}
+  \item Split $\pmb X\in\mathbb R^{n\times M}$ into $K$ \textcolor{DarkGreen}{row groups} 
+        $\{\pmb X^{(1)},\dots,\pmb X^{(K)}\}$.
+  \item For each $\gamma_j$ and $k=1,\dots,K$:
+    \begin{enumerate}
+      \item Train on $\pmb X^{(-k)}$, estimate $\textcolor{DarkGreen}{v_j^{(-k)}}$.
+      \item Validate: $\textcolor{DarkGreen}{u_j^{(k)}=\pmb X^{(k)} v_j^{(-k)}}$.
+      \item Fold error:
+        \[
+          \mathrm{Err}^{(k)}_j=\tfrac{1}{\tilde n}\,
+          \|\pmb X^{(k)}-\textcolor{DarkGreen}{u_j^{(k)}(v_j^{(-k)})^\top}\|_F^2.
+        \]
+    \end{enumerate}
+  \item CV score: $\widehat{\mathrm{CV}}_j=\tfrac{1}{K}\sum_k \mathrm{Err}^{(k)}_j$.
+  \item Select $j_0=\arg\min_j \widehat{\mathrm{CV}}_j$.
+\end{enumerate}
+\end{block}
+\end{column}
+
+% ===================== Right: 1-SE Rule =====================
+\begin{column}{0.48\textwidth}
+\begin{block}{K-Fold CV + 1-SE Rule}
+\begin{enumerate}
+  \item Use same folds to collect $\mathrm{Err}^{(k)}_j$.
+  \item Compute mean $\widehat{\mathrm{CV}}_j$ and SE $\widehat{\mathrm{SE}}_j$:
+    \[
+    \widehat{\mathrm{SE}}_j=\sqrt{\tfrac{1}{K(K-1)}\sum_k
+    (\mathrm{Err}^{(k)}_j-\widehat{\mathrm{CV}}_j)^2}.
+    \]
+  \item Let $j^\star=\arg\min_j \widehat{\mathrm{CV}}_j$.
+  \item Choose sparsest $j_0$ with
+    $\widehat{\mathrm{CV}}_j \le
+     \widehat{\mathrm{CV}}_{j^\star}+\widehat{\mathrm{SE}}_{j^\star}$.
+\end{enumerate}
+\end{block}
+\end{column}
+
+\end{columns}
+```
 
 
 ## Chessboard
@@ -961,123 +1074,6 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 ```
 
 
-## Selection of Regularization Parameters
-
-- Four sets of tuning parameters:  
-  - $\alpha_u$: smoothness of $u$,  $\gamma_u$: sparsity of $u$  
-  - $\pmb{\alpha}_v$: smoothness of $v$,  $\pmb{\gamma}_v$: sparsity of $v$  
-
-- **Challenge:** Ordering of tuning (smoothness vs. sparsity) affects convergence and solutions.  
-
-```{=latex}
-\pause
-```
-
-- **Strategy: Conditional tuning**  
-  1. Initialize all penalties at 0.  
-  2. Tune $\gamma_u$ via $K$-fold CV.  
-  3. Sequentially tune $\gamma_{v,i}$ using \hyperlink{algo:SSPower}{Algorithm:Two-way Smooth + Sparse MFPCA}.
-  4. With sparsity fixed, tune $\alpha_u$ by GCV.  
-  5. Tune $\alpha_{v,i}$ using two-way GCV.  
-  6. Iterate steps 2–5 until stable.  
-
-- This alternating scheme **isolates sparsity vs. smoothness** while ensuring accuracy + interpretability.  
-
-## K-Fold CV algorithm for Sparsity
-```{=latex}
-\footnotesize
-\begin{columns}[T,onlytextwidth]
-
-% ===================== Left: Plain K-fold CV =====================
-\begin{column}{0.48\textwidth}
-\begin{block}{K-Fold CV (Row Sparsity)}
-\begin{enumerate}
-  \item Split $\pmb X\in\mathbb R^{n\times M}$ into $K$ column groups 
-        $\{\pmb X^{(1)},\dots,\pmb X^{(K)}\}$.
-  \item For each $\gamma_j$ and $k=1,\dots,K$:
-    \begin{enumerate}
-      \item Train on $\pmb X^{(-k)}$, estimate $u_j^{(-k)}$.
-      \item Validate: $v_j^{(k)}=\pmb X^{(k)\top}u_j^{(-k)}$.
-      \item Fold error:
-        \[
-          \mathrm{Err}^{(k)}_j=\tfrac{1}{\tilde M}\,
-          \|\pmb X^{(k)}-u_j^{(-k)}(v_j^{(k)})^\top\|_F^2.
-        \]
-    \end{enumerate}
-  \item CV score: $\widehat{\mathrm{CV}}_j=\tfrac{1}{K}\sum_k \mathrm{Err}^{(k)}_j$.
-  \item Select $j_0=\arg\min_j \widehat{\mathrm{CV}}_j$.
-\end{enumerate}
-\end{block}
-\end{column}
-
-% ===================== Right: 1-SE Rule =====================
-\begin{column}{0.48\textwidth}
-\begin{block}{K-Fold CV + 1-SE Rule}
-\begin{enumerate}
-  \item Use same folds to collect $\mathrm{Err}^{(k)}_j$.
-  \item Compute mean $\widehat{\mathrm{CV}}_j$ and SE $\widehat{\mathrm{SE}}_j$:
-    \[
-    \widehat{\mathrm{SE}}_j=\sqrt{\tfrac{1}{K(K-1)}\sum_k
-    (\mathrm{Err}^{(k)}_j-\widehat{\mathrm{CV}}_j)^2}.
-    \]
-  \item Let $j^\star=\arg\min_j \widehat{\mathrm{CV}}_j$.
-  \item Choose sparsest $j_0$ with
-    $\widehat{\mathrm{CV}}_j \le
-     \widehat{\mathrm{CV}}_{j^\star}+\widehat{\mathrm{SE}}_{j^\star}$.
-\end{enumerate}
-\end{block}
-\end{column}
-
-\end{columns}
-```
-
-## K-Fold CV algorithm for Sparsity
-```{=latex}
-\footnotesize
-\begin{columns}[T,onlytextwidth]
-
-% ===================== Left: Plain K-fold CV =====================
-\begin{column}{0.48\textwidth}
-\begin{block}{K-Fold CV (Column Sparsity)}
-\begin{enumerate}
-  \item Split $\pmb X\in\mathbb R^{n\times M}$ into $K$ row groups 
-        $\{\pmb X^{(1)},\dots,\pmb X^{(K)}\}$.
-  \item For each $\gamma_j$ and $k=1,\dots,K$:
-    \begin{enumerate}
-      \item Train on $\pmb X^{(-k)}$, estimate $v_j^{(-k)}$.
-      \item Validate: $u_j^{(k)}=\pmb X^{(k)} v_j^{(-k)}$.
-      \item Fold error:
-        \[
-          \mathrm{Err}^{(k)}_j=\tfrac{1}{\tilde n}\,
-          \|\pmb X^{(k)}-u_j^{(k)}(v_j^{(-k)})^\top\|_F^2.
-        \]
-    \end{enumerate}
-  \item CV score: $\widehat{\mathrm{CV}}_j=\tfrac{1}{K}\sum_k \mathrm{Err}^{(k)}_j$.
-  \item Select $j_0=\arg\min_j \widehat{\mathrm{CV}}_j$.
-\end{enumerate}
-\end{block}
-\end{column}
-
-% ===================== Right: 1-SE Rule =====================
-\begin{column}{0.48\textwidth}
-\begin{block}{K-Fold CV + 1-SE Rule}
-\begin{enumerate}
-  \item Use same folds to collect $\mathrm{Err}^{(k)}_j$.
-  \item Compute mean $\widehat{\mathrm{CV}}_j$ and SE $\widehat{\mathrm{SE}}_j$:
-    \[
-    \widehat{\mathrm{SE}}_j=\sqrt{\tfrac{1}{K(K-1)}\sum_k
-    (\mathrm{Err}^{(k)}_j-\widehat{\mathrm{CV}}_j)^2}.
-    \]
-  \item Let $j^\star=\arg\min_j \widehat{\mathrm{CV}}_j$.
-  \item Choose sparsest $j_0$ with
-    $\widehat{\mathrm{CV}}_j \le
-     \widehat{\mathrm{CV}}_{j^\star}+\widehat{\mathrm{SE}}_{j^\star}$.
-\end{enumerate}
-\end{block}
-\end{column}
-
-\end{columns}
-```
 
 
 ## Variance Explained: Classical vs Regularized FPCA
