@@ -20,7 +20,6 @@ format:
     pdf-engine: pdflatex
     cite-method: natbib
 
-bibliography: ref.bib
 link-citations: true
 
 
@@ -1345,7 +1344,7 @@ $$
   
 ## Accessible Implementation: R Package & Future Work
 
-- Implemented in **R package `ReMPCA` (GitHub)**  
+- Implemented in **R package `ReMPCA` ([GitHub](https://github.com/mobinapourmoshir/ReMPCA/tree/master))** 
   - Univariate & multivariate FPCA with penalties.  
   - Two-way MFPCA for matrix-valued functions.  
   - Automated tuning (CV, GCV, 1-SE rule).  
@@ -1361,6 +1360,10 @@ $$
   - Environmental monitoring  
 **Takeaway:**  Smooth + sparse + two-way FPCA offers a **theoretical foundation, practical algorithms, and open software** to enable next-generation functional data analysis.
 
-
-# References
+## References 
+```{=latex}
+\tiny{
+\bibliography{ref}
+}
+```
 
