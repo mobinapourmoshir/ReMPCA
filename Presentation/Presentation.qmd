@@ -1201,30 +1201,17 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
 ## Simulation Results
 ```{=latex}
 \centering
-\begin{minipage}[t]{0.32\textwidth}\centering
-  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - SVD.pdf}}\\
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}\centering
-  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Smoothness_and_Sparsity_on_u.pdf}}\\
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}\centering
-  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Smoothness_and_Sparsity_on_v.pdf}}\\
+\begin{minipage}{0.9\linewidth}
+  \centering
+  \only<1>{\includegraphics[width=\linewidth]{images/Simulation 2 - SVD.pdf}}
+  \only<2>{\includegraphics[width=\linewidth]{images/Simulation 2 - Smoothness_and_Sparsity_on_v.pdf}}
+  \only<3>{\includegraphics[width=\linewidth]{images/Simulation 2 - Smoothness_and_Sparsity_on_u.pdf}}
+  \only<4>{\includegraphics[width=\linewidth]{images/Simulation 2 - Two-Way_Smoothness.pdf}}
+  \only<5>{\includegraphics[width=\linewidth]{images/Simulation 2 - Two-Way_Sparsity.pdf}}
+  \only<6>{\includegraphics[width=\linewidth]{images/Simulation 2 - Two-way_Sparsity_and_Smoothness.pdf}}
 \end{minipage}
 ```
 
-## Simulation Results
-```{=latex}
-\centering
-\begin{minipage}[t]{0.32\textwidth}\centering
-  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Two-Way_Smoothness.pdf}}\\
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}\centering
-  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Two-Way_Sparsity.pdf}}\\
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\textwidth}\centering
-  \includegraphics[width=\textwidth]{\detokenize{images/Simulation 2 - Two-way_Sparsity_and_Smoothness.pdf}}\\
-\end{minipage}
-```
 
 ## Simulation Results
 ```{=latex}
@@ -1298,7 +1285,7 @@ $$
 
 ::: columns
 ::: {.column width="100%"}
-![](images/Motion Sense PCS.pdf){width="92%" fig-align="center"}
+![](images/Motion Sense PCS.pdf){width="75%" fig-align="center"}
 :::
 :::
 
