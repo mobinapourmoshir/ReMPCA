@@ -145,6 +145,14 @@ header-includes:
 
     % (Optional) remove title-box drop shadow if you dislike it
     % \useoutertheme{default}
+    \newcommand{\SimResultsTitle}{%
+      \only<1>{Simulation Results (SVD)}%
+      \only<2>{Simulation Results (Smoothness and Sparsity on v)}%
+      \only<3>{Simulation Results (Smoothness and Sparsity on u)}%
+      \only<4>{Simulation Results (Two-Way Smoothness)}%
+      \only<5>{Simulation Results (Two-Way Sparsity)}%
+      \only<6>{Simulation Results (Two-way Sparsity and Smoothness)}%
+    }
 ---
 
 
@@ -1198,17 +1206,18 @@ v=\frac{\pmb S_v(\pmb{\alpha}_v)\,\pmb X^\top u}{u^\top (I+\alpha_u\,\pmb{\Omega
   \Big(R_r - \overline{R}\Big)^2}.
   $$
 
-## Simulation Results
+## \SimResultsTitle
+
 ```{=latex}
 \centering
 \begin{minipage}{0.9\linewidth}
   \centering
-  \only<1>{\includegraphics[width=\linewidth]{images/Simulation 2 - SVD.pdf}}
-  \only<2>{\includegraphics[width=\linewidth]{images/Simulation 2 - Smoothness_and_Sparsity_on_v.pdf}}
-  \only<3>{\includegraphics[width=\linewidth]{images/Simulation 2 - Smoothness_and_Sparsity_on_u.pdf}}
-  \only<4>{\includegraphics[width=\linewidth]{images/Simulation 2 - Two-Way_Smoothness.pdf}}
-  \only<5>{\includegraphics[width=\linewidth]{images/Simulation 2 - Two-Way_Sparsity.pdf}}
-  \only<6>{\includegraphics[width=\linewidth]{images/Simulation 2 - Two-way_Sparsity_and_Smoothness.pdf}}
+  \only<1>{\includegraphics[width=\linewidth]{images/Simulation 2 - SVD.pdf} }%
+  \only<2>{\includegraphics[width=\linewidth]{images/Simulation 2 - Smoothness_and_Sparsity_on_v.pdf} }%
+  \only<3>{\includegraphics[width=\linewidth]{images/Simulation 2 - Smoothness_and_Sparsity_on_u.pdf} }%
+  \only<4>{\includegraphics[width=\linewidth]{images/Simulation 2 - Two-Way_Smoothness.pdf}}%
+  \only<5>{\includegraphics[width=\linewidth]{images/Simulation 2 - Two-Way_Sparsity.pdf}}%
+  \only<6>{\includegraphics[width=\linewidth]{images/Simulation 2 - Two-way_Sparsity_and_Smoothness.pdf}}%
 \end{minipage}
 ```
 
