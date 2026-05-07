@@ -212,7 +212,7 @@ day_grid <- seq(0, 1, length.out = n_days)
 smooth_grid_v <- 2^seq(-12, 4, length.out = 10)
 smooth_grid_u <- 2^seq(-12, 4, length.out = 10)
 
-sparse_grid_u <- unique(round(seq(0, n_days - 1, length.out = 15)))
+sparse_grid_u <- unique(round(seq(0, floor(0.50 * n_days), length.out = 10)))
 
 sparse_grid_24 <- unique(round(seq(0, 23, length.out = 10)))
 sparse_grid_regular <- unique(round(seq(0, ncol(X_regular) - 1, length.out = 12)))
@@ -273,18 +273,23 @@ bike_fit <- ReMPCA(
   hd = bike_hd,
   centerhds = FALSE,
   num_pcs = 2,
+
   nfolds_u = 5,
   nfolds_v = NULL,
-  thresh = 1e-10,
-  maxit = 100,
+
+  thresh = 1e-6,
+  maxit = 500,
+
   tuning_iter = 1,
   parallel = FALSE,
-  weights = 0,
+  weights = NULL,
+
   smoothness_type = "Second_order",
   sparse_tuning_type = "soft",
   tuning_order = "Sparsity",
   cv.pick = "1se",
-  sparse_tuning_u = NULL,
+
+  sparse_tuning_u = 0,
   sparse_tuning_v = NULL,
   smooth_tuning_u = NULL,
   smooth_tuning_v = NULL
