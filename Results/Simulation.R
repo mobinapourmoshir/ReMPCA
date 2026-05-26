@@ -1,10 +1,6 @@
 ############################################################
-## Clean two-way multivariate hybrid PCA simulation
+## two-way multivariate hybrid PCA simulation
 ## TRUE vs NOISY vs ReMPCA
-##
-## Main goal:
-##   Show ReMPCA works very well under its intended model:
-##   one dominant two-way hybrid sparse/smooth component.
 ############################################################
 
 if (!requireNamespace("ReMPCA", quietly = TRUE)) {
