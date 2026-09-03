@@ -16,3 +16,6 @@ Imports:
   doParallel,
   foreach
 URL: https://mobinapourmoshir.github.io/ReMPCA/
+Depends: 
+    R (>= 3.5)
+LazyData: true
