@@ -10,7 +10,6 @@ Description: ReMPCA is an R package designed to extend Principal Component Analy
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
 Imports:
   Matrix, 
   doParallel,
@@ -19,3 +18,4 @@ URL: https://mobinapourmoshir.github.io/ReMPCA/
 Depends: 
     R (>= 3.5)
 LazyData: true
+Config/roxygen2/version: 8.0.0
