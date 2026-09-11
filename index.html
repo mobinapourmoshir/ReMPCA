@@ -48,17 +48,13 @@
 <div class="page-header"><h1 id="rempca-package">ReMPCA Package<img src="reference/figures/hexagon.png" width="170" height="170" align="right"><a class="anchor" aria-label="anchor" href="#rempca-package"></a>
 </h1></div>
 <!-- badges: start -->
-
+<!--[![R-CMD-check](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml)-->
+<!-- badges: end -->
 <!-- badges: start -->
 <!-- badges: end -->
 <p>ReMPCA is an R package designed to extend Principal Component Analysis (PCA) to complex, high-dimensional datasets—including curves, images, functional, and regular data. By integrating multiple data types within a single framework, ReMPCA captures intricate relationships across variables and domains, making it an ideal tool for structured data analysis in fields like imaging, signal processing, and functional data analysis.</p>
 <p>Unlike traditional PCA methods, ReMPCA offers flexible, fine-grained control through one- and two-way regularization. Users can independently apply smoothing and sparsity to different data components, with tailored regularization parameters across functional and regular sections. Built on an enhanced power algorithm, the package dynamically refines components and quantifies explained variance, delivering a powerful and unified solution for extracting meaningful structure from hybrid datasets.</p>
-<p>Implementing varied penalties on both <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math> improves accuracy. As shown in Figure below, for a noisy chessboard, applying the power algorithm with customized penalties, such as smoothness and group lasso, enforces a step-function structure in <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>, refining the vectors and yielding a reconstruction close to the true chessboard. More importantly, regularizing both directions simultaneously is more effective than separate one-way penalties, better preserving the data’s true structure.</p>
-<div class="figure" style="text-align: center">
-<img src="./reference/figures/chess.png" alt="gwid pipeline" width="100%"><p class="caption">
-gwid pipeline
-</p>
-</div>
+<p>Implementing varied penalties on both <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math> improves accuracy. As shown in Figure below, for a noisy chessboard, applying the power algorithm with customized penalties, such as smoothness and group lasso, enforces a step-function structure in <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>u</mi><annotation encoding="application/x-tex">u</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math>, refining the vectors and yielding a reconstruction close to the true chessboard. More importantly, regularizing both directions simultaneously is more effective than separate one-way penalties, better preserving the data’s true structure. <img src="./reference/figures/chess.png" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -66,14 +62,18 @@ gwid pipeline
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"mobinapourmoshir/ReMPCA"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="do">## Skipping install of 'ReMPCA' from a github remote, the SHA1 (740efcea) has not changed since last install.</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="do">##   Use `force = TRUE` to force installation</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="data-and-analysis-code">Data and analysis code<a class="anchor" aria-label="anchor" href="#data-and-analysis-code"></a>
+</h2>
+<p>The data and analysis code used for the Bike Sharing application are included in this repository to support reproducibility. The processed data files are available in the <a href="data"><code>data</code></a> folder, including <a href="data/bike_day.rda"><code>bike_day.rda</code></a> and <a href="data/bike_hour.rda"><code>bike_hour.rda</code></a>.</p>
+<p>The complete R code used for the Bike Sharing analysis is available in the <a href="inst"><code>inst</code></a> folder as <a href="inst/ReMPCA_bike_example.R"><code>ReMPCA_bike_example.R</code></a>. These materials can be used to reproduce the analysis and figures presented in the paper.</p>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
 <p>The following example demonstrates how to generate q hybrid data (both regular and functional) and construct the input objects required for running <code>ReMPCA</code>:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mobinapourmoshir.github.io/ReMPCA/">ReMPCA</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
@@ -174,7 +174,7 @@ gwid pipeline
 <h2 id="regularized-multivariate-hybrid-pca-function">Regularized Multivariate Hybrid PCA function<a class="anchor" aria-label="anchor" href="#regularized-multivariate-hybrid-pca-function"></a>
 </h2>
 <p>Now that we have constructed our hybrid data object, we can apply the <code>ReMPCA</code> function to extract the principal components while incorporating smoothing and sparsity constraints.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ReMPCATest</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ReMPCA.html">ReMPCA</a></span><span class="op">(</span>hd <span class="op">=</span> <span class="va">object_list</span>,</span>
 <span>                     centerhds <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                     num_pcs <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -202,11 +202,11 @@ gwid pipeline
 <h4 id="pc-and-pc-scores-plots">PC and PC scores plots<a class="anchor" aria-label="anchor" href="#pc-and-pc-scores-plots"></a>
 </h4>
 <p>Once the model has been fitted, we can examine the output to see the principal components and their corresponding scores:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot v </span></span>
 <span><span class="fu"><a href="reference/plot_pc_functions.html">plot_pc_functions</a></span><span class="op">(</span><span class="va">ReMPCATest</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-5-1.png"><!-- --></p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot u</span></span>
 <span><span class="fu"><a href="reference/plot_pc_scores.html">plot_pc_scores</a></span><span class="op">(</span><span class="va">ReMPCATest</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-6-1.png"><!-- --></p>
@@ -215,7 +215,7 @@ gwid pipeline
 <h4 id="reconstructed-data">Reconstructed data<a class="anchor" aria-label="anchor" href="#reconstructed-data"></a>
 </h4>
 <p>The reconstructed hybrid data, obtained after applying sparsity and smoothness through the ReMPCA framework, is shown below.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">u_new</span> <span class="op">&lt;-</span> <span class="va">ReMPCATest</span><span class="op">$</span><span class="va">PCScores</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">v1_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">ReMPCATest</span><span class="op">$</span><span class="va">PCFunctions</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">v2_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html" class="external-link">as.vector</a></span><span class="op">(</span><span class="va">ReMPCATest</span><span class="op">$</span><span class="va">PCFunctions</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
@@ -244,7 +244,7 @@ gwid pipeline
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">X4</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">'X4 Regular - Noisy'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">u_new</span>, <span class="va">v4_new</span><span class="op">)</span><span class="op">)</span>, main <span class="op">=</span> <span class="st">'X4, Estimated'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-7-1.png"><!-- --> In addition, the reconstructed two-way functional variables are displayed below.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot 3D image</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span>, pin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># True</span></span>
@@ -270,9 +270,19 @@ gwid pipeline
 <h4 id="cv-and-gcv-plots">CV and GCV Plots<a class="anchor" aria-label="anchor" href="#cv-and-gcv-plots"></a>
 </h4>
 <p>Finally, cross-validation (CV) plots for tuning sparsity and generalized cross-validation (GCV) plots for selecting smoothness parameters can be produced as follows:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># CV Plot for tuning sparsity for u </span></span>
 <span><span class="fu"><a href="reference/plot_cv_u.html">plot_cv_u</a></span><span class="op">(</span><span class="va">ReMPCATest</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="do">## zero-length arrow is of indeterminate angle and so skipped</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="do">## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="do">## zero-length arrow is of indeterminate angle and so skipped</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="do">## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="do">## zero-length arrow is of indeterminate angle and so skipped</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="do">## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="do">## zero-length arrow is of indeterminate angle and so skipped</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="do">## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="do">## zero-length arrow is of indeterminate angle and so skipped</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-9-1.png"><!-- --></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># CV Plot for tuning sparsity for v</span></span>
@@ -314,12 +324,7 @@ gwid pipeline
 </ul>
 </div>
 
-<div class="dev-status">
-<h2 data-toc-skip>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
-</ul>
-</div>
+
 
   </aside>
 </div>

@@ -24,11 +24,7 @@ enforces a step-function structure in $`u`$ and $`v`$, refining the
 vectors and yielding a reconstruction close to the true chessboard. More
 importantly, regularizing both directions simultaneously is more
 effective than separate one-way penalties, better preserving the data’s
-true structure.
-
-![gwid pipeline](./reference/figures/chess.png)
-
-gwid pipeline
+true structure. ![](./reference/figures/chess.png)
 
 ## Installation
 
@@ -40,10 +36,22 @@ To install the ReMPCA Package from GitHub, use the following code:
 remotes::install_github("mobinapourmoshir/ReMPCA")
 ```
 
-``` R
-## Skipping install of 'ReMPCA' from a github remote, the SHA1 (740efcea) has not changed since last install.
-##   Use `force = TRUE` to force installation
-```
+## Data and analysis code
+
+The data and analysis code used for the Bike Sharing application are
+included in this repository to support reproducibility. The processed
+data files are available in the
+[`data`](https://mobinapourmoshir.github.io/ReMPCA/data) folder,
+including
+[`bike_day.rda`](https://mobinapourmoshir.github.io/ReMPCA/data/bike_day.rda)
+and
+[`bike_hour.rda`](https://mobinapourmoshir.github.io/ReMPCA/data/bike_hour.rda).
+
+The complete R code used for the Bike Sharing analysis is available in
+the [`inst`](https://mobinapourmoshir.github.io/ReMPCA/inst) folder as
+[`ReMPCA_bike_example.R`](https://mobinapourmoshir.github.io/ReMPCA/inst/ReMPCA_bike_example.R).
+These materials can be used to reproduce the analysis and figures
+presented in the paper.
 
 ## Example
 
@@ -290,6 +298,19 @@ produced as follows:
 
 # CV Plot for tuning sparsity for u 
 plot_cv_u(ReMPCATest)
+```
+
+``` R
+## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+## zero-length arrow is of indeterminate angle and so skipped
+## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+## zero-length arrow is of indeterminate angle and so skipped
+## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+## zero-length arrow is of indeterminate angle and so skipped
+## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+## zero-length arrow is of indeterminate angle and so skipped
+## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+## zero-length arrow is of indeterminate angle and so skipped
 ```
 
 ![](reference/figures/README-unnamed-chunk-9-1.png)

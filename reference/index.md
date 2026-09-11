@@ -111,6 +111,9 @@
 - [`rdClass()`](https://mobinapourmoshir.github.io/ReMPCA/reference/rdClass.md)
   : Regular Data Class
 
+- [`read.data()`](https://mobinapourmoshir.github.io/ReMPCA/reference/read.data.md)
+  : Read ReMPCA Example Data
+
 - [`scale_hd()`](https://mobinapourmoshir.github.io/ReMPCA/reference/scale_hd.md)
   :
 
