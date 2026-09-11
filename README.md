@@ -3,10 +3,12 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml)
+<!--[![R-CMD-check](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml)-->
+
 <!-- badges: end -->
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 ReMPCA is an R package designed to extend Principal Component Analysis
@@ -34,15 +36,7 @@ and yielding a reconstruction close to the true chessboard. More
 importantly, regularizing both directions simultaneously is more
 effective than separate one-way penalties, better preserving the data’s
 true structure.
-
-<div class="figure" style="text-align: center">
-
-<img src="./man/figures/chess.png" alt="gwid pipeline" width="100%" />
-<p class="caption">
-gwid pipeline
-</p>
-
-</div>
+<img src="./man/figures/chess.png" alt="" width="100%" style="display: block; margin: auto;" />
 
 ## Installation 
 
@@ -53,8 +47,19 @@ To install the ReMPCA Package from GitHub, use the following code:
 remotes::install_github("mobinapourmoshir/ReMPCA")
 ```
 
-    ## Skipping install of 'ReMPCA' from a github remote, the SHA1 (740efcea) has not changed since last install.
-    ##   Use `force = TRUE` to force installation
+## Data and analysis code
+
+The data and analysis code used for the Bike Sharing application are
+included in this repository to support reproducibility. The processed
+data files are available in the [`data`](data) folder, including
+[`bike_day.rda`](data/bike_day.rda) and
+[`bike_hour.rda`](data/bike_hour.rda).
+
+The complete R code used for the Bike Sharing analysis is available in
+the [`inst`](inst) folder as
+[`ReMPCA_bike_example.R`](inst/ReMPCA_bike_example.R). These materials
+can be used to reproduce the analysis and figures presented in the
+paper.
 
 ## Example
 
@@ -295,6 +300,17 @@ produced as follows:
 # CV Plot for tuning sparsity for u 
 plot_cv_u(ReMPCATest)
 ```
+
+    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+    ## zero-length arrow is of indeterminate angle and so skipped
+    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+    ## zero-length arrow is of indeterminate angle and so skipped
+    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+    ## zero-length arrow is of indeterminate angle and so skipped
+    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+    ## zero-length arrow is of indeterminate angle and so skipped
+    ## Warning in arrows(gamma_vals, cv_means - cv_ses, gamma_vals, cv_means + :
+    ## zero-length arrow is of indeterminate angle and so skipped
 
 ![](man/figures/README-unnamed-chunk-9-1.png)<!-- -->
 

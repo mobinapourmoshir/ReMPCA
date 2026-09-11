@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 # ReMPCA Package<img src="man/figures/hexagon.png" width = "170" height = "170" align="right" />
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml)
+<!--[![R-CMD-check](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mobinapourmoshir/ReMPCA/actions/workflows/R-CMD-check.yaml)-->
 <!-- badges: end -->
 
 <!-- badges: start -->
@@ -33,7 +33,7 @@ knitr::include_graphics("./man/figures/chess.png")
 ## Installation \
 To install the ReMPCA Package from GitHub, use the following code:\
 
-```{r}
+```{r, eval=FALSE}
 # install.packages("remotes")
 remotes::install_github("mobinapourmoshir/ReMPCA")
 ```

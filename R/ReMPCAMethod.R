@@ -266,9 +266,21 @@ plot_cv_v <- function(ReMPCA_obj, show_se = TRUE, ...) {
            ylim = c(local_ymin, local_ymax), ...)
 
       if (show_se) {
-        arrows(gammas, cv_means - cv_ses,
-               gammas, cv_means + cv_ses,
-               angle = 90, code = 3, length = 0.05, col = "gray40")
+
+        keep <- is.finite(cv_ses) & cv_ses > 0
+
+        if (any(keep)) {
+          arrows(
+            gammas[keep],
+            cv_means[keep] - cv_ses[keep],
+            gammas[keep],
+            cv_means[keep] + cv_ses[keep],
+            angle = 90,
+            code = 3,
+            length = 0.05,
+            col = "gray40"
+          )
+        }
       }
 
       abline(h = threshold, lty = 2, col = "red")
