@@ -33,16 +33,16 @@ imgClass(image, Smoothing_parameter = 0, Sparsity_parameter = 0, argval = NULL)
   - A numeric scalar or vector controlling the level of smoothing (as in
     `fdClass`).
 
-    - Set to 0 for no smoothing (produces an `rdClass` object).
+  - Set to 0 for no smoothing (produces an `rdClass` object).
 
-    - If NULL, smoothing is tuned from a default sequence.
+  - If NULL, smoothing is tuned from a default sequence.
 
 - Sparsity_parameter:
 
   - A fixed number or vector controlling the level of sparsity on pixel
     columns.
 
-    - If NULL, it is tuned automatically based on image size.
+  - If NULL, it is tuned automatically based on image size.
 
 - argval:
 
