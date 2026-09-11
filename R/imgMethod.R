@@ -7,6 +7,7 @@
 #' @param ... Additional arguments (ignored).
 #'
 #' @return The object \code{x} is returned invisibly.
+#' @export
 print.imgClass <- function(x, ...) {
   cat("Image Data (imgClass) Object\n")
   cat("-----------------------------------\n")

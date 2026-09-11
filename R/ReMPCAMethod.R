@@ -210,7 +210,7 @@ plot_cv_u <- function(ReMPCA_obj, show_se = TRUE, ...) {
 #' @param ReMPCA_obj A list object returned by ReMPCA containing `CVResultsV` and `OptimalGammaV`.
 #' @param show_se Logical. If TRUE, adds standard error bars (±1 SE) to each point. Default is TRUE.
 #' @param ... Additional arguments passed to the `plot()` function.
-#'
+#' @export
 plot_cv_v <- function(ReMPCA_obj, show_se = TRUE, ...) {
   CV_v <- ReMPCA_obj$CVResultsV
   OptimalGammaV <- ReMPCA_obj$OptimalGammaV

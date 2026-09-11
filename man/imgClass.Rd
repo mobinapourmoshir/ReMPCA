@@ -12,17 +12,13 @@ Each image must be a matrix of the same dimension.}
 
 \item{Smoothing_parameter}{\itemize{
 \item A numeric scalar or vector controlling the level of smoothing (as in \code{fdClass}).
-\itemize{
 \item Set to 0 for no smoothing (produces an \code{rdClass} object).
 \item If NULL, smoothing is tuned from a default sequence.
-}
 }}
 
 \item{Sparsity_parameter}{\itemize{
 \item A fixed number or vector controlling the level of sparsity on pixel columns.
-\itemize{
 \item If NULL, it is tuned automatically based on image size.
-}
 }}
 
 \item{argval}{Optional numeric vector for grid points over the pixels (columns).}
