@@ -26,7 +26,7 @@ Unlike traditional PCA methods, ReMPCA offers flexible, fine-grained control thr
 
 Implementing varied penalties on both $u$ and $v$ improves accuracy. As shown in Figure below, for a noisy chessboard, applying the power algorithm with customized penalties, such as smoothness and group lasso, enforces a step-function structure in \( u \) and \( v \), refining the vectors and yielding a reconstruction close to the true chessboard.
 More importantly, regularizing both directions simultaneously is more effective than separate one-way penalties, better preserving the data’s true structure.
-```{r, out.width="100%",include=TRUE, fig.align="center", fig.cap=c("gwid pipeline"), echo=FALSE}
+```{r, out.width="100%",include=TRUE, fig.align="center", echo=FALSE}
 knitr::include_graphics("./man/figures/chess.png")
 ``` 
 
@@ -37,6 +37,19 @@ To install the ReMPCA Package from GitHub, use the following code:\
 # install.packages("remotes")
 remotes::install_github("mobinapourmoshir/ReMPCA")
 ```
+
+## Data and analysis code
+
+The data and analysis code used for the Bike Sharing application are included
+in this repository to support reproducibility. The processed data files are
+available in the [`data`](data) folder, including
+[`bike_day.rda`](data/bike_day.rda) and
+[`bike_hour.rda`](data/bike_hour.rda).
+
+The complete R code used for the Bike Sharing analysis is available in the
+[`inst`](inst) folder as
+[`ReMPCA_bike_example.R`](inst/ReMPCA_bike_example.R). These materials can be
+used to reproduce the analysis and figures presented in the paper.
 
 
 ## Example
