@@ -40,17 +40,33 @@ remotes::install_github("mobinapourmoshir/ReMPCA")
 
 ## Data and analysis code
 
-The data and analysis code used for the Bike Sharing application are included
-in this repository to support reproducibility. The processed data files are
-available in the [`data`](data) folder, including
-[`bike_day.rda`](data/bike_day.rda) and
-[`bike_hour.rda`](data/bike_hour.rda).
+The data and analysis code used for the real-data applications are included
+in this repository to support reproducibility.
 
-The complete R code used for the Bike Sharing analysis is available in the
+### Bike Sharing application
+
+The data files used for the Bike Sharing analysis are available in the
+[`data`](data) folder:
+
+- [`bike_day.rda`](data/bike_day.rda)
+- [`bike_hour.rda`](data/bike_hour.rda)
+
+The complete R code used for the analysis is available in the
 [`inst`](inst) folder as
-[`ReMPCA_bike_example.R`](inst/ReMPCA_bike_example.R). These materials can be
-used to reproduce the analysis and figures presented in the paper.
+[`ReMPCA_bike_example.R`](inst/ReMPCA_bike_example.R).
 
+### Appliances Energy Prediction application
+
+The data used for the Appliances Energy Prediction analysis are available in
+the [`data`](data) folder as
+[`energydata_complete.rda`](data/energydata_complete.rda).
+
+The complete R code used for the analysis is available in the
+[`inst`](inst) folder as
+[`ReMPCA_appliances_example.R`](inst/ReMPCA_appliances_example.R).
+
+These materials can be used to reproduce the analyses, tables, and figures
+presented in the paper and supplementary material.
 
 ## Example
 
