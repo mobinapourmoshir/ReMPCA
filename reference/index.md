@@ -20,6 +20,12 @@
 - [`as.rdClass()`](https://mobinapourmoshir.github.io/ReMPCA/reference/as.rdClass.md)
   : Coerce an object of class 'fdClass' or 'imgClass' to class 'rdClass'
 
+- [`bike_day`](https://mobinapourmoshir.github.io/ReMPCA/reference/bike_day.md)
+  : Bike Sharing Daily Data
+
+- [`bike_hour`](https://mobinapourmoshir.github.io/ReMPCA/reference/bike_hour.md)
+  : Bike Sharing Hourly Data
+
 - [`` `$`( ``*`<fdClass>`*`)`](https://mobinapourmoshir.github.io/ReMPCA/reference/cash-.fdClass.md)
   :
 
@@ -46,6 +52,9 @@
 
 - [`` `-`( ``*`<hd>`*`)`](https://mobinapourmoshir.github.io/ReMPCA/reference/dot-hd.md)
   : Element-wise Subtraction for Hybrid Data Objects
+
+- [`energydata`](https://mobinapourmoshir.github.io/ReMPCA/reference/energydata.md)
+  : Appliances Energy Prediction Data
 
 - [`fdClass()`](https://mobinapourmoshir.github.io/ReMPCA/reference/fdClass.md)
   : Functional Data Class
