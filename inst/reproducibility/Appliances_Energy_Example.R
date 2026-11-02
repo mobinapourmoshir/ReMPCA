@@ -1121,7 +1121,421 @@ p_appliance_combined <- (p_u_top / p_bottom_v) +
     legend.title = element_blank()
   )
 
+#print(p_appliance_combined)
+
+
+###############################################################################
+# 13.5 Final formatting for p_appliance_combined
+#      Same style as Bike Sharing combined figure
+###############################################################################
+
+library(ggplot2)
+library(patchwork)
+library(grid)
+library(dplyr)
+
+method_cols <- c(
+  "HPCA"   = "#D95F02",
+  "ReHPCA" = "#0072B2"
+)
+
+# ---------------------------------------------------------------------------
+# 1. u direction: one bold "u score" and horizontal dates
+# ---------------------------------------------------------------------------
+
+p_u_time <- p_u_time +
+
+  labs(y = "u score") +
+
+  guides(color = "none") +
+
+  # Fewer dates to avoid overlapping horizontal labels
+  scale_x_date(
+    date_breaks = "2 months",
+    date_labels = "%Y-%m",
+    expand = expansion(mult = c(0.01, 0.01))
+  ) +
+
+  theme(
+    axis.title.y.left = element_text(
+      face = "bold",
+      size = 18,
+      margin = margin(r = 5)
+    ),
+
+    plot.title = element_text(
+      face = "bold",
+      size = 21,
+      margin = margin(b = 4)
+    ),
+
+    strip.text.x = element_text(
+      face = "bold",
+      size = 18
+    ),
+
+    axis.text.x = element_text(
+      size = 13,
+      angle = 0,
+      hjust = 0.5,
+      color = "black"
+    ),
+
+    axis.text.y = element_text(
+      size = 14,
+      color = "black"
+    ),
+
+    panel.spacing.x = unit(0.05, "cm"),
+
+    plot.margin = margin(2, 2, 1, 0)
+  )
+
+# Remove the extra u-score label
+p_u_label <- plot_spacer()
+
+# ---------------------------------------------------------------------------
+# 2. Functional PC loading curves
+#    - Six functional blocks
+#    - Vertical block labels
+#    - Centered title
+#    - No gap between PC1 and PC2
+#    - Larger fonts
+# ---------------------------------------------------------------------------
+
+p_v_function <- p_v_function +
+
+  scale_x_continuous(
+    breaks = c(0, 6, 12, 18),
+    expand = expansion(mult = c(0.01, 0.01))
+  ) +
+
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 21,
+      hjust = 0.5,
+      margin = margin(b = 5)
+    ),
+
+    plot.title.position = "panel",
+
+    strip.text.x = element_text(
+      face = "bold",
+      size = 18,
+      margin = margin(3, 3, 3, 3)
+    ),
+
+    # Rotate all six block names 90 degrees
+    strip.text.y.left = element_text(
+      angle = 90,
+      face = "bold",
+      size = 18,
+      margin = margin(2, 2, 2, 2)
+    ),
+
+    strip.placement = "outside",
+
+    strip.switch.pad.grid = unit(0, "pt"),
+
+    # No horizontal gap between PC1 and PC2
+    panel.spacing.x = unit(0, "cm"),
+
+    # Minimal vertical gap
+    panel.spacing.y = unit(0.04, "cm"),
+
+    axis.title.x = element_text(
+      face = "bold",
+      size = 18,
+      margin = margin(t = 8)
+    ),
+
+    axis.title.y = element_text(
+      face = "bold",
+      size = 18,
+      margin = margin(r = 4)
+    ),
+
+    axis.text.x = element_text(
+      size = 13,
+      color = "black",
+      margin = margin(t = 3)
+    ),
+
+    axis.text.y = element_text(
+      size = 13,
+      color = "black"
+    ),
+
+    axis.text.x.top = element_blank(),
+
+    plot.margin = margin(2, 2, 0, 2)
+  )
+
+# ---------------------------------------------------------------------------
+# 3. Regular covariate loadings
+#    - Retain all existing nonfunctional variables
+#    - Align PC1/PC2 headers with functional plots
+#    - Center title
+#    - Avoid overlapping x-axis labels
+# ---------------------------------------------------------------------------
+
+p_v_regular <- p_v_regular +
+
+  scale_x_continuous(
+    breaks = scales::breaks_pretty(n = 2),
+    labels = scales::label_number(accuracy = 0.01),
+    guide = guide_axis(check.overlap = TRUE)
+  ) +
+
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 21,
+      hjust = 0.5,
+      margin = margin(b = 5)
+    ),
+
+    plot.title.position = "panel",
+
+    strip.text.x = element_text(
+      face = "bold",
+      size = 18,
+      margin = margin(3, 3, 3, 3)
+    ),
+
+    panel.spacing.x = unit(0.20, "cm"),
+
+    axis.title.x = element_text(
+      face = "bold",
+      size = 18,
+      margin = margin(t = 8)
+    ),
+
+    axis.text.x = element_text(
+      size = 12,
+      color = "black",
+      margin = margin(t = 3)
+    ),
+
+    axis.text.y = element_text(
+      size = 14,
+      color = "black"
+    ),
+
+    axis.ticks.length.x = unit(1.5, "pt"),
+
+    panel.grid.major.y = element_line(
+      color = "grey92",
+      linewidth = 0.20
+    ),
+
+    plot.margin = margin(2, 2, 0, 2)
+  )
+
+# ---------------------------------------------------------------------------
+# 4. Custom HPCA/ReHPCA legend on upper left
+# ---------------------------------------------------------------------------
+
+legend_df <- tibble(
+  Method = factor(
+    c("HPCA", "ReHPCA"),
+    levels = c("HPCA", "ReHPCA")
+  ),
+  y = c(0.65, 0.35)
+)
+
+p_appliance_legend <- ggplot(legend_df) +
+
+  geom_segment(
+    aes(
+      x = 0.04,
+      xend = 0.34,
+      y = y,
+      yend = y,
+      color = Method
+    ),
+    linewidth = 1.7
+  ) +
+
+  geom_text(
+    aes(
+      x = 0.42,
+      y = y,
+      label = Method
+    ),
+    hjust = 0,
+    size = 6.0,
+    fontface = "bold",
+    color = "black"
+  ) +
+
+  scale_color_manual(
+    values = method_cols,
+    guide = "none"
+  ) +
+
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 1),
+    clip = "off"
+  ) +
+
+  theme_void() +
+
+  theme(
+    plot.margin = margin(0, 0, 0, 0)
+  )
+
+# ---------------------------------------------------------------------------
+# 5. Reassemble the combined figure
+# ---------------------------------------------------------------------------
+
+# Top: legend on left, scores on right
+
+p_u_top <- (
+  p_appliance_legend | p_u_time
+) +
+  plot_layout(
+    widths = c(0.17, 1)
+  )
+
+# Bottom: functional and regular loadings
+# wrap_elements keeps the PC1/PC2 strips vertically aligned
+
+p_bottom_v <- (
+  wrap_elements(full = p_v_function) |
+    wrap_elements(full = p_v_regular)
+) +
+  plot_layout(
+    widths = c(1.65, 1.00)
+  )
+
+# Final combined figure
+
+p_appliance_combined <- (
+  p_u_top / p_bottom_v
+) +
+  plot_layout(
+    heights = c(0.55, 1.80)
+  ) &
+  theme(
+    legend.position = "none"
+  )
+
+#print(p_appliance_combined)
+
+
+###############################################################################
+# Final adjustments to p_appliance_combined
+###############################################################################
+
+library(ggplot2)
+library(patchwork)
+library(grid)
+
+# ---------------------------------------------------------------------------
+# 1. Functional PC loading curves
+# ---------------------------------------------------------------------------
+
+p_v_function <- p_v_function +
+
+  facet_grid(
+    Functional_Block ~ PC,
+    scales = "free_y",
+    switch = "y",
+    labeller = labeller(
+      Functional_Block = c(
+        "Appliances"       = "Appliance",
+        "Lights"           = "Lights",
+        "Indoor temp."     = "Indoor\ntemp.",
+        "Indoor humidity"  = "Indoor\nhumidity",
+        "Outdoor temp."    = "Outdoor\ntemp.",
+        "Outdoor humidity" = "Outdoor\nhumidity"
+      )
+    )
+  ) +
+
+  theme(
+    # Vertical PC loading title
+    axis.title.y.left = element_text(
+      angle = 90,
+      face = "bold",
+      size = 18,
+      margin = margin(r = 12)
+    ),
+
+    # Vertical functional block names
+    strip.text.y.left = element_text(
+      angle = 90,
+      face = "bold",
+      size = 17,
+      margin = margin(4, 5, 4, 5)
+    ),
+
+    strip.placement = "outside",
+    strip.switch.pad.grid = unit(3, "pt"),
+
+    panel.spacing.x = unit(0, "cm"),
+    panel.spacing.y = unit(0.04, "cm"),
+
+    plot.margin = margin(2, 4, 0, 4)
+  )
+
+# ---------------------------------------------------------------------------
+# 2. Regular covariate loadings: prevent x-axis overlap
+# ---------------------------------------------------------------------------
+
+p_v_regular <- p_v_regular +
+
+  scale_x_continuous(
+    breaks = scales::breaks_pretty(n = 2),
+    labels = scales::label_number(accuracy = 0.01),
+    expand = expansion(mult = c(0.15, 0.15)),
+    guide = guide_axis(check.overlap = TRUE)
+  ) +
+
+  theme(
+    panel.spacing.x = unit(0.35, "cm"),
+
+    axis.text.x = element_text(
+      size = 12,
+      color = "black",
+      margin = margin(t = 4)
+    ),
+
+    axis.title.x = element_text(
+      face = "bold",
+      size = 18,
+      margin = margin(t = 8)
+    ),
+
+    plot.margin = margin(2, 4, 0, 3)
+  )
+
+# ---------------------------------------------------------------------------
+# 3. Reassemble exactly as before
+# ---------------------------------------------------------------------------
+
+p_u_top <- (
+  p_appliance_legend | p_u_time
+) +
+  plot_layout(widths = c(0.17, 1))
+
+p_bottom_v <- (
+  wrap_elements(full = p_v_function) |
+    wrap_elements(full = p_v_regular)
+) +
+  plot_layout(widths = c(1.65, 1.00))
+
+p_appliance_combined <- (
+  p_u_top / p_bottom_v
+) +
+  plot_layout(heights = c(0.55, 1.80)) &
+  theme(legend.position = "none")
+
 print(p_appliance_combined)
+
 
 
 ###############################################################################
@@ -1520,6 +1934,82 @@ p_u_scores_hpca_rehpca <- ggplot(
 
 print(p_u_scores_hpca_rehpca)
 
+###############################################################################
+# Larger fonts for p_u_scores_hpca_rehpca and PDF export
+###############################################################################
+
+library(ggplot2)
+library(grid)
+
+p_u_scores_hpca_rehpca <- p_u_scores_hpca_rehpca +
+
+  # Reduce date labels to avoid overlap
+  scale_x_date(
+    date_breaks = "2 months",
+    date_labels = "%Y-%m",
+    expand = expansion(mult = c(0.01, 0.01))
+  ) +
+
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      size = 22,
+      hjust = 0.5,
+      margin = margin(b = 12)
+    ),
+
+    strip.text = element_text(
+      face = "bold",
+      size = 19
+    ),
+
+    axis.title.x = element_text(
+      face = "bold",
+      size = 19,
+      margin = margin(t = 10)
+    ),
+
+    axis.title.y = element_text(
+      face = "bold",
+      size = 19,
+      margin = margin(r = 10)
+    ),
+
+    axis.text.x = element_text(
+      size = 15,
+      angle = 0,
+      hjust = 0.5,
+      color = "black"
+    ),
+
+    axis.text.y = element_text(
+      size = 15,
+      color = "black"
+    ),
+
+    legend.title = element_text(
+      face = "bold",
+      size = 18
+    ),
+
+    legend.text = element_text(
+      size = 15
+    ),
+
+    legend.key.height = unit(0.65, "cm"),
+    legend.key.width = unit(0.75, "cm"),
+
+    legend.position = "right",
+
+    panel.spacing = unit(0.20, "cm"),
+
+    panel.grid.minor = element_blank(),
+
+    plot.margin = margin(10, 12, 10, 10)
+  )
+
+print(p_u_scores_hpca_rehpca)
+
 
 ###############################################################################
 # 17. Mean +/- PC mode plots for all 6 functional variables
@@ -1811,4 +2301,60 @@ p_mean_pm_pc <- wrap_plots(
 
 print(p_mean_pm_pc)
 
+###############################################################################
+# Add a shared legend below p_mean_pm_pc
+###############################################################################
 
+plot_list_big <- lapply(plot_list_big, function(p) {
+  p +
+    guides(
+      color = guide_legend(
+        override.aes = list(linewidth = 1.8)
+      ),
+      linewidth = "none"
+    ) +
+    theme(
+      legend.position = "bottom",
+      legend.text = element_text(size = 21),
+      legend.key.width = grid::unit(2, "cm")
+    )
+})
+
+p_mean_pm_pc <- wrap_plots(
+  plot_list_big,
+  ncol = length(mode_variable_levels),
+  byrow = TRUE,
+  guides = "collect"
+) +
+  plot_annotation(
+    title = paste0(
+      "Mean curves plus and minus ",
+      MODE_METHOD,
+      " functional PCs"
+    ),
+    theme = theme(
+      plot.title = element_text(
+        face = "bold",
+        size = 27,
+        hjust = 0.5
+      )
+    )
+  ) &
+  theme(
+    legend.position = "bottom",
+    legend.justification = "center",
+    legend.text = element_text(size = 21)
+  )
+
+print(p_mean_pm_pc)
+
+# ggsave(
+#   "Appliances_Mean_Plus_Minus_PC.pdf",
+#   plot = p_mean_pm_pc,
+#   device = "pdf",
+#   width = 23,
+#   height = 11,
+#   units = "in",
+#   bg = "white",
+#   useDingbats = FALSE
+# )

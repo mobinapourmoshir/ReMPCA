@@ -1578,20 +1578,7 @@ p_bike_combined <- (
 
 print(p_bike_combined)
 
-# ---------------------------------------------------------------------------
-# 6. Export high-quality vector PDF
-# ---------------------------------------------------------------------------
 
-ggsave(
-  "Bike_HPCA_ReHPCA_Combined.pdf",
-  plot = p_bike_combined,
-  device = "pdf",
-  width = 16,
-  height = 10,
-  units = "in",
-  bg = "white",
-  useDingbats = FALSE
-)
 
 ###############################################################################
 # 14. Mean curves plus/minus ReHPCA functional PCs
