@@ -1,0 +1,66 @@
+\begin{table}[!ht]
+\centering
+\scriptsize
+\caption{Mean relative reconstruction error over simulation runs for the nine noise--sparsity scenarios. Standard deviations are shown in parentheses.}
+\label{tab:reconstruction-error-9scenarios}
+\resizebox{.8\textwidth}{!}{%
+\begin{tabular}{llccc}
+\toprule
+Noise level & Method & Low sparsity & Medium sparsity & High sparsity \\
+\midrule
+\multirow{8}{*}{Low noise}
+& No penalty
+& 0.449 (0.023) & 0.451 (0.026) & 0.449 (0.021) \\
+& Smooth+Sparse $\bm{u}$
+& 0.344 (0.020) & 0.352 (0.021) & 0.476 (0.017) \\
+& Smooth+Sparse $\bm{v}$
+& 0.314 (0.021) & 0.340 (0.020) & 0.504 (0.016) \\
+& Two-way Smooth
+& 0.188 (0.020) & 0.275 (0.018) & 0.566 (0.012) \\
+& Two-way Sparse
+& 0.442 (0.023) & 0.391 (0.028) & 0.298 (0.025) \\
+& Two-way Smooth+Sparse
+& \textbf{0.186 (0.020)} & \textbf{0.196 (0.022)} & \textbf{0.195 (0.026)} \\
+& HFV-PCA
+& 0.472 (0.026) & 0.468 (0.025) & 0.462 (0.021) \\
+& PMD
+& 0.449 (0.023) & 0.451 (0.025) & 0.388 (0.018) \\
+\midrule
+\multirow{8}{*}{Medium noise}
+& No penalty
+& 2.081 (0.106) & 2.079 (0.103) & 2.066 (0.098) \\
+& Smooth+Sparse $\bm{u}$
+& 1.201 (0.084) & 1.310 (0.114) & 1.439 (0.085) \\
+& Smooth+Sparse $\bm{v}$
+& 1.194 (0.110) & 1.400 (0.113) & 1.456 (0.043) \\
+& Two-way Smooth
+& 0.572 (0.068) & 0.831 (0.053) & 1.127 (0.036) \\
+& Two-way Sparse
+& 2.074 (0.104) & 1.948 (0.093) & 1.606 (0.149) \\
+& Two-way Smooth+Sparse
+& \textbf{0.553 (0.068)} & \textbf{0.767 (0.061)} & \textbf{1.052 (0.053)} \\
+& HFV-PCA
+& 2.092 (0.093) & 2.072 (0.099) & 2.051 (0.093) \\
+& PMD
+& 2.081 (0.106) & 2.061 (0.100) & 1.819 (0.142) \\
+\midrule
+\multirow{8}{*}{High noise}
+& No penalty
+& 4.251 (0.070) & 4.259 (0.076) & 4.251 (0.071) \\
+& Smooth+Sparse $\bm{u}$
+& 2.649 (0.124) & 2.664 (0.133) & 2.605 (0.146) \\
+& Smooth+Sparse $\bm{v}$
+& 2.551 (0.120) & 2.522 (0.105) & 2.416 (0.122) \\
+& Two-way Smooth
+& \textbf{1.213 (0.130)} & 1.348 (0.090) & 1.363 (0.079) \\
+& Two-way Sparse
+& 4.228 (0.070) & 3.913 (0.073) & 3.217 (0.108) \\
+& Two-way Smooth+Sparse
+& 1.213 (0.132) & \textbf{1.327 (0.093)} & \textbf{1.275 (0.071)} \\
+& HFV-PCA
+& 4.208 (0.072) & 4.213 (0.077) & 4.205 (0.073) \\
+& PMD
+& 4.251 (0.070) & 4.225 (0.073) & 3.779 (0.071) \\
+\bottomrule
+\end{tabular}}
+\end{table}

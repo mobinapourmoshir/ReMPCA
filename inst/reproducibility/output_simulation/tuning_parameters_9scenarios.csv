@@ -1,0 +1,73 @@
+"noise_level","sparsity_level","method","alpha_u","alpha_v","gamma_u","gamma_v1","gamma_v2","gamma_v3"
+"Low noise","Low sparsity","No penalty",0,0,0,0,0,0
+"Low noise","Low sparsity","Smooth+Sparse on u",7.8125e-05,0,9,0,0,0
+"Low noise","Low sparsity","Smooth+Sparse on v",0,7.8125e-05,0,5,5,5
+"Low noise","Low sparsity","Two-way Smoothness",7.8125e-05,7.8125e-05,0,0,0,0
+"Low noise","Low sparsity","Two-way Sparsity",0,0,9,5,5,5
+"Low noise","Low sparsity","Two-way Smoothness and Sparsity",7.8125e-05,7.8125e-05,1,1,1,1
+"Low noise","Low sparsity","HFV-PCA",0,0,0,0,0,0
+"Low noise","Low sparsity","PMD",0,0,0,0,0,0
+"Low noise","Medium sparsity","No penalty",0,0,0,0,0,0
+"Low noise","Medium sparsity","Smooth+Sparse on u",7.8125e-05,0,37,0,0,0
+"Low noise","Medium sparsity","Smooth+Sparse on v",0,7.8125e-05,0,16,21,20
+"Low noise","Medium sparsity","Two-way Smoothness",7.8125e-05,7.8125e-05,0,0,0,0
+"Low noise","Medium sparsity","Two-way Sparsity",0,0,37,16,21,20
+"Low noise","Medium sparsity","Two-way Smoothness and Sparsity",1.5625e-05,1.5625e-05,33,14,19,18
+"Low noise","Medium sparsity","HFV-PCA",0,0,0,0,0,0
+"Low noise","Medium sparsity","PMD",0,0,0,0,0,0
+"Low noise","High sparsity","No penalty",0,0,0,0,0,0
+"Low noise","High sparsity","Smooth+Sparse on u",7.8125e-05,0,58,0,0,0
+"Low noise","High sparsity","Smooth+Sparse on v",0,7.8125e-05,0,26,32,29
+"Low noise","High sparsity","Two-way Smoothness",7.8125e-05,7.8125e-05,0,0,0,0
+"Low noise","High sparsity","Two-way Sparsity",0,0,58,26,32,29
+"Low noise","High sparsity","Two-way Smoothness and Sparsity",1.171875e-06,1.171875e-06,52,23,29,26
+"Low noise","High sparsity","HFV-PCA",0,0,0,0,0,0
+"Low noise","High sparsity","PMD",0,0,0,0,0,0
+"Medium noise","Low sparsity","No penalty",0,0,0,0,0,0
+"Medium noise","Low sparsity","Smooth+Sparse on u",0.00390625,0,9,0,0,0
+"Medium noise","Low sparsity","Smooth+Sparse on v",0,0.00390625,0,5,5,5
+"Medium noise","Low sparsity","Two-way Smoothness",0.00390625,0.00390625,0,0,0,0
+"Medium noise","Low sparsity","Two-way Sparsity",0,0,9,5,5,5
+"Medium noise","Low sparsity","Two-way Smoothness and Sparsity",0.00234375,0.00234375,2,1,1,1
+"Medium noise","Low sparsity","HFV-PCA",0,0,0,0,0,0
+"Medium noise","Low sparsity","PMD",0,0,0,0,0,0
+"Medium noise","Medium sparsity","No penalty",0,0,0,0,0,0
+"Medium noise","Medium sparsity","Smooth+Sparse on u",0.00390625,0,37,0,0,0
+"Medium noise","Medium sparsity","Smooth+Sparse on v",0,0.00390625,0,16,21,20
+"Medium noise","Medium sparsity","Two-way Smoothness",0.00390625,0.00390625,0,0,0,0
+"Medium noise","Medium sparsity","Two-way Sparsity",0,0,37,16,21,20
+"Medium noise","Medium sparsity","Two-way Smoothness and Sparsity",0.00234375,0.00234375,33,14,19,18
+"Medium noise","Medium sparsity","HFV-PCA",0,0,0,0,0,0
+"Medium noise","Medium sparsity","PMD",0,0,0,0,0,0
+"Medium noise","High sparsity","No penalty",0,0,0,0,0,0
+"Medium noise","High sparsity","Smooth+Sparse on u",0.00390625,0,58,0,0,0
+"Medium noise","High sparsity","Smooth+Sparse on v",0,0.00390625,0,26,32,29
+"Medium noise","High sparsity","Two-way Smoothness",0.00390625,0.00390625,0,0,0,0
+"Medium noise","High sparsity","Two-way Sparsity",0,0,58,26,32,29
+"Medium noise","High sparsity","Two-way Smoothness and Sparsity",0.00234375,0.00234375,58,26,32,29
+"Medium noise","High sparsity","HFV-PCA",0,0,0,0,0,0
+"Medium noise","High sparsity","PMD",0,0,0,0,0,0
+"High noise","Low sparsity","No penalty",0,0,0,0,0,0
+"High noise","Low sparsity","Smooth+Sparse on u",0.03125,0,9,0,0,0
+"High noise","Low sparsity","Smooth+Sparse on v",0,0.03125,0,5,5,5
+"High noise","Low sparsity","Two-way Smoothness",0.03125,0.03125,0,0,0,0
+"High noise","Low sparsity","Two-way Sparsity",0,0,9,5,5,5
+"High noise","Low sparsity","Two-way Smoothness and Sparsity",0.028125,0.028125,2,1,1,1
+"High noise","Low sparsity","HFV-PCA",0,0,0,0,0,0
+"High noise","Low sparsity","PMD",0,0,0,0,0,0
+"High noise","Medium sparsity","No penalty",0,0,0,0,0,0
+"High noise","Medium sparsity","Smooth+Sparse on u",0.03125,0,37,0,0,0
+"High noise","Medium sparsity","Smooth+Sparse on v",0,0.03125,0,16,21,20
+"High noise","Medium sparsity","Two-way Smoothness",0.03125,0.03125,0,0,0,0
+"High noise","Medium sparsity","Two-way Sparsity",0,0,37,16,21,20
+"High noise","Medium sparsity","Two-way Smoothness and Sparsity",0.028125,0.028125,33,14,19,18
+"High noise","Medium sparsity","HFV-PCA",0,0,0,0,0,0
+"High noise","Medium sparsity","PMD",0,0,0,0,0,0
+"High noise","High sparsity","No penalty",0,0,0,0,0,0
+"High noise","High sparsity","Smooth+Sparse on u",0.03125,0,58,0,0,0
+"High noise","High sparsity","Smooth+Sparse on v",0,0.03125,0,26,32,29
+"High noise","High sparsity","Two-way Smoothness",0.03125,0.03125,0,0,0,0
+"High noise","High sparsity","Two-way Sparsity",0,0,58,26,32,29
+"High noise","High sparsity","Two-way Smoothness and Sparsity",0.028125,0.028125,58,26,32,29
+"High noise","High sparsity","HFV-PCA",0,0,0,0,0,0
+"High noise","High sparsity","PMD",0,0,0,0,0,0
