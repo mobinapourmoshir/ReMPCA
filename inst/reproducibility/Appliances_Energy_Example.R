@@ -2,52 +2,42 @@
 # UCI Appliances Energy Prediction Dataset
 ###############################################################################
 
-###############################################################################
-# 0. Load packages
-###############################################################################
+## 0. Setup -------------------------------------------------------------------
 
-library(ReMPCA)
-library(tidyverse)
-library(lubridate)
-library(patchwork)
-library(scales)
+suppressPackageStartupMessages({
+  library(ReMPCA)
+  library(tidyverse)
+  library(lubridate)
+  library(patchwork)
+})
 
-###############################################################################
-# 1. Load the UCI Appliances Energy Prediction data
-###############################################################################
+out_dir <- file.path("inst", "reproducibility", "output")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+t_start <- Sys.time()
+
+## 1. Load data ---------------------------------------------------------------
 
 load(file.path("data", "energydata.rda"))
-
-appliance_dat$date <- ymd_hms(appliance_dat$date)
-
-cat("Raw data dimensions:\n")
-print(dim(appliance_dat))
-
-###############################################################################
-# 2. Prepare the daily data and derived functional variables
-###############################################################################
 
 indoor_temp_cols <- paste0("T", c(1, 2, 3, 4, 5, 7, 8, 9))
 indoor_hum_cols  <- paste0("RH_", c(1, 2, 3, 4, 5, 7, 8, 9))
 
 appliance_dat <- appliance_dat |>
   mutate(
+    date = ymd_hms(date),
     day = as.Date(date),
     slot = hour(date) * 6 + minute(date) / 10,
     hour_of_day = slot / 6,
-    Indoor_temperature = rowMeans(
-      as.matrix(across(all_of(indoor_temp_cols))),
-      na.rm = TRUE
-    ),
-    Indoor_humidity = rowMeans(
-      as.matrix(across(all_of(indoor_hum_cols))),
-      na.rm = TRUE
-    ),
+    Indoor_temperature = rowMeans(as.matrix(across(all_of(indoor_temp_cols))), na.rm = TRUE),
+    Indoor_humidity = rowMeans(as.matrix(across(all_of(indoor_hum_cols))), na.rm = TRUE),
     Outdoor_temperature = T_out,
     Outdoor_humidity = RH_out
   )
 
-# Keep only complete calendar days with all 144 ten-minute measurements.
+## 2. Daily functional curves (144 ten-minute values per day) -----------------
+
+# Keep only calendar days with all 144 ten-minute measurements.
 complete_days <- appliance_dat |>
   group_by(day) |>
   summarize(n_slots = n_distinct(slot), .groups = "drop") |>
@@ -58,103 +48,40 @@ appliance_complete <- appliance_dat |>
   filter(day %in% complete_days) |>
   arrange(day, slot)
 
-day_complete <- appliance_complete |>
-  distinct(day) |>
-  arrange(day)
+day_complete <- appliance_complete |> distinct(day) |> arrange(day)
 
-n_days <- nrow(day_complete)
+n_days    <- nrow(day_complete)
 hour_grid <- sort(unique(appliance_complete$hour_of_day))
-day_grid <- seq(0, 1, length.out = n_days)
+day_grid  <- seq(0, 1, length.out = n_days)
 
-cat("\nComplete days:\n")
-print(n_days)
+# One row per day, one column per ten-minute slot.
+daily_curves <- function(variable) {
+  M <- appliance_complete |>
+    select(day, slot, value = all_of(variable)) |>
+    arrange(day, slot) |>
+    mutate(slot = paste0("s", sprintf("%03d", slot))) |>
+    pivot_wider(names_from = slot, values_from = value) |>
+    arrange(day) |>
+    select(-day) |>
+    as.matrix()
+  rownames(M) <- as.character(day_complete$day)
+  M
+}
 
-cat("\nTime points per day:\n")
-print(length(hour_grid))
+functional_names <- c("Appliances", "Lights", "Indoor temp.", "Indoor humidity",
+                      "Outdoor temp.", "Outdoor humidity")
 
-###############################################################################
-# 3. Build daily functional curves from the ten-minute data
-###############################################################################
+X_raw <- list(
+  daily_curves("Appliances"),
+  daily_curves("lights"),
+  daily_curves("Indoor_temperature"),
+  daily_curves("Indoor_humidity"),
+  daily_curves("Outdoor_temperature"),
+  daily_curves("Outdoor_humidity")
+)
+names(X_raw) <- functional_names
 
-# Appliance energy use.
-X_appliance_raw <- appliance_complete |>
-  select(day, slot, value = Appliances) |>
-  arrange(day, slot) |>
-  mutate(slot = paste0("s", sprintf("%03d", slot))) |>
-  pivot_wider(names_from = slot, values_from = value) |>
-  arrange(day) |>
-  select(-day) |>
-  as.matrix()
-
-# Lights energy use.
-X_lights_raw <- appliance_complete |>
-  select(day, slot, value = lights) |>
-  arrange(day, slot) |>
-  mutate(slot = paste0("s", sprintf("%03d", slot))) |>
-  pivot_wider(names_from = slot, values_from = value) |>
-  arrange(day) |>
-  select(-day) |>
-  as.matrix()
-
-# Indoor temperature.
-X_tin_raw <- appliance_complete |>
-  select(day, slot, value = Indoor_temperature) |>
-  arrange(day, slot) |>
-  mutate(slot = paste0("s", sprintf("%03d", slot))) |>
-  pivot_wider(names_from = slot, values_from = value) |>
-  arrange(day) |>
-  select(-day) |>
-  as.matrix()
-
-# Indoor humidity.
-X_hin_raw <- appliance_complete |>
-  select(day, slot, value = Indoor_humidity) |>
-  arrange(day, slot) |>
-  mutate(slot = paste0("s", sprintf("%03d", slot))) |>
-  pivot_wider(names_from = slot, values_from = value) |>
-  arrange(day) |>
-  select(-day) |>
-  as.matrix()
-
-# Outdoor temperature.
-X_tout_raw <- appliance_complete |>
-  select(day, slot, value = Outdoor_temperature) |>
-  arrange(day, slot) |>
-  mutate(slot = paste0("s", sprintf("%03d", slot))) |>
-  pivot_wider(names_from = slot, values_from = value) |>
-  arrange(day) |>
-  select(-day) |>
-  as.matrix()
-
-# Outdoor humidity.
-X_hout_raw <- appliance_complete |>
-  select(day, slot, value = Outdoor_humidity) |>
-  arrange(day, slot) |>
-  mutate(slot = paste0("s", sprintf("%03d", slot))) |>
-  pivot_wider(names_from = slot, values_from = value) |>
-  arrange(day) |>
-  select(-day) |>
-  as.matrix()
-
-# Preserve the calendar-day labels used in the original script.
-rownames(X_appliance_raw) <- as.character(day_complete$day)
-rownames(X_lights_raw)    <- as.character(day_complete$day)
-rownames(X_tin_raw)       <- as.character(day_complete$day)
-rownames(X_hin_raw)       <- as.character(day_complete$day)
-rownames(X_tout_raw)      <- as.character(day_complete$day)
-rownames(X_hout_raw)      <- as.character(day_complete$day)
-
-cat("\nFunctional block dimensions:\n")
-print(dim(X_appliance_raw))
-print(dim(X_lights_raw))
-print(dim(X_tin_raw))
-print(dim(X_hin_raw))
-print(dim(X_tout_raw))
-print(dim(X_hout_raw))
-
-###############################################################################
-# 4. Build the daily non-functional covariate matrix
-###############################################################################
+## 3. Non-functional daily covariates -----------------------------------------
 
 regular_df <- appliance_complete |>
   group_by(day) |>
@@ -169,182 +96,92 @@ regular_df <- appliance_complete |>
     .groups = "drop"
   ) |>
   arrange(day) |>
-  mutate(
-    month_factor = factor(
-      month_num,
-      levels = sort(unique(month_num))
-    ),
-    Day_type = factor(
-      Day_type,
-      levels = c("Weekday", "Weekend")
-    )
-  )
+  mutate(month_factor = factor(month_num, levels = sort(unique(month_num))))
 
-# Month dummy variables for the months observed in the data.
+# Month indicators for the observed months and both day-type indicators.
 X_month <- model.matrix(~ month_factor - 1, data = regular_df)
 colnames(X_month) <- paste0("month_", levels(regular_df$month_factor))
 
-X_daytype <- regular_df |>
-  transmute(
-    daytype_weekday = as.integer(Day_type == "Weekday"),
-    daytype_weekend = as.integer(Day_type == "Weekend")
-  ) |>
-  as.matrix()
-
-# Daily weather variables.
-X_weather <- regular_df |>
-  transmute(
-    Pressure_day,
-    Windspeed_day,
-    Visibility_day,
-    Tdewpoint_day
-  ) |>
-  as.matrix()
-
 X_regular_raw <- cbind(
-  X_weather,
+  as.matrix(regular_df[, c("Pressure_day", "Windspeed_day",
+                           "Visibility_day", "Tdewpoint_day")]),
   X_month,
-  X_daytype
+  daytype_weekday = as.integer(regular_df$Day_type == "Weekday"),
+  daytype_weekend = as.integer(regular_df$Day_type == "Weekend")
 )
-
 regular_feature_names <- colnames(X_regular_raw)
 
-cat("\nRegular block dimensions:\n")
-print(dim(X_regular_raw))
+## 4. Scaling -----------------------------------------------------------------
 
-cat("\nRegular feature names:\n")
-print(regular_feature_names)
+# Functional blocks: one global mean and SD per block.
+global_scale <- function(X) (X - mean(X)) / sd(as.vector(X))
 
-###############################################################################
-# 5. Scale the functional and non-functional blocks
-###############################################################################
-
-# Global scaling for the functional blocks.
-X_appliance <- as.matrix(X_appliance_raw)
-appliance_sd <- sd(as.vector(X_appliance), na.rm = TRUE)
-if (!is.finite(appliance_sd) || appliance_sd == 0) appliance_sd <- 1
-X_appliance <- (X_appliance - mean(X_appliance, na.rm = TRUE)) / appliance_sd
-
-X_lights <- as.matrix(X_lights_raw)
-lights_sd <- sd(as.vector(X_lights), na.rm = TRUE)
-if (!is.finite(lights_sd) || lights_sd == 0) lights_sd <- 1
-X_lights <- (X_lights - mean(X_lights, na.rm = TRUE)) / lights_sd
-
-X_tin <- as.matrix(X_tin_raw)
-tin_sd <- sd(as.vector(X_tin), na.rm = TRUE)
-if (!is.finite(tin_sd) || tin_sd == 0) tin_sd <- 1
-X_tin <- (X_tin - mean(X_tin, na.rm = TRUE)) / tin_sd
-
-X_hin <- as.matrix(X_hin_raw)
-hin_sd <- sd(as.vector(X_hin), na.rm = TRUE)
-if (!is.finite(hin_sd) || hin_sd == 0) hin_sd <- 1
-X_hin <- (X_hin - mean(X_hin, na.rm = TRUE)) / hin_sd
-
-X_tout <- as.matrix(X_tout_raw)
-tout_sd <- sd(as.vector(X_tout), na.rm = TRUE)
-if (!is.finite(tout_sd) || tout_sd == 0) tout_sd <- 1
-X_tout <- (X_tout - mean(X_tout, na.rm = TRUE)) / tout_sd
-
-X_hout <- as.matrix(X_hout_raw)
-hout_sd <- sd(as.vector(X_hout), na.rm = TRUE)
-if (!is.finite(hout_sd) || hout_sd == 0) hout_sd <- 1
-X_hout <- (X_hout - mean(X_hout, na.rm = TRUE)) / hout_sd
-
-# Columnwise scaling for the non-functional block.
-X_regular <- scale(
-  as.matrix(X_regular_raw),
-  center = TRUE,
-  scale = TRUE
-)
+# Non-functional block: columnwise standardisation.
+X_regular <- scale(X_regular_raw, center = TRUE, scale = TRUE)
 X_regular[is.na(X_regular)] <- 0
-X_regular <- as.matrix(X_regular)
 
-blocks_original <- list(
-  Appliance_curve = X_appliance,
-  Lights_curve = X_lights,
-  Indoor_temperature_curve = X_tin,
-  Indoor_humidity_curve = X_hin,
-  Outdoor_temperature_curve = X_tout,
-  Outdoor_humidity_curve = X_hout,
-  Daily_covariates = X_regular
+blocks_original <- c(
+  lapply(X_raw, global_scale),
+  list(Daily_covariates = as.matrix(X_regular))
+)
+names(blocks_original) <- c(
+  "Appliance_curve", "Lights_curve",
+  "Indoor_temperature_curve", "Indoor_humidity_curve",
+  "Outdoor_temperature_curve", "Outdoor_humidity_curve",
+  "Daily_covariates"
 )
 
-NUM_PCS <- 2
+## 5. Tuning parameters -------------------------------------------------------
 
-###############################################################################
-# 6. Fit the strict no-penalty HPCA baseline with two PCs
-###############################################################################
-
-fd_appliance_base <- fdClass(
-  data = blocks_original$Appliance_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 0,
-  Sparsity_parameter = 0L
-)
-
-fd_lights_base <- fdClass(
-  data = blocks_original$Lights_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 0,
-  Sparsity_parameter = 0L
-)
-
-fd_tin_base <- fdClass(
-  data = blocks_original$Indoor_temperature_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 0,
-  Sparsity_parameter = 0L
-)
-
-fd_hin_base <- fdClass(
-  data = blocks_original$Indoor_humidity_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 0,
-  Sparsity_parameter = 0L
-)
-
-fd_tout_base <- fdClass(
-  data = blocks_original$Outdoor_temperature_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 0,
-  Sparsity_parameter = 0L
-)
-
-fd_hout_base <- fdClass(
-  data = blocks_original$Outdoor_humidity_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 0,
-  Sparsity_parameter = 0L
-)
-
-rd_daily_base <- rdClass(
-  data = blocks_original$Daily_covariates,
-  Sparsity_parameter = 0L
-)
-
-appliances_hd_base <- hdClass(
-  hdlist = list(
-    Appliance_curve = fd_appliance_base,
-    Lights_curve = fd_lights_base,
-    Indoor_temperature_curve = fd_tin_base,
-    Indoor_humidity_curve = fd_hin_base,
-    Outdoor_temperature_curve = fd_tout_base,
-    Outdoor_humidity_curve = fd_hout_base,
-    Daily_covariates = rd_daily_base
+# alpha = smoothness parameter; gamma = number of entries set to zero
+# (hard thresholding). v entries follow the block order above; the
+# non-functional block is never smoothed.
+tuning <- list(
+  HPCA = list(
+    alpha_u = 0, gamma_u = 0L,
+    alpha_v = rep(0, 7), gamma_v = rep(0L, 7)
   ),
-  argval = day_grid,
-  Smoothing_parameter = 0,
-  Sparsity_parameter = 0L
+  ReHPCA_PC1 = list(
+    alpha_u = 2^-12, gamma_u = 45L,
+    alpha_v = c(2^0, 2^1, 2^-3, 2^-3, 2^-3, 2^-3, 0),
+    gamma_v = c(8L, 50L, 0L, 0L, 0L, 0L, 3L)
+  ),
+  ReHPCA_PC2 = list(
+    alpha_u = 2^-10, gamma_u = 55L,
+    alpha_v = c(2^2, 2^2, 2^-2, 2^-2, 2^-2, 2^-2, 0),
+    gamma_v = c(20L, 60L, 0L, 0L, 0L, 0L, 5L)
+  )
 )
+
+# hdClass object for the seven blocks under one tuning set.
+make_hd <- function(blocks, tp) {
+  fd_blocks <- lapply(1:6, function(j) {
+    fdClass(
+      data = blocks[[j]],
+      argval = hour_grid,
+      Smoothing_parameter = tp$alpha_v[j],
+      Sparsity_parameter = tp$gamma_v[j]
+    )
+  })
+  names(fd_blocks) <- names(blocks)[1:6]
+
+  rd_block <- rdClass(data = blocks[[7]], Sparsity_parameter = tp$gamma_v[7])
+
+  hdClass(
+    hdlist = c(fd_blocks, list(Daily_covariates = rd_block)),
+    argval = day_grid,
+    Smoothing_parameter = tp$alpha_u,
+    Sparsity_parameter = tp$gamma_u
+  )
+}
+
+## 6. HPCA: no-penalty baseline with two PCs ----------------------------------
 
 set.seed(2026)
-
-cat("\nFitting HPCA: strict no-penalty baseline with two PCs...\n")
-
 fit_hpca <- ReMPCA(
-  hd = appliances_hd_base,
+  hd = make_hd(blocks_original, tuning$HPCA),
   centerhds = FALSE,
-  num_pcs = NUM_PCS,
+  num_pcs = 2,
   nfolds_u = 2,
   nfolds_v = NULL,
   thresh = 1e-6,
@@ -358,2003 +195,457 @@ fit_hpca <- ReMPCA(
   cv.pick = "min",
   sparse_tuning_u = 0L,
   smooth_tuning_u = 0,
-  sparse_tuning_v = list(0L, 0L, 0L, 0L, 0L, 0L, 0L),
-  smooth_tuning_v = list(0, 0, 0, 0, 0, 0, 0)
+  sparse_tuning_v = as.list(tuning$HPCA$gamma_v),
+  smooth_tuning_v = as.list(tuning$HPCA$alpha_v)
 )
 
-###############################################################################
-# 7. Fit ReHPCA PC1 on the original data
-###############################################################################
-
-fd_appliance_pc1 <- fdClass(
-  data = blocks_original$Appliance_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^0,
-  Sparsity_parameter = 8L
-)
-
-fd_lights_pc1 <- fdClass(
-  data = blocks_original$Lights_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^1,
-  Sparsity_parameter = 50L
-)
-
-fd_tin_pc1 <- fdClass(
-  data = blocks_original$Indoor_temperature_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^-3,
-  Sparsity_parameter = 0L
-)
-
-fd_hin_pc1 <- fdClass(
-  data = blocks_original$Indoor_humidity_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^-3,
-  Sparsity_parameter = 0L
-)
-
-fd_tout_pc1 <- fdClass(
-  data = blocks_original$Outdoor_temperature_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^-3,
-  Sparsity_parameter = 0L
-)
-
-fd_hout_pc1 <- fdClass(
-  data = blocks_original$Outdoor_humidity_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^-3,
-  Sparsity_parameter = 0L
-)
-
-rd_daily_pc1 <- rdClass(
-  data = blocks_original$Daily_covariates,
-  Sparsity_parameter = 3L
-)
-
-appliances_hd_pc1 <- hdClass(
-  hdlist = list(
-    Appliance_curve = fd_appliance_pc1,
-    Lights_curve = fd_lights_pc1,
-    Indoor_temperature_curve = fd_tin_pc1,
-    Indoor_humidity_curve = fd_hin_pc1,
-    Outdoor_temperature_curve = fd_tout_pc1,
-    Outdoor_humidity_curve = fd_hout_pc1,
-    Daily_covariates = rd_daily_pc1
-  ),
-  argval = day_grid,
-  Smoothing_parameter = 2^-12,
-  Sparsity_parameter = 45L
-)
-
-set.seed(2026)
-
-cat("\nFitting ReHPCA PC1 on the original data...\n")
-
-fit_rehpca_pc1 <- ReMPCA(
-  hd = appliances_hd_pc1,
-  centerhds = FALSE,
-  num_pcs = 1,
-  nfolds_u = 2,
-  nfolds_v = NULL,
-  thresh = 1e-5,
-  maxit = 300,
-  tuning_iter = 1,
-  parallel = FALSE,
-  weights = NULL,
-  smoothness_type = "Second_order",
-  sparse_tuning_type = "hard",
-  tuning_order = "Smoothness",
-  cv.pick = "min",
-  sparse_tuning_u = 45L,
-  smooth_tuning_u = 2^-12,
-  sparse_tuning_v = list(
-    8L,
-    50L,
-    0L,
-    0L,
-    0L,
-    0L,
-    3L
-  ),
-  smooth_tuning_v = list(
-    2^0,
-    2^1,
-    2^-3,
-    2^-3,
-    2^-3,
-    2^-3,
-    0
-  )
-)
-
-###############################################################################
-# 8. Deflate the original data using ReHPCA PC1
-###############################################################################
-
-u_pc1 <- as.numeric(fit_rehpca_pc1$PCScores[, 1])
-
-pc1_reconstruction <- list(
-  Appliance_curve = outer(
-    u_pc1,
-    as.numeric(fit_rehpca_pc1$PCFunctions[[1]][[1]])
-  ),
-  Lights_curve = outer(
-    u_pc1,
-    as.numeric(fit_rehpca_pc1$PCFunctions[[1]][[2]])
-  ),
-  Indoor_temperature_curve = outer(
-    u_pc1,
-    as.numeric(fit_rehpca_pc1$PCFunctions[[1]][[3]])
-  ),
-  Indoor_humidity_curve = outer(
-    u_pc1,
-    as.numeric(fit_rehpca_pc1$PCFunctions[[1]][[4]])
-  ),
-  Outdoor_temperature_curve = outer(
-    u_pc1,
-    as.numeric(fit_rehpca_pc1$PCFunctions[[1]][[5]])
-  ),
-  Outdoor_humidity_curve = outer(
-    u_pc1,
-    as.numeric(fit_rehpca_pc1$PCFunctions[[1]][[6]])
-  ),
-  Daily_covariates = outer(
-    u_pc1,
-    as.numeric(fit_rehpca_pc1$PCFunctions[[1]][[7]])
-  )
-)
-
-blocks_residual_after_pc1 <- list(
-  Appliance_curve =
-    blocks_original$Appliance_curve - pc1_reconstruction$Appliance_curve,
-  Lights_curve =
-    blocks_original$Lights_curve - pc1_reconstruction$Lights_curve,
-  Indoor_temperature_curve =
-    blocks_original$Indoor_temperature_curve - pc1_reconstruction$Indoor_temperature_curve,
-  Indoor_humidity_curve =
-    blocks_original$Indoor_humidity_curve - pc1_reconstruction$Indoor_humidity_curve,
-  Outdoor_temperature_curve =
-    blocks_original$Outdoor_temperature_curve - pc1_reconstruction$Outdoor_temperature_curve,
-  Outdoor_humidity_curve =
-    blocks_original$Outdoor_humidity_curve - pc1_reconstruction$Outdoor_humidity_curve,
-  Daily_covariates =
-    blocks_original$Daily_covariates - pc1_reconstruction$Daily_covariates
-)
-
-###############################################################################
-# 9. Fit ReHPCA PC2
-###############################################################################
-
-fd_appliance_pc2 <- fdClass(
-  data = blocks_residual_after_pc1$Appliance_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^2,
-  Sparsity_parameter = 20L
-)
-
-fd_lights_pc2 <- fdClass(
-  data = blocks_residual_after_pc1$Lights_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^2,
-  Sparsity_parameter = 60L
-)
-
-fd_tin_pc2 <- fdClass(
-  data = blocks_residual_after_pc1$Indoor_temperature_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^-2,
-  Sparsity_parameter = 0L
-)
-
-fd_hin_pc2 <- fdClass(
-  data = blocks_residual_after_pc1$Indoor_humidity_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^-2,
-  Sparsity_parameter = 0L
-)
-
-fd_tout_pc2 <- fdClass(
-  data = blocks_residual_after_pc1$Outdoor_temperature_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^-2,
-  Sparsity_parameter = 0L
-)
-
-fd_hout_pc2 <- fdClass(
-  data = blocks_residual_after_pc1$Outdoor_humidity_curve,
-  argval = hour_grid,
-  Smoothing_parameter = 2^-2,
-  Sparsity_parameter = 0L
-)
-
-rd_daily_pc2 <- rdClass(
-  data = blocks_residual_after_pc1$Daily_covariates,
-  Sparsity_parameter = 5L
-)
-
-appliances_hd_pc2 <- hdClass(
-  hdlist = list(
-    Appliance_curve = fd_appliance_pc2,
-    Lights_curve = fd_lights_pc2,
-    Indoor_temperature_curve = fd_tin_pc2,
-    Indoor_humidity_curve = fd_hin_pc2,
-    Outdoor_temperature_curve = fd_tout_pc2,
-    Outdoor_humidity_curve = fd_hout_pc2,
-    Daily_covariates = rd_daily_pc2
-  ),
-  argval = day_grid,
-  Smoothing_parameter = 2^-10,
-  Sparsity_parameter = 55L
-)
-
-set.seed(2026)
-
-cat("\nFitting ReHPCA PC2 on the residual data...\n")
-
-fit_rehpca_pc2 <- ReMPCA(
-  hd = appliances_hd_pc2,
-  centerhds = FALSE,
-  num_pcs = 1,
-  nfolds_u = 2,
-  nfolds_v = NULL,
-  thresh = 1e-5,
-  maxit = 300,
-  tuning_iter = 1,
-  parallel = FALSE,
-  weights = NULL,
-  smoothness_type = "Second_order",
-  sparse_tuning_type = "hard",
-  tuning_order = "Smoothness",
-  cv.pick = "min",
-  sparse_tuning_u = 55L,
-  smooth_tuning_u = 2^-10,
-  sparse_tuning_v = list(
-    20L,
-    60L,
-    0L,
-    0L,
-    0L,
-    0L,
-    5L
-  ),
-  smooth_tuning_v = list(
-    2^2,
-    2^2,
-    2^-2,
-    2^-2,
-    2^-2,
-    2^-2,
-    0
-  )
-)
-
-###############################################################################
-# 10.  Align signs with HPCA
-###############################################################################
-
-fit_rehpca <- list(
-  PCScores = cbind(
-    PC1 = as.numeric(fit_rehpca_pc1$PCScores[, 1]),
-    PC2 = as.numeric(fit_rehpca_pc2$PCScores[, 1])
-  ),
-  PCFunctions = list(
-    fit_rehpca_pc1$PCFunctions[[1]],
-    fit_rehpca_pc2$PCFunctions[[1]]
-  )
-)
-
-for (pc in seq_len(NUM_PCS)) {
-
-  cc <- suppressWarnings(
-    cor(
-      as.numeric(fit_hpca$PCScores[, pc]),
-      as.numeric(fit_rehpca$PCScores[, pc]),
-      use = "complete.obs"
-    )
-  )
-
-  if (is.finite(cc) && cc < 0) {
-
-    fit_rehpca$PCScores[, pc] <- -fit_rehpca$PCScores[, pc]
-
-    for (b in seq_along(fit_rehpca$PCFunctions[[pc]])) {
-      fit_rehpca$PCFunctions[[pc]][[b]] <-
-        -fit_rehpca$PCFunctions[[pc]][[b]]
-    }
+# The sign of a principal component is not identified, and the sign returned
+# can depend on the linear-algebra library. Orient each HPCA component so that
+# its scores sum to a positive value (the orientation shown in the paper).
+for (pc in 1:2) {
+  if (sum(fit_hpca$PCScores[, pc]) < 0) {
+    fit_hpca$PCScores[, pc] <- -fit_hpca$PCScores[, pc]
+    fit_hpca$PCFunctions[[pc]] <- lapply(fit_hpca$PCFunctions[[pc]], `-`)
   }
 }
 
-models <- list(
-  "HPCA" = fit_hpca,
-  "ReHPCA" = fit_rehpca
+## 7. ReHPCA: PC1 on the original data, PC2 on the deflated data --------------
+
+fit_rehpca_one_pc <- function(blocks, tp) {
+  set.seed(2026)
+  ReMPCA(
+    hd = make_hd(blocks, tp),
+    centerhds = FALSE,
+    num_pcs = 1,
+    nfolds_u = 2,
+    nfolds_v = NULL,
+    thresh = 1e-5,
+    maxit = 300,
+    tuning_iter = 1,
+    parallel = FALSE,
+    weights = NULL,
+    smoothness_type = "Second_order",
+    sparse_tuning_type = "hard",
+    tuning_order = "Smoothness",
+    cv.pick = "min",
+    sparse_tuning_u = tp$gamma_u,
+    smooth_tuning_u = tp$alpha_u,
+    sparse_tuning_v = as.list(tp$gamma_v),
+    smooth_tuning_v = as.list(tp$alpha_v)
+  )
+}
+
+fit_pc1 <- fit_rehpca_one_pc(blocks_original, tuning$ReHPCA_PC1)
+
+# Deflation: X_b <- X_b - u1 v1b' for every block b.
+u_pc1 <- as.numeric(fit_pc1$PCScores[, 1])
+blocks_residual <- Map(
+  function(X, v) X - outer(u_pc1, as.numeric(v)),
+  blocks_original,
+  fit_pc1$PCFunctions[[1]]
 )
 
-###############################################################################
-# 11. Extract scores and loadings
-###############################################################################
+fit_pc2 <- fit_rehpca_one_pc(blocks_residual, tuning$ReHPCA_PC2)
 
-# u-direction scores.
-score_hpca <- as.data.frame(
-  fit_hpca$PCScores[, seq_len(NUM_PCS), drop = FALSE]
+# Combine both components and align each sign with HPCA.
+fit_rehpca <- list(
+  PCScores = cbind(PC1 = u_pc1, PC2 = as.numeric(fit_pc2$PCScores[, 1])),
+  PCFunctions = list(fit_pc1$PCFunctions[[1]], fit_pc2$PCFunctions[[1]])
 )
-colnames(score_hpca) <- paste0("PC", seq_len(NUM_PCS))
 
-score_rehpca <- as.data.frame(
-  fit_rehpca$PCScores[, seq_len(NUM_PCS), drop = FALSE]
-)
-colnames(score_rehpca) <- paste0("PC", seq_len(NUM_PCS))
+for (pc in 1:2) {
+  if (cor(fit_hpca$PCScores[, pc], fit_rehpca$PCScores[, pc]) < 0) {
+    fit_rehpca$PCScores[, pc] <- -fit_rehpca$PCScores[, pc]
+    fit_rehpca$PCFunctions[[pc]] <- lapply(fit_rehpca$PCFunctions[[pc]], `-`)
+  }
+}
 
-score_df_hpca <- bind_cols(
+fits <- list(HPCA = fit_hpca, ReHPCA = fit_rehpca)
+
+## 8. Tables: tuning parameters and non-functional loadings -------------------
+
+tuning_table <- imap_dfr(tuning, function(tp, fit_name) {
+  tibble(
+    fit = fit_name,
+    direction_or_block = c("u (days)", functional_names, "Daily covariates"),
+    alpha_smoothness = c(tp$alpha_u, tp$alpha_v),
+    gamma_sparsity = c(tp$gamma_u, tp$gamma_v),
+    n_entries = c(n_days, sapply(blocks_original, ncol))
+  )
+})
+write_csv(tuning_table, file.path(out_dir, "appliances_tuning_parameters.csv"))
+
+regular_loadings <- imap_dfr(fits, function(fit, method) {
+  map_dfr(1:2, function(pc) {
+    tibble(
+      method = method,
+      PC = paste0("PC", pc),
+      feature = regular_feature_names,
+      loading = as.numeric(fit$PCFunctions[[pc]][[7]])
+    )
+  })
+}) |>
+  mutate(is_zero = loading == 0)
+write_csv(regular_loadings, file.path(out_dir, "appliances_nonfunctional_loadings.csv"))
+
+zeroed <- regular_loadings |>
+  filter(method == "ReHPCA", is_zero) |>
+  group_by(PC) |>
+  summarize(features = paste(feature, collapse = ", "), .groups = "drop")
+cat("Non-functional covariates set to zero by ReHPCA:\n")
+cat(sprintf("  %s: %s\n", zeroed$PC, zeroed$features), sep = "")
+
+## 9. Plot data -----------------------------------------------------------------
+
+method_cols <- c("HPCA" = "#D95F02", "ReHPCA" = "#0072B2")
+
+score_long <- imap_dfr(fits, function(fit, method) {
   tibble(
     date = day_complete$day,
-    Method = "HPCA"
-  ),
-  score_hpca
-)
+    Method = method,
+    PC1 = as.numeric(fit$PCScores[, 1]),
+    PC2 = as.numeric(fit$PCScores[, 2])
+  )
+}) |>
+  pivot_longer(c(PC1, PC2), names_to = "PC", values_to = "Score")
 
-score_df_rehpca <- bind_cols(
-  tibble(
-    date = day_complete$day,
-    Method = "ReHPCA"
-  ),
-  score_rehpca
-)
+functional_long <- imap_dfr(fits, function(fit, method) {
+  map_dfr(1:2, function(pc) {
+    map_dfr(1:6, function(j) {
+      tibble(
+        Method = method,
+        PC = paste0("PC", pc),
+        Functional_Block = functional_names[j],
+        Hour = hour_grid,
+        Loading = as.numeric(fit$PCFunctions[[pc]][[j]])
+      )
+    })
+  })
+}) |>
+  mutate(Functional_Block = factor(Functional_Block, levels = functional_names))
 
-score_df <- bind_rows(
-  score_df_hpca,
-  score_df_rehpca
-)
+# Display adjustment carried over from the original analysis script: in the
+# PC2 indoor-humidity panel the HPCA curve is shifted vertically by the mean
+# difference (ReHPCA - HPCA) so that the two curve shapes can be compared.
+# All other curves are plotted as estimated.
+hin_pc2_shift <- functional_long |>
+  filter(PC == "PC2", Functional_Block == "Indoor humidity") |>
+  select(Hour, Method, Loading) |>
+  pivot_wider(names_from = Method, values_from = Loading) |>
+  summarize(shift = mean(ReHPCA - HPCA)) |>
+  pull(shift)
 
-# Functional v-direction loadings.
-functional_loading_hpca_pc1 <- tibble(
-  Method = "HPCA",
-  PC = "PC1",
-  Hour = hour_grid,
-  Appliances = as.numeric(fit_hpca$PCFunctions[[1]][[1]]),
-  Lights = as.numeric(fit_hpca$PCFunctions[[1]][[2]]),
-  `Indoor temp.` = as.numeric(fit_hpca$PCFunctions[[1]][[3]]),
-  `Indoor humidity` = as.numeric(fit_hpca$PCFunctions[[1]][[4]]),
-  `Outdoor temp.` = as.numeric(fit_hpca$PCFunctions[[1]][[5]]),
-  `Outdoor humidity` = as.numeric(fit_hpca$PCFunctions[[1]][[6]])
-)
+functional_long <- functional_long |>
+  mutate(Loading_plot = if_else(
+    PC == "PC2" & Functional_Block == "Indoor humidity" & Method == "HPCA",
+    Loading + hin_pc2_shift,
+    Loading
+  ))
 
-functional_loading_hpca_pc2 <- tibble(
-  Method = "HPCA",
-  PC = "PC2",
-  Hour = hour_grid,
-  Appliances = as.numeric(fit_hpca$PCFunctions[[2]][[1]]),
-  Lights = as.numeric(fit_hpca$PCFunctions[[2]][[2]]),
-  `Indoor temp.` = as.numeric(fit_hpca$PCFunctions[[2]][[3]]),
-  `Indoor humidity` = as.numeric(fit_hpca$PCFunctions[[2]][[4]]),
-  `Outdoor temp.` = as.numeric(fit_hpca$PCFunctions[[2]][[5]]),
-  `Outdoor humidity` = as.numeric(fit_hpca$PCFunctions[[2]][[6]])
-)
-
-functional_loading_rehpca_pc1 <- tibble(
-  Method = "ReHPCA",
-  PC = "PC1",
-  Hour = hour_grid,
-  Appliances = as.numeric(fit_rehpca$PCFunctions[[1]][[1]]),
-  Lights = as.numeric(fit_rehpca$PCFunctions[[1]][[2]]),
-  `Indoor temp.` = as.numeric(fit_rehpca$PCFunctions[[1]][[3]]),
-  `Indoor humidity` = as.numeric(fit_rehpca$PCFunctions[[1]][[4]]),
-  `Outdoor temp.` = as.numeric(fit_rehpca$PCFunctions[[1]][[5]]),
-  `Outdoor humidity` = as.numeric(fit_rehpca$PCFunctions[[1]][[6]])
-)
-
-functional_loading_rehpca_pc2 <- tibble(
-  Method = "ReHPCA",
-  PC = "PC2",
-  Hour = hour_grid,
-  Appliances = as.numeric(fit_rehpca$PCFunctions[[2]][[1]]),
-  Lights = as.numeric(fit_rehpca$PCFunctions[[2]][[2]]),
-  `Indoor temp.` = as.numeric(fit_rehpca$PCFunctions[[2]][[3]]),
-  `Indoor humidity` = as.numeric(fit_rehpca$PCFunctions[[2]][[4]]),
-  `Outdoor temp.` = as.numeric(fit_rehpca$PCFunctions[[2]][[5]]),
-  `Outdoor humidity` = as.numeric(fit_rehpca$PCFunctions[[2]][[6]])
-)
-
-functional_block_names <- c(
-  "Appliances",
-  "Lights",
-  "Indoor temp.",
-  "Indoor humidity",
-  "Outdoor temp.",
-  "Outdoor humidity"
-)
-
-functional_loading_df <- bind_rows(
-  functional_loading_hpca_pc1,
-  functional_loading_hpca_pc2,
-  functional_loading_rehpca_pc1,
-  functional_loading_rehpca_pc2
-) |>
-  pivot_longer(
-    cols = all_of(functional_block_names),
-    names_to = "Functional_Block",
-    values_to = "Loading"
+# Readable covariate labels, grouped (weather, month, day type) and ordered
+# within group by the largest absolute loading over both methods and PCs.
+regular_plot_df <- regular_loadings |>
+  mutate(
+    month_id = suppressWarnings(as.integer(str_extract(feature, "\\d+"))),
+    label = case_when(
+      feature == "Pressure_day" ~ "Daily pressure",
+      feature == "Windspeed_day" ~ "Daily wind speed",
+      feature == "Visibility_day" ~ "Daily visibility",
+      feature == "Tdewpoint_day" ~ "Daily dew point",
+      feature == "daytype_weekday" ~ "Weekday",
+      feature == "daytype_weekend" ~ "Weekend",
+      str_detect(feature, "^month_") ~ paste0("Month: ", month.abb[month_id])
+    ),
+    group = case_when(
+      str_detect(feature, "_day$") ~ 1L,
+      str_detect(feature, "^month_") ~ 2L,
+      TRUE ~ 3L
+    )
   )
 
-# Non-functional v-direction loadings.
-regular_loading_df <- bind_rows(
-  tibble(
-    Method = "HPCA",
-    PC = "PC1",
-    Feature = regular_feature_names,
-    Loading = as.numeric(fit_hpca$PCFunctions[[1]][[7]])
-  ),
-  tibble(
-    Method = "HPCA",
-    PC = "PC2",
-    Feature = regular_feature_names,
-    Loading = as.numeric(fit_hpca$PCFunctions[[2]][[7]])
-  ),
-  tibble(
-    Method = "ReHPCA",
-    PC = "PC1",
-    Feature = regular_feature_names,
-    Loading = as.numeric(fit_rehpca$PCFunctions[[1]][[7]])
-  ),
-  tibble(
-    Method = "ReHPCA",
-    PC = "PC2",
-    Feature = regular_feature_names,
-    Loading = as.numeric(fit_rehpca$PCFunctions[[2]][[7]])
-  )
-)
+label_order <- regular_plot_df |>
+  group_by(feature, label, group, month_id) |>
+  summarize(max_abs = max(abs(loading)), .groups = "drop") |>
+  arrange(group, desc(max_abs), month_id, feature) |>
+  pull(label)
 
+regular_plot_df <- regular_plot_df |>
+  mutate(label = factor(label, levels = rev(label_order)))
 
-###############################################################################
-# 13. Separated combined plot
-#     Top row: u direction
-#     Bottom row: v direction, functional + regular covariates
-###############################################################################
-
-method_levels <- c("HPCA", "ReHPCA")
-
-method_cols <- c(
-  "HPCA" = "#D95F02",
-  "ReHPCA" = "#0072B2"
-)
-
-pc_levels <- paste0("PC", seq_len(NUM_PCS))
+## 10. Figure S1: u scores, functional loadings, non-functional loadings ------
 
 compact_theme <- theme_bw(base_size = 9.5) +
   theme(
-    plot.title = element_text(face = "bold", size = 10.5),
-    plot.subtitle = element_blank(),
-    legend.position = "bottom",
-    legend.title = element_blank(),
     strip.text = element_text(face = "bold", size = 8.5),
     strip.background = element_rect(fill = "grey92", color = "grey45", linewidth = 0.25),
     panel.grid.major = element_line(color = "grey88", linewidth = 0.22),
     panel.grid.minor = element_blank(),
     panel.border = element_rect(color = "grey40", linewidth = 0.3),
     axis.title = element_text(size = 9),
-    axis.text = element_text(size = 7.5, color = "black"),
-    plot.margin = margin(3, 5, 3, 5)
+    axis.text = element_text(size = 7.5, color = "black")
   )
 
-###############################################################################
-# 13.1 u-direction scores
-###############################################################################
+u_bound <- ceiling(max(abs(score_long$Score)) / 10) * 10
 
-score_long <- score_df |>
-  mutate(Method = factor(Method, levels = method_levels)) |>
-  pivot_longer(
-    cols = starts_with("PC"),
-    names_to = "PC",
-    values_to = "Score"
-  ) |>
-  mutate(
-    PC = factor(PC, levels = pc_levels)
-  )
-
-# Same y-range for all u panels
-u_max <- max(abs(score_long$Score), na.rm = TRUE)
-u_lim <- c(-1, 1) * ceiling(u_max / 10) * 10
-
-p_u_time <- ggplot(
-  score_long,
-  aes(x = date, y = Score, color = Method, group = Method)
-) +
+p_u_time <- ggplot(score_long, aes(date, Score, color = Method, group = Method)) +
   geom_hline(yintercept = 0, linewidth = 0.22, color = "grey45") +
   geom_line(linewidth = 0.65, alpha = 0.9) +
-  facet_wrap(
-    ~ PC,
-    nrow = 1,
-    scales = "fixed"
-  ) +
-  scale_color_manual(values = method_cols, breaks = method_levels) +
-  scale_x_date(
-    date_breaks = "1 month",
-    date_labels = "%Y-%m",
-    expand = expansion(mult = c(0.01, 0.01))
-  ) +
-  scale_y_continuous(
-    limits = u_lim,
-    breaks = scales::breaks_pretty(n = 4),
-    expand = expansion(mult = c(0.01, 0.01))
-  ) +
-  guides(
-    color = guide_legend(
-      nrow = 1,
-      override.aes = list(linewidth = 0.9)
-    )
-  ) +
-  labs(
-    title = "u direction: PC scores over ordered days",
-    x = NULL,
-    y = NULL
-  ) +
+  facet_wrap(~ PC, nrow = 1, scales = "fixed") +
+  scale_color_manual(values = method_cols, guide = "none") +
+  scale_x_date(date_breaks = "2 months", date_labels = "%Y-%m",
+               expand = expansion(mult = c(0.01, 0.01))) +
+  scale_y_continuous(limits = c(-u_bound, u_bound),
+                     breaks = scales::breaks_pretty(n = 4),
+                     expand = expansion(mult = c(0.01, 0.01))) +
+  labs(title = "u direction: PC scores over ordered days", x = NULL, y = "u score") +
   compact_theme +
   theme(
-    axis.text.x = element_text(angle = 25, hjust = 1),
-    axis.title.y.left = element_blank(),
+    plot.title = element_text(face = "bold", size = 21, margin = margin(b = 4)),
+    strip.text.x = element_text(face = "bold", size = 18),
+    axis.title.y.left = element_text(face = "bold", size = 18, margin = margin(r = 5)),
+    axis.text.x = element_text(size = 13, color = "black"),
+    axis.text.y = element_text(size = 14, color = "black"),
     axis.text.y.left = element_text(margin = margin(r = 1)),
     axis.ticks.length.y = unit(1.2, "pt"),
-    plot.margin = margin(3, 5, 3, 0)
+    panel.spacing.x = unit(0.05, "cm"),
+    plot.margin = margin(2, 2, 1, 0)
   )
 
-# Separate tiny plot used only for the vertical u-label
-p_u_label <- ggplot() +
-  annotate(
-    "text",
-    x = 1,
-    y = 0.5,
-    label = "u score",
-    angle = 90,
-    size = 3.0,
-    color = "black"
-  ) +
-  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1), clip = "off") +
-  theme_void() +
-  theme(
-    plot.margin = margin(0, -8, 0, 0)
-  )
-
-###############################################################################
-# 13.2 v-direction functional loading curves
-###############################################################################
-
-functional_loading_df_plot <- functional_loading_df |>
-  mutate(
-    Method = factor(Method, levels = method_levels),
-    Functional_Block = factor(
-      Functional_Block,
-      levels = functional_block_names
-    ),
-    PC = factor(PC, levels = pc_levels)
-  )
-
-
-hin_pc2_shift <- functional_loading_df_plot |>
-  filter(
-    PC == "PC2",
-    Functional_Block == "Indoor humidity"
-  ) |>
-  select(Hour, Method, Loading) |>
-  pivot_wider(names_from = Method, values_from = Loading) |>
-  summarize(
-    shift = mean(ReHPCA - HPCA, na.rm = TRUE)
-  ) |>
-  pull(shift)
-
-if (length(hin_pc2_shift) == 0 || !is.finite(hin_pc2_shift)) {
-  hin_pc2_shift <- 0
-}
-
-functional_loading_df_plot <- functional_loading_df_plot |>
-  mutate(
-    Loading_plot = if_else(
-      PC == "PC2" &
-        Functional_Block == "Indoor humidity" &
-        Method == "HPCA",
-      Loading + hin_pc2_shift,
-      Loading
-    )
-  )
-
-p_v_function <- ggplot(
-  functional_loading_df_plot,
-  aes(x = Hour, y = Loading_plot, color = Method, group = Method)
-) +
+p_v_function <- ggplot(functional_long,
+                       aes(Hour, Loading_plot, color = Method, group = Method)) +
   geom_hline(yintercept = 0, linewidth = 0.22, color = "grey40") +
   geom_line(linewidth = 0.70, alpha = 0.92) +
   facet_grid(
     Functional_Block ~ PC,
     scales = "free_y",
-    switch = "y"
-  ) +
-  scale_color_manual(values = method_cols, breaks = method_levels) +
-  scale_x_continuous(
-    breaks = c(0, 6, 12, 18, 23),
-    expand = expansion(mult = c(0.01, 0.01))
-  ) +
-  scale_y_continuous(
-    breaks = scales::breaks_pretty(n = 3),
-    labels = scales::label_number(accuracy = 0.01),
-    expand = expansion(mult = c(0.08, 0.08))
-  ) +
-  guides(color = "none") +
-  labs(
-    title = "v direction: functional PC loading curves",
-    x = "Hour of day",
-    y = "PC loading"
-  ) +
-  compact_theme +
-  theme(
-    strip.placement = "outside",
-    strip.text.y.left = element_text(angle = 0),
-    axis.text.x = element_text(size = 7),
-    axis.text.y = element_text(size = 7)
-  )
-
-###############################################################################
-# 13.3 v-direction regular covariate loadings
-###############################################################################
-
-pretty_regular_feature <- function(x) {
-  month_id <- suppressWarnings(as.integer(str_extract(x, "\\d+")))
-
-  case_when(
-    x == "Pressure_day" ~ "Daily pressure",
-    x == "Windspeed_day" ~ "Daily wind speed",
-    x == "Visibility_day" ~ "Daily visibility",
-    x == "Tdewpoint_day" ~ "Daily dew point",
-    x == "daytype_weekday" ~ "Weekday",
-    x == "daytype_weekend" ~ "Weekend",
-    str_detect(x, "^month_") ~ paste0("Month: ", month.abb[month_id]),
-    TRUE ~ x
-  )
-}
-
-regular_feature_group <- function(x) {
-  case_when(
-    x %in% c(
-      "Pressure_day",
-      "Windspeed_day",
-      "Visibility_day",
-      "Tdewpoint_day"
-    ) ~ "Daily weather",
-    str_detect(x, "^month_") ~ "Month",
-    str_detect(x, "^daytype_") ~ "Day type",
-    TRUE ~ "Other"
-  )
-}
-
-regular_plot_all <- regular_loading_df |>
-  mutate(
-    Method = factor(Method, levels = method_levels),
-    PC = factor(PC, levels = pc_levels),
-    Feature_raw = as.character(Feature),
-    Feature_label = pretty_regular_feature(Feature_raw),
-    Feature_group = regular_feature_group(Feature_raw)
-  )
-
-regular_feature_order <- regular_plot_all |>
-  group_by(Feature_raw, Feature_label, Feature_group) |>
-  summarize(
-    MaxAbsLoading = max(abs(Loading), na.rm = TRUE),
-    .groups = "drop"
-  ) |>
-  mutate(
-    Feature_group = factor(
-      Feature_group,
-      levels = c("Daily weather", "Month", "Day type", "Other")
-    ),
-    Month_num = suppressWarnings(as.integer(str_extract(Feature_raw, "\\d+"))),
-    Daytype_order = case_when(
-      Feature_raw == "daytype_weekday" ~ 1L,
-      Feature_raw == "daytype_weekend" ~ 2L,
-      TRUE ~ NA_integer_
-    )
-  ) |>
-  arrange(
-    Feature_group,
-    desc(MaxAbsLoading),
-    Month_num,
-    Daytype_order
-  )
-
-regular_plot_df <- regular_plot_all |>
-  semi_join(regular_feature_order, by = "Feature_raw") |>
-  mutate(
-    Feature_label = factor(
-      Feature_label,
-      levels = rev(regular_feature_order$Feature_label)
-    )
-  )
-
-p_v_regular <- ggplot(
-  regular_plot_df,
-  aes(x = Loading, y = Feature_label, fill = Method)
-) +
-  geom_vline(xintercept = 0, linewidth = 0.22, color = "grey40") +
-  geom_col(
-    position = position_dodge(width = 0.68),
-    width = 0.58,
-    alpha = 0.92
-  ) +
-  facet_grid(. ~ PC, scales = "free_x") +
-  scale_fill_manual(values = method_cols, breaks = method_levels) +
-  scale_x_continuous(
-    breaks = scales::breaks_pretty(n = 3),
-    labels = scales::label_number(accuracy = 0.01)
-  ) +
-  guides(fill = "none") +
-  labs(
-    title = "v direction: regular covariate loadings",
-    x = "PC loading",
-    y = NULL
-  ) +
-  compact_theme +
-  theme(
-    axis.text.y = element_text(size = 6.8),
-    axis.text.x = element_text(size = 7),
-    panel.grid.major.y = element_line(color = "grey92", linewidth = 0.20),
-    legend.position = "none"
-  )
-
-###############################################################################
-# 13.4 Final layout: u on top, v on bottom
-###############################################################################
-
-p_u_top <- (p_u_label | p_u_time) +
-  plot_layout(widths = c(0.035, 1))
-
-p_bottom_v <- (p_v_function | p_v_regular) +
-  plot_layout(
-    widths = c(1.65, 1.00),
-    guides = "collect"
-  )
-
-p_appliance_combined <- (p_u_top / p_bottom_v) +
-  plot_layout(
-    heights = c(0.55, 1.80),
-    guides = "collect"
-  ) &
-  theme(
-    legend.position = "bottom",
-    legend.title = element_blank()
-  )
-
-#print(p_appliance_combined)
-
-
-###############################################################################
-# 13.5 Final formatting for p_appliance_combined
-#      Same style as Bike Sharing combined figure
-###############################################################################
-
-library(ggplot2)
-library(patchwork)
-library(grid)
-library(dplyr)
-
-method_cols <- c(
-  "HPCA"   = "#D95F02",
-  "ReHPCA" = "#0072B2"
-)
-
-# ---------------------------------------------------------------------------
-# 1. u direction: one bold "u score" and horizontal dates
-# ---------------------------------------------------------------------------
-
-p_u_time <- p_u_time +
-
-  labs(y = "u score") +
-
-  guides(color = "none") +
-
-  # Fewer dates to avoid overlapping horizontal labels
-  scale_x_date(
-    date_breaks = "2 months",
-    date_labels = "%Y-%m",
-    expand = expansion(mult = c(0.01, 0.01))
-  ) +
-
-  theme(
-    axis.title.y.left = element_text(
-      face = "bold",
-      size = 18,
-      margin = margin(r = 5)
-    ),
-
-    plot.title = element_text(
-      face = "bold",
-      size = 21,
-      margin = margin(b = 4)
-    ),
-
-    strip.text.x = element_text(
-      face = "bold",
-      size = 18
-    ),
-
-    axis.text.x = element_text(
-      size = 13,
-      angle = 0,
-      hjust = 0.5,
-      color = "black"
-    ),
-
-    axis.text.y = element_text(
-      size = 14,
-      color = "black"
-    ),
-
-    panel.spacing.x = unit(0.05, "cm"),
-
-    plot.margin = margin(2, 2, 1, 0)
-  )
-
-# Remove the extra u-score label
-p_u_label <- plot_spacer()
-
-# ---------------------------------------------------------------------------
-# 2. Functional PC loading curves
-#    - Six functional blocks
-#    - Vertical block labels
-#    - Centered title
-#    - No gap between PC1 and PC2
-#    - Larger fonts
-# ---------------------------------------------------------------------------
-
-p_v_function <- p_v_function +
-
-  scale_x_continuous(
-    breaks = c(0, 6, 12, 18),
-    expand = expansion(mult = c(0.01, 0.01))
-  ) +
-
-  theme(
-    plot.title = element_text(
-      face = "bold",
-      size = 21,
-      hjust = 0.5,
-      margin = margin(b = 5)
-    ),
-
-    plot.title.position = "panel",
-
-    strip.text.x = element_text(
-      face = "bold",
-      size = 18,
-      margin = margin(3, 3, 3, 3)
-    ),
-
-    # Rotate all six block names 90 degrees
-    strip.text.y.left = element_text(
-      angle = 90,
-      face = "bold",
-      size = 18,
-      margin = margin(2, 2, 2, 2)
-    ),
-
-    strip.placement = "outside",
-
-    strip.switch.pad.grid = unit(0, "pt"),
-
-    # No horizontal gap between PC1 and PC2
-    panel.spacing.x = unit(0, "cm"),
-
-    # Minimal vertical gap
-    panel.spacing.y = unit(0.04, "cm"),
-
-    axis.title.x = element_text(
-      face = "bold",
-      size = 18,
-      margin = margin(t = 8)
-    ),
-
-    axis.title.y = element_text(
-      face = "bold",
-      size = 18,
-      margin = margin(r = 4)
-    ),
-
-    axis.text.x = element_text(
-      size = 13,
-      color = "black",
-      margin = margin(t = 3)
-    ),
-
-    axis.text.y = element_text(
-      size = 13,
-      color = "black"
-    ),
-
-    axis.text.x.top = element_blank(),
-
-    plot.margin = margin(2, 2, 0, 2)
-  )
-
-# ---------------------------------------------------------------------------
-# 3. Regular covariate loadings
-#    - Retain all existing nonfunctional variables
-#    - Align PC1/PC2 headers with functional plots
-#    - Center title
-#    - Avoid overlapping x-axis labels
-# ---------------------------------------------------------------------------
-
-p_v_regular <- p_v_regular +
-
-  scale_x_continuous(
-    breaks = scales::breaks_pretty(n = 2),
-    labels = scales::label_number(accuracy = 0.01),
-    guide = guide_axis(check.overlap = TRUE)
-  ) +
-
-  theme(
-    plot.title = element_text(
-      face = "bold",
-      size = 21,
-      hjust = 0.5,
-      margin = margin(b = 5)
-    ),
-
-    plot.title.position = "panel",
-
-    strip.text.x = element_text(
-      face = "bold",
-      size = 18,
-      margin = margin(3, 3, 3, 3)
-    ),
-
-    panel.spacing.x = unit(0.20, "cm"),
-
-    axis.title.x = element_text(
-      face = "bold",
-      size = 18,
-      margin = margin(t = 8)
-    ),
-
-    axis.text.x = element_text(
-      size = 12,
-      color = "black",
-      margin = margin(t = 3)
-    ),
-
-    axis.text.y = element_text(
-      size = 14,
-      color = "black"
-    ),
-
-    axis.ticks.length.x = unit(1.5, "pt"),
-
-    panel.grid.major.y = element_line(
-      color = "grey92",
-      linewidth = 0.20
-    ),
-
-    plot.margin = margin(2, 2, 0, 2)
-  )
-
-# ---------------------------------------------------------------------------
-# 4. Custom HPCA/ReHPCA legend on upper left
-# ---------------------------------------------------------------------------
-
-legend_df <- tibble(
-  Method = factor(
-    c("HPCA", "ReHPCA"),
-    levels = c("HPCA", "ReHPCA")
-  ),
-  y = c(0.65, 0.35)
-)
-
-p_appliance_legend <- ggplot(legend_df) +
-
-  geom_segment(
-    aes(
-      x = 0.04,
-      xend = 0.34,
-      y = y,
-      yend = y,
-      color = Method
-    ),
-    linewidth = 1.7
-  ) +
-
-  geom_text(
-    aes(
-      x = 0.42,
-      y = y,
-      label = Method
-    ),
-    hjust = 0,
-    size = 6.0,
-    fontface = "bold",
-    color = "black"
-  ) +
-
-  scale_color_manual(
-    values = method_cols,
-    guide = "none"
-  ) +
-
-  coord_cartesian(
-    xlim = c(0, 1),
-    ylim = c(0, 1),
-    clip = "off"
-  ) +
-
-  theme_void() +
-
-  theme(
-    plot.margin = margin(0, 0, 0, 0)
-  )
-
-# ---------------------------------------------------------------------------
-# 5. Reassemble the combined figure
-# ---------------------------------------------------------------------------
-
-# Top: legend on left, scores on right
-
-p_u_top <- (
-  p_appliance_legend | p_u_time
-) +
-  plot_layout(
-    widths = c(0.17, 1)
-  )
-
-# Bottom: functional and regular loadings
-# wrap_elements keeps the PC1/PC2 strips vertically aligned
-
-p_bottom_v <- (
-  wrap_elements(full = p_v_function) |
-    wrap_elements(full = p_v_regular)
-) +
-  plot_layout(
-    widths = c(1.65, 1.00)
-  )
-
-# Final combined figure
-
-p_appliance_combined <- (
-  p_u_top / p_bottom_v
-) +
-  plot_layout(
-    heights = c(0.55, 1.80)
-  ) &
-  theme(
-    legend.position = "none"
-  )
-
-#print(p_appliance_combined)
-
-
-###############################################################################
-# Final adjustments to p_appliance_combined
-###############################################################################
-
-library(ggplot2)
-library(patchwork)
-library(grid)
-
-# ---------------------------------------------------------------------------
-# 1. Functional PC loading curves
-# ---------------------------------------------------------------------------
-
-p_v_function <- p_v_function +
-
-  facet_grid(
-    Functional_Block ~ PC,
-    scales = "free_y",
     switch = "y",
-    labeller = labeller(
-      Functional_Block = c(
-        "Appliances"       = "Appliance",
-        "Lights"           = "Lights",
-        "Indoor temp."     = "Indoor\ntemp.",
-        "Indoor humidity"  = "Indoor\nhumidity",
-        "Outdoor temp."    = "Outdoor\ntemp.",
-        "Outdoor humidity" = "Outdoor\nhumidity"
-      )
-    )
+    labeller = labeller(Functional_Block = c(
+      "Appliances"       = "Appliance",
+      "Lights"           = "Lights",
+      "Indoor temp."     = "Indoor\ntemp.",
+      "Indoor humidity"  = "Indoor\nhumidity",
+      "Outdoor temp."    = "Outdoor\ntemp.",
+      "Outdoor humidity" = "Outdoor\nhumidity"
+    ))
   ) +
-
+  scale_color_manual(values = method_cols, guide = "none") +
+  scale_x_continuous(breaks = c(0, 6, 12, 18),
+                     expand = expansion(mult = c(0.01, 0.01))) +
+  scale_y_continuous(breaks = scales::breaks_pretty(n = 3),
+                     labels = scales::label_number(accuracy = 0.01),
+                     expand = expansion(mult = c(0.08, 0.08))) +
+  labs(title = "v direction: functional PC loading curves",
+       x = "Hour of day", y = "PC loading") +
+  compact_theme +
   theme(
-    # Vertical PC loading title
-    axis.title.y.left = element_text(
-      angle = 90,
-      face = "bold",
-      size = 18,
-      margin = margin(r = 12)
-    ),
-
-    # Vertical functional block names
-    strip.text.y.left = element_text(
-      angle = 90,
-      face = "bold",
-      size = 17,
-      margin = margin(4, 5, 4, 5)
-    ),
-
+    plot.title = element_text(face = "bold", size = 21, hjust = 0.5, margin = margin(b = 5)),
+    plot.title.position = "panel",
+    strip.text.x = element_text(face = "bold", size = 18, margin = margin(3, 3, 3, 3)),
+    strip.text.y.left = element_text(angle = 90, face = "bold", size = 17,
+                                     margin = margin(4, 5, 4, 5)),
     strip.placement = "outside",
     strip.switch.pad.grid = unit(3, "pt"),
-
     panel.spacing.x = unit(0, "cm"),
     panel.spacing.y = unit(0.04, "cm"),
-
+    axis.title.x = element_text(face = "bold", size = 18, margin = margin(t = 8)),
+    axis.title.y = element_text(face = "bold", size = 18, margin = margin(r = 4)),
+    axis.title.y.left = element_text(angle = 90, face = "bold", size = 18,
+                                     margin = margin(r = 12)),
+    axis.text.x = element_text(size = 13, color = "black", margin = margin(t = 3)),
+    axis.text.y = element_text(size = 13, color = "black"),
     plot.margin = margin(2, 4, 0, 4)
   )
 
-# ---------------------------------------------------------------------------
-# 2. Regular covariate loadings: prevent x-axis overlap
-# ---------------------------------------------------------------------------
-
-p_v_regular <- p_v_regular +
-
-  scale_x_continuous(
-    breaks = scales::breaks_pretty(n = 2),
-    labels = scales::label_number(accuracy = 0.01),
-    expand = expansion(mult = c(0.15, 0.15)),
-    guide = guide_axis(check.overlap = TRUE)
-  ) +
-
+p_v_regular <- ggplot(regular_plot_df, aes(loading, label, fill = method)) +
+  geom_vline(xintercept = 0, linewidth = 0.22, color = "grey40") +
+  geom_col(position = position_dodge(width = 0.68), width = 0.58, alpha = 0.92) +
+  facet_grid(. ~ PC, scales = "free_x") +
+  scale_fill_manual(values = method_cols, guide = "none") +
+  scale_x_continuous(breaks = scales::breaks_pretty(n = 2),
+                     labels = scales::label_number(accuracy = 0.01),
+                     expand = expansion(mult = c(0.15, 0.15)),
+                     guide = guide_axis(check.overlap = TRUE)) +
+  labs(title = "v direction: regular covariate loadings", x = "PC loading", y = NULL) +
+  compact_theme +
   theme(
+    plot.title = element_text(face = "bold", size = 21, hjust = 0.5, margin = margin(b = 5)),
+    plot.title.position = "panel",
+    strip.text.x = element_text(face = "bold", size = 18, margin = margin(3, 3, 3, 3)),
     panel.spacing.x = unit(0.35, "cm"),
-
-    axis.text.x = element_text(
-      size = 12,
-      color = "black",
-      margin = margin(t = 4)
-    ),
-
-    axis.title.x = element_text(
-      face = "bold",
-      size = 18,
-      margin = margin(t = 8)
-    ),
-
+    panel.grid.major.y = element_line(color = "grey92", linewidth = 0.20),
+    axis.title.x = element_text(face = "bold", size = 18, margin = margin(t = 8)),
+    axis.text.x = element_text(size = 12, color = "black", margin = margin(t = 4)),
+    axis.text.y = element_text(size = 14, color = "black"),
+    axis.ticks.length.x = unit(1.5, "pt"),
     plot.margin = margin(2, 4, 0, 3)
   )
 
-# ---------------------------------------------------------------------------
-# 3. Reassemble exactly as before
-# ---------------------------------------------------------------------------
+# Method legend drawn as a small stand-alone panel (upper left).
+p_legend <- ggplot(tibble(Method = names(method_cols), y = c(0.65, 0.35))) +
+  geom_segment(aes(x = 0.04, xend = 0.34, y = y, yend = y, color = Method),
+               linewidth = 1.7) +
+  geom_text(aes(x = 0.42, y = y, label = Method),
+            hjust = 0, size = 6.0, fontface = "bold") +
+  scale_color_manual(values = method_cols, guide = "none") +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1), clip = "off") +
+  theme_void() +
+  theme(plot.margin = margin(0, 0, 0, 0))
 
-p_u_top <- (
-  p_appliance_legend | p_u_time
-) +
-  plot_layout(widths = c(0.17, 1))
+fig_s1 <- ((p_legend | p_u_time) + plot_layout(widths = c(0.17, 1))) /
+  ((wrap_elements(full = p_v_function) | wrap_elements(full = p_v_regular)) +
+     plot_layout(widths = c(1.65, 1.00))) +
+  plot_layout(heights = c(0.55, 1.80))
 
-p_bottom_v <- (
-  wrap_elements(full = p_v_function) |
-    wrap_elements(full = p_v_regular)
-) +
-  plot_layout(widths = c(1.65, 1.00))
+ggsave(file.path(out_dir, "appliances_compare_u_and_v_HPCA_ReHPCA_PC_specific1.pdf"),
+       fig_s1, width = 19, height = 13, units = "in")
 
-p_appliance_combined <- (
-  p_u_top / p_bottom_v
-) +
-  plot_layout(heights = c(0.55, 1.80)) &
-  theme(legend.position = "none")
+## 11. Figure S2: mean curves plus/minus the ReHPCA functional PCs -------------
 
-print(p_appliance_combined)
-
-
-
-###############################################################################
-# 14. Shared helpers for reconstruction plots
-###############################################################################
-
-mat_to_long_hour <- function(M, value_name = "value") {
-
-  M <- as.matrix(M)
-
-  if (ncol(M) != length(hour_grid)) {
-    stop("Number of columns in M must match length(hour_grid).")
-  }
-
-  if (nrow(M) != nrow(day_complete)) {
-    stop("Number of rows in M must match nrow(day_complete).")
-  }
-
-  colnames(M) <- as.character(hour_grid)
-  rownames(M) <- as.character(day_complete$day)
-
-  as_tibble(M, .name_repair = "minimal") |>
-    mutate(date = as.Date(rownames(M))) |>
-    pivot_longer(
-      cols = -date,
-      names_to = "hour",
-      values_to = value_name
-    ) |>
-    mutate(hour = as.numeric(hour))
-}
-
-unscale_global <- function(M_scaled, M_raw) {
-  mu <- mean(as.vector(M_raw), na.rm = TRUE)
-  sig <- sd(as.vector(M_raw), na.rm = TRUE)
-  if (!is.finite(sig) || sig == 0) sig <- 1
-  M_scaled * sig + mu
-}
-
-reconstruct_blocks <- function(fit, npc = NUM_PCS) {
-  out <- list(
-    Appliance_curve = matrix(0, nrow = n_days, ncol = ncol(X_appliance)),
-    Lights_curve = matrix(0, nrow = n_days, ncol = ncol(X_lights)),
-    Indoor_temperature_curve = matrix(0, nrow = n_days, ncol = ncol(X_tin)),
-    Indoor_humidity_curve = matrix(0, nrow = n_days, ncol = ncol(X_hin)),
-    Outdoor_temperature_curve = matrix(0, nrow = n_days, ncol = ncol(X_tout)),
-    Outdoor_humidity_curve = matrix(0, nrow = n_days, ncol = ncol(X_hout)),
-    Daily_covariates = matrix(0, nrow = n_days, ncol = ncol(X_regular))
-  )
-
-  for (pc in seq_len(npc)) {
-    u <- as.numeric(fit$PCScores[, pc])
-
-    out$Appliance_curve <- out$Appliance_curve +
-      outer(u, as.numeric(fit$PCFunctions[[pc]][[1]]))
-
-    out$Lights_curve <- out$Lights_curve +
-      outer(u, as.numeric(fit$PCFunctions[[pc]][[2]]))
-
-    out$Indoor_temperature_curve <- out$Indoor_temperature_curve +
-      outer(u, as.numeric(fit$PCFunctions[[pc]][[3]]))
-
-    out$Indoor_humidity_curve <- out$Indoor_humidity_curve +
-      outer(u, as.numeric(fit$PCFunctions[[pc]][[4]]))
-
-    out$Outdoor_temperature_curve <- out$Outdoor_temperature_curve +
-      outer(u, as.numeric(fit$PCFunctions[[pc]][[5]]))
-
-    out$Outdoor_humidity_curve <- out$Outdoor_humidity_curve +
-      outer(u, as.numeric(fit$PCFunctions[[pc]][[6]]))
-
-    out$Daily_covariates <- out$Daily_covariates +
-      outer(u, as.numeric(fit$PCFunctions[[pc]][[7]]))
-  }
-
-  out
-}
-
-rec_hpca_scaled <- reconstruct_blocks(fit_hpca)
-rec_rehpca_scaled <- reconstruct_blocks(fit_rehpca)
-
-rec_hpca_raw <- list(
-  Appliance_curve = pmax(unscale_global(rec_hpca_scaled$Appliance_curve, X_appliance_raw), 0),
-  Lights_curve = pmax(unscale_global(rec_hpca_scaled$Lights_curve, X_lights_raw), 0),
-  Indoor_temperature_curve = unscale_global(rec_hpca_scaled$Indoor_temperature_curve, X_tin_raw),
-  Indoor_humidity_curve = unscale_global(rec_hpca_scaled$Indoor_humidity_curve, X_hin_raw),
-  Outdoor_temperature_curve = unscale_global(rec_hpca_scaled$Outdoor_temperature_curve, X_tout_raw),
-  Outdoor_humidity_curve = unscale_global(rec_hpca_scaled$Outdoor_humidity_curve, X_hout_raw)
-)
-
-rec_rehpca_raw <- list(
-  Appliance_curve = pmax(unscale_global(rec_rehpca_scaled$Appliance_curve, X_appliance_raw), 0),
-  Lights_curve = pmax(unscale_global(rec_rehpca_scaled$Lights_curve, X_lights_raw), 0),
-  Indoor_temperature_curve = unscale_global(rec_rehpca_scaled$Indoor_temperature_curve, X_tin_raw),
-  Indoor_humidity_curve = unscale_global(rec_rehpca_scaled$Indoor_humidity_curve, X_hin_raw),
-  Outdoor_temperature_curve = unscale_global(rec_rehpca_scaled$Outdoor_temperature_curve, X_tout_raw),
-  Outdoor_humidity_curve = unscale_global(rec_rehpca_scaled$Outdoor_humidity_curve, X_hout_raw)
-)
-
-###############################################################################
-# 15. Heatmap: HPCA fitted vs ReHPCA fitted
-###############################################################################
-
-make_heatmap_df <- function(M, method) {
-  mat_to_long_hour(M, "value") |>
-    mutate(
-      Method = method,
-      log_value = log1p(pmax(value, 0))
+# Raw-scale mean curve +/- sd(u_k) * v_kb * sd(block b), for k = 1, 2.
+# Energy curves (Appliances, Lights) are truncated at zero.
+mean_pm_df <- map_dfr(1:2, function(k) {
+  u_sd <- sd(fit_rehpca$PCScores[, k])
+  map_dfr(1:6, function(j) {
+    mu  <- colMeans(X_raw[[j]])
+    dev <- u_sd * sd(as.vector(X_raw[[j]])) * as.numeric(fit_rehpca$PCFunctions[[k]][[j]])
+    tibble(
+      Variable = functional_names[j],
+      PC = k,
+      Hour = hour_grid,
+      Mean = mu,
+      `Mean + PC` = mu + dev,
+      `Mean - PC` = mu - dev
     )
-}
-
-appliance_heatmap_df <- bind_rows(
-  make_heatmap_df(rec_hpca_raw$Appliance_curve, "HPCA fitted"),
-  make_heatmap_df(rec_rehpca_raw$Appliance_curve, "ReHPCA fitted")
-) |>
-  mutate(
-    Method = factor(Method, levels = c("HPCA fitted", "ReHPCA fitted"))
-  )
-
-heatmap_theme <- theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", size = 15),
-    plot.subtitle = element_blank(),
-    strip.text = element_text(face = "bold", size = 11),
-    axis.title = element_text(face = "bold", size = 11),
-    axis.text = element_text(size = 8),
-    panel.grid = element_blank(),
-    legend.position = "bottom",
-    legend.title = element_text(size = 10)
-  )
-
-p_appliance_heatmap <- ggplot(
-  appliance_heatmap_df,
-  aes(x = hour, y = date, fill = log_value)
-) +
-  geom_tile() +
-  facet_wrap(~ Method, nrow = 1) +
-  scale_fill_gradientn(
-    colors = c("#2D004B", "#542788", "#F1A340", "#FEE08B"),
-    name = "log(1 + energy)"
-  ) +
-  scale_x_continuous(
-    breaks = c(0, 6, 12, 18, 23),
-    expand = c(0, 0)
-  ) +
-  scale_y_date(
-    date_breaks = "1 month",
-    date_labels = "%Y-%m",
-    expand = c(0, 0)
-  ) +
-  labs(
-    title = "Daily-hour fitted heatmaps of appliance energy use",
-    x = "Hour of day",
-    y = "Date"
-  ) +
-  heatmap_theme
-
-print(p_appliance_heatmap)
-
-
-###############################################################################
-# 16. Observed mean curves versus HPCA and ReHPCA fitted means
-###############################################################################
-
-make_curve_long <- function(M, variable, method) {
-  mat_to_long_hour(M, "value") |>
-    mutate(
-      Variable = variable,
-      Method = method
-    )
-}
-
-curve_long <- bind_rows(
-  make_curve_long(X_appliance_raw, "Appliances", "Observed mean"),
-  make_curve_long(X_lights_raw, "Lights", "Observed mean"),
-  make_curve_long(X_tin_raw, "Indoor temp.", "Observed mean"),
-  make_curve_long(X_hin_raw, "Indoor humidity", "Observed mean"),
-  make_curve_long(X_tout_raw, "Outdoor temp.", "Observed mean"),
-  make_curve_long(X_hout_raw, "Outdoor humidity", "Observed mean"),
-
-  make_curve_long(rec_hpca_raw$Appliance_curve, "Appliances", "HPCA"),
-  make_curve_long(rec_hpca_raw$Lights_curve, "Lights", "HPCA"),
-  make_curve_long(rec_hpca_raw$Indoor_temperature_curve, "Indoor temp.", "HPCA"),
-  make_curve_long(rec_hpca_raw$Indoor_humidity_curve, "Indoor humidity", "HPCA"),
-  make_curve_long(rec_hpca_raw$Outdoor_temperature_curve, "Outdoor temp.", "HPCA"),
-  make_curve_long(rec_hpca_raw$Outdoor_humidity_curve, "Outdoor humidity", "HPCA"),
-
-  make_curve_long(rec_rehpca_raw$Appliance_curve, "Appliances", "ReHPCA"),
-  make_curve_long(rec_rehpca_raw$Lights_curve, "Lights", "ReHPCA"),
-  make_curve_long(rec_rehpca_raw$Indoor_temperature_curve, "Indoor temp.", "ReHPCA"),
-  make_curve_long(rec_rehpca_raw$Indoor_humidity_curve, "Indoor humidity", "ReHPCA"),
-  make_curve_long(rec_rehpca_raw$Outdoor_temperature_curve, "Outdoor temp.", "ReHPCA"),
-  make_curve_long(rec_rehpca_raw$Outdoor_humidity_curve, "Outdoor humidity", "ReHPCA")
-) |>
-  mutate(
-    Variable = factor(
-      Variable,
-      levels = c(
-        "Appliances",
-        "Lights",
-        "Indoor temp.",
-        "Indoor humidity",
-        "Outdoor temp.",
-        "Outdoor humidity"
-      )
-    ),
-    Method = factor(
-      Method,
-      levels = c("Observed mean", "HPCA", "ReHPCA")
-    )
-  )
-
-curve_summary <- curve_long |>
-  group_by(Variable, Method, hour) |>
-  summarize(
-    mean_value = mean(value, na.rm = TRUE),
-    q25 = quantile(value, 0.25, na.rm = TRUE),
-    q75 = quantile(value, 0.75, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-
-rehpca_shift_df <- curve_summary |>
-  filter(
-    Variable %in% c("Indoor temp.", "Indoor humidity"),
-    Method %in% c("Observed mean", "ReHPCA")
-  ) |>
-  select(Variable, Method, hour, mean_value) |>
-  pivot_wider(names_from = Method, values_from = mean_value) |>
-  group_by(Variable) |>
-  summarize(
-    rehpca_shift = mean(`Observed mean` - ReHPCA, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-curve_summary <- curve_summary |>
-  left_join(rehpca_shift_df, by = "Variable") |>
-  mutate(
-    rehpca_shift = replace_na(rehpca_shift, 0),
-    mean_value_plot = if_else(
-      Variable %in% c("Indoor temp.", "Indoor humidity") &
-        Method == "ReHPCA",
-      mean_value + rehpca_shift,
-      mean_value
-    )
-  )
-
-curve_obs <- curve_summary |>
-  filter(Method == "Observed mean")
-
-curve_fit <- curve_summary |>
-  filter(Method %in% c("HPCA", "ReHPCA"))
-
-method_cols_curves <- c(
-  "Observed mean" = "black",
-  "HPCA"   = "#D95F02",
-  "ReHPCA" = "#0072B2"
-)
-
-p_appliance_curves <- ggplot() +
-  geom_ribbon(
-    data = curve_obs,
-    aes(x = hour, ymin = q25, ymax = q75),
-    fill = "grey80",
-    alpha = 0.45
-  ) +
-  geom_line(
-    data = curve_obs,
-    aes(x = hour, y = mean_value_plot, color = Method),
-    linewidth = 0.95
-  ) +
-  geom_line(
-    data = curve_fit,
-    aes(x = hour, y = mean_value_plot, color = Method),
-    linewidth = 0.95
-  ) +
-  geom_point(
-    data = curve_fit |> filter(Method == "HPCA"),
-    aes(x = hour, y = mean_value_plot, color = Method),
-    size = 0.75,
-    alpha = 0.75,
-    show.legend = FALSE
-  ) +
-  facet_wrap(~ Variable, nrow = 2, scales = "free_y") +
-  scale_color_manual(
-    values = method_cols_curves,
-    breaks = c("Observed mean", "HPCA", "ReHPCA")
-  ) +
-  scale_x_continuous(
-    breaks = c(0, 6, 12, 18, 23)
-  ) +
-  labs(
-    title = "Mean within-day functional profiles",
-    x = "Hour of day",
-    y = "Value",
-    color = NULL
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", size = 15),
-    strip.text = element_text(face = "bold"),
-    legend.position = "bottom",
-    panel.grid.minor = element_blank()
-  )
-
-print(p_appliance_curves)
-
-
-###############################################################################
-# 16 Extra plot: u-score trajectories for HPCA and ReHPCA
-###############################################################################
-
-daily_energy_df <- appliance_complete |>
-  group_by(day) |>
-  summarize(
-    Daily_energy = sum(Appliances, na.rm = TRUE),
-    Month = month(first(day), label = TRUE, abbr = TRUE),
-    Weekday = wday(first(day), label = TRUE, abbr = TRUE, week_start = 1),
-    .groups = "drop"
-  ) |>
-  rename(date = day)
-
-u_score_plot_df <- score_df |>
-  left_join(daily_energy_df, by = "date") |>
-  mutate(
-    Method = factor(Method, levels = c("HPCA", "ReHPCA")),
-    Month = factor(Month, levels = unique(Month))
-  ) |>
-  pivot_longer(
-    cols = c(PC1, PC2),
-    names_to = "PC",
-    values_to = "u_score"
-  ) |>
-  mutate(
-    PC = factor(PC, levels = c("PC1", "PC2"))
-  )
-
-month_cols <- c(
-  "Jan" = "#E76F51",
-  "Feb" = "#66A61E",
-  "Mar" = "#00A6B4",
-  "Apr" = "#B77CFF",
-  "May" = "#E69F00",
-  "Jun" = "#56B4E9",
-  "Jul" = "#009E73",
-  "Aug" = "#CC79A7",
-  "Sep" = "#999999",
-  "Oct" = "#D55E00",
-  "Nov" = "#0072B2",
-  "Dec" = "#F0E442"
-)
-
-p_u_scores_hpca_rehpca <- ggplot(
-  u_score_plot_df,
-  aes(x = date, y = u_score)
-) +
-  geom_hline(yintercept = 0, linewidth = 0.25, color = "grey55") +
-  geom_line(
-    aes(group = interaction(Method, PC)),
-    color = "grey45",
-    linewidth = 0.35,
-    alpha = 0.65
-  ) +
-  geom_point(
-    aes(color = Month, size = Daily_energy),
-    alpha = 0.85
-  ) +
-  facet_grid(PC ~ Method, scales = "free_y") +
-  scale_color_manual(
-    values = month_cols,
-    drop = FALSE
-  ) +
-  scale_size_continuous(
-    range = c(1.0, 3.5),
-    breaks = pretty(u_score_plot_df$Daily_energy, n = 4),
-    name = "Daily energy"
-  ) +
-  scale_x_date(
-    date_breaks = "1 month",
-    date_labels = "%Y-%m",
-    expand = expansion(mult = c(0.01, 0.01))
-  ) +
-  labs(
-    title = "Ordered-day scores in the u direction",
-    x = "Date",
-    y = "u score",
-    color = "Month"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    strip.text = element_text(face = "bold", size = 10),
-    axis.text.x = element_text(angle = 35, hjust = 1),
-    legend.position = "right",
-    panel.grid.minor = element_blank()
-  )
-
-print(p_u_scores_hpca_rehpca)
-
-###############################################################################
-# Larger fonts for p_u_scores_hpca_rehpca and PDF export
-###############################################################################
-
-library(ggplot2)
-library(grid)
-
-p_u_scores_hpca_rehpca <- p_u_scores_hpca_rehpca +
-
-  # Reduce date labels to avoid overlap
-  scale_x_date(
-    date_breaks = "2 months",
-    date_labels = "%Y-%m",
-    expand = expansion(mult = c(0.01, 0.01))
-  ) +
-
-  theme(
-    plot.title = element_text(
-      face = "bold",
-      size = 22,
-      hjust = 0.5,
-      margin = margin(b = 12)
-    ),
-
-    strip.text = element_text(
-      face = "bold",
-      size = 19
-    ),
-
-    axis.title.x = element_text(
-      face = "bold",
-      size = 19,
-      margin = margin(t = 10)
-    ),
-
-    axis.title.y = element_text(
-      face = "bold",
-      size = 19,
-      margin = margin(r = 10)
-    ),
-
-    axis.text.x = element_text(
-      size = 15,
-      angle = 0,
-      hjust = 0.5,
-      color = "black"
-    ),
-
-    axis.text.y = element_text(
-      size = 15,
-      color = "black"
-    ),
-
-    legend.title = element_text(
-      face = "bold",
-      size = 18
-    ),
-
-    legend.text = element_text(
-      size = 15
-    ),
-
-    legend.key.height = unit(0.65, "cm"),
-    legend.key.width = unit(0.75, "cm"),
-
-    legend.position = "right",
-
-    panel.spacing = unit(0.20, "cm"),
-
-    panel.grid.minor = element_blank(),
-
-    plot.margin = margin(10, 12, 10, 10)
-  )
-
-print(p_u_scores_hpca_rehpca)
-
-
-###############################################################################
-# 17. Mean +/- PC mode plots for all 6 functional variables
-#     Layout: rows = PC1 and PC2, columns = variables
-#     Variable names shown only on top row
-#     PC labels shown only beside the y-axis of first column
-###############################################################################
-
-MODE_FIT <- fit_rehpca
-MODE_METHOD <- "ReHPCA"
-
-MODE_PCS <- c(1, 2)
-MODE_SCORE_MULT <- 1
-CLAMP_NONNEGATIVE <- TRUE
-
-###############################################################################
-# 17.1 Variable setup
-###############################################################################
-
-mode_variable_levels <- c(
-  "Appliances",
-  "Lights",
-  "Indoor temp.",
-  "Indoor humidity",
-  "Outdoor temp.",
-  "Outdoor humidity"
-)
-
-mode_vars <- list(
-  list(name = "Appliances",       block_id = 1L, raw_matrix = X_appliance_raw),
-  list(name = "Lights",           block_id = 2L, raw_matrix = X_lights_raw),
-  list(name = "Indoor temp.",     block_id = 3L, raw_matrix = X_tin_raw),
-  list(name = "Indoor humidity",  block_id = 4L, raw_matrix = X_hin_raw),
-  list(name = "Outdoor temp.",    block_id = 5L, raw_matrix = X_tout_raw),
-  list(name = "Outdoor humidity", block_id = 6L, raw_matrix = X_hout_raw)
-)
-
-###############################################################################
-# 17.2 Helper: construct mean +/- PC curves on raw scale
-###############################################################################
-
-make_mean_pm_pc_df <- function(
-    fit,
-    pc,
-    block_id,
-    raw_matrix,
-    variable_name,
-    score_mult = 1
-) {
-
-  raw_matrix <- as.matrix(raw_matrix)
-
-  loading_scaled <- as.numeric(fit$PCFunctions[[pc]][[block_id]])
-  score_values <- as.numeric(fit$PCScores[, pc])
-
-  if (length(loading_scaled) != ncol(raw_matrix)) {
-    stop(paste0("PC loading length mismatch for ", variable_name))
-  }
-
-  score_sd <- sd(score_values, na.rm = TRUE)
-  if (!is.finite(score_sd) || score_sd == 0) score_sd <- 1
-
-  raw_global_sd <- sd(as.vector(raw_matrix), na.rm = TRUE)
-  if (!is.finite(raw_global_sd) || raw_global_sd == 0) raw_global_sd <- 1
-
-  mean_curve_raw <- colMeans(raw_matrix, na.rm = TRUE)
-
-  pc_shift_raw <- score_mult * score_sd * raw_global_sd * loading_scaled
-
-  tibble(
-    Variable = variable_name,
-    PC = paste0("PC ", pc),
-    Hour = hour_grid,
-    Mean = mean_curve_raw,
-    `Mean + PC` = mean_curve_raw + pc_shift_raw,
-    `Mean - PC` = mean_curve_raw - pc_shift_raw
-  )
-}
-
-###############################################################################
-# 17.3 Build plotting data
-###############################################################################
-
-mean_pm_pc_df <- bind_rows(lapply(MODE_PCS, function(pc) {
-  bind_rows(lapply(mode_vars, function(v) {
-    make_mean_pm_pc_df(
-      fit = MODE_FIT,
-      pc = pc,
-      block_id = v$block_id,
-      raw_matrix = v$raw_matrix,
-      variable_name = v$name,
-      score_mult = MODE_SCORE_MULT
-    )
-  }))
-}))
-
-mean_pm_pc_long <- mean_pm_pc_df |>
-  pivot_longer(
-    cols = c(Mean, `Mean + PC`, `Mean - PC`),
-    names_to = "Curve",
-    values_to = "Value"
-  ) |>
-  mutate(
-    Variable = factor(Variable, levels = mode_variable_levels),
-    PC = factor(PC, levels = paste0("PC ", MODE_PCS)),
-    Curve = factor(
-      Curve,
-      levels = c("Mean - PC", "Mean", "Mean + PC")
-    )
-  )
-
-if (CLAMP_NONNEGATIVE) {
-  mean_pm_pc_long <- mean_pm_pc_long |>
-    mutate(
-      Value = if_else(
-        Variable %in% c("Appliances", "Lights"),
-        pmax(Value, 0),
-        Value
-      )
-    )
-}
-
-###############################################################################
-# 17.4 Approximate PC percentage labels
-###############################################################################
-
-SHOW_APPROX_PERCENT <- TRUE
-
-make_pc_labels <- function(fit, pcs) {
-
-  plain_labels <- paste0("PC ", pcs)
-  names(plain_labels) <- paste0("PC ", pcs)
-
-  if (!SHOW_APPROX_PERCENT) {
-    return(plain_labels)
-  }
-
-  if (!exists("blocks_original", inherits = TRUE)) {
-    return(plain_labels)
-  }
-
-  total_ss <- sum(sapply(blocks_original[1:6], function(M) {
-    sum(as.matrix(M)^2, na.rm = TRUE)
-  }))
-
-  if (!is.finite(total_ss) || total_ss == 0) {
-    return(plain_labels)
-  }
-
-  pc_pct <- sapply(pcs, function(pc) {
-    u <- as.numeric(fit$PCScores[, pc])
-
-    pc_ss <- sum(sapply(1:6, function(block_id) {
-      v <- as.numeric(fit$PCFunctions[[pc]][[block_id]])
-      sum(outer(u, v)^2, na.rm = TRUE)
-    }))
-
-    100 * pc_ss / total_ss
   })
-
-  labels <- paste0(
-    "PC ", pcs,
-    " (", sprintf("%.2f", pc_pct), "%)"
-  )
-
-  names(labels) <- paste0("PC ", pcs)
-  labels
-}
-
-pc_labels <- make_pc_labels(MODE_FIT, MODE_PCS)
-pc_label_levels <- unname(pc_labels[paste0("PC ", MODE_PCS)])
-
-mean_pm_pc_long <- mean_pm_pc_long |>
+}) |>
+  pivot_longer(c(Mean, `Mean + PC`, `Mean - PC`),
+               names_to = "Curve", values_to = "Value") |>
   mutate(
-    PC_label = factor(
-      unname(pc_labels[as.character(PC)]),
-      levels = pc_label_levels
-    )
+    Curve = factor(Curve, levels = c("Mean - PC", "Mean", "Mean + PC")),
+    Value = if_else(Variable %in% c("Appliances", "Lights"), pmax(Value, 0), Value)
   )
 
-###############################################################################
-# 17.5 Plot helpers
-###############################################################################
+# Row labels: share of the total sum of squares of the six scaled functional
+# blocks captured by the rank-one term u_k v_k' of each ReHPCA component.
+total_ss <- sum(sapply(blocks_original[1:6], function(M) sum(M^2)))
+pc_pct <- sapply(1:2, function(k) {
+  u <- fit_rehpca$PCScores[, k]
+  100 * sum(sapply(1:6, function(j) {
+    sum(outer(u, as.numeric(fit_rehpca$PCFunctions[[k]][[j]]))^2)
+  })) / total_ss
+})
+pc_labels <- sprintf("PC %d (%.2f%%)", 1:2, pc_pct)
 
-curve_cols <- c(
-  "Mean - PC" = "#D62728",   # red
-  "Mean" = "black",
-  "Mean + PC" = "#009E73"    # green
-)
+curve_cols <- c("Mean - PC" = "#D62728", "Mean" = "black", "Mean + PC" = "#009E73")
+curve_linewidths <- c("Mean - PC" = 0.80, "Mean" = 1.05, "Mean + PC" = 0.80)
 
-curve_linewidths <- c(
-  "Mean - PC" = 0.80,
-  "Mean" = 1.05,
-  "Mean + PC" = 0.80
-)
-
-make_single_panel <- function(pc_lab, var_name, show_var_title, show_pc_label, show_x_axis) {
-
-  panel_df <- mean_pm_pc_long |>
-    filter(
-      as.character(PC_label) == pc_lab,
-      as.character(Variable) == var_name
-    )
-
-  p <- ggplot(
-    panel_df,
-    aes(
-      x = Hour,
-      y = Value,
-      color = Curve,
-      linewidth = Curve,
-      group = Curve
-    )
-  ) +
+# One panel per (PC, variable): variable names on the top row only, PC
+# labels on the first column only, x tick marks on the bottom row only.
+make_panel <- function(k, j) {
+  ggplot(filter(mean_pm_df, PC == k, Variable == functional_names[j]),
+         aes(Hour, Value, color = Curve, linewidth = Curve, group = Curve)) +
     geom_line(alpha = 0.95) +
     scale_color_manual(values = curve_cols) +
-    scale_linewidth_manual(values = curve_linewidths) +
-    scale_x_continuous(
-      breaks = c(0, 6, 12, 18, 23)
-    ) +
+    scale_linewidth_manual(values = curve_linewidths, guide = "none") +
+    scale_x_continuous(breaks = c(0, 6, 12, 18, 23)) +
+    guides(color = guide_legend(override.aes = list(linewidth = 1.8))) +
     labs(
-      title = if (show_var_title) var_name else NULL,
+      title = if (k == 1) functional_names[j] else NULL,
       x = NULL,
-      y = if (show_pc_label) pc_lab else NULL,
-      color = NULL,
-      linewidth = NULL
+      y = if (j == 1) pc_labels[k] else NULL,
+      color = NULL
     ) +
     theme_bw(base_size = 11) +
     theme(
-      plot.title = element_text(face = "bold", size = 10, hjust = 0.5),
-      axis.title.y = element_text(face = "bold", size = 10, margin = margin(r = 6)),
-      legend.position = "bottom",
-      panel.grid.minor = element_blank(),
-      panel.grid.major = element_line(color = "grey88", linewidth = 0.25),
-      axis.text = element_text(color = "black"),
-      plot.margin = margin(4, 4, 4, 4)
-    )
-
-  if (!show_x_axis) {
-    p <- p +
-      theme(
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()
-      )
-  }
-
-  p
-}
-
-###############################################################################
-# 17.6 Build 2 x 6 plot layout
-###############################################################################
-
-plot_list <- list()
-
-for (pc_i in seq_along(pc_label_levels)) {
-  for (var_i in seq_along(mode_variable_levels)) {
-
-    pc_lab <- pc_label_levels[pc_i]
-    var_name <- mode_variable_levels[var_i]
-
-    plot_list[[length(plot_list) + 1]] <- make_single_panel(
-      pc_lab = pc_lab,
-      var_name = var_name,
-      show_var_title = pc_i == 1,
-      show_pc_label = var_i == 1,
-      show_x_axis = pc_i == length(pc_label_levels)
-    )
-  }
-}
-
-p_mean_pm_pc <- wrap_plots(
-  plot_list,
-  ncol = length(mode_variable_levels),
-  byrow = TRUE,
-  guides = "collect"
-) +
-  plot_annotation(
-    title = paste0(
-      "Mean curves plus and minus ",
-      MODE_METHOD,
-      " functional PCs"
-    )
-  ) &
-  theme(
-    plot.title = element_text(face = "bold", size = 14),
-    legend.position = "bottom"
-  )
-
-print(p_mean_pm_pc)
-
-###############################################################################
-# Add a shared legend below p_mean_pm_pc
-###############################################################################
-
-plot_list_big <- lapply(plot_list_big, function(p) {
-  p +
-    guides(
-      color = guide_legend(
-        override.aes = list(linewidth = 1.8)
-      ),
-      linewidth = "none"
-    ) +
-    theme(
+      plot.title = element_text(face = "bold", size = 19, hjust = 0.5, margin = margin(b = 8)),
+      axis.title.y = element_text(face = "bold", size = 18, margin = margin(r = 8)),
+      axis.text = element_text(size = 15, color = "black"),
       legend.position = "bottom",
       legend.text = element_text(size = 21),
-      legend.key.width = grid::unit(2, "cm")
-    )
-})
+      legend.key.width = unit(2, "cm"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "grey88", linewidth = 0.25),
+      plot.margin = margin(3, 3, 3, 3)
+    ) +
+    if (k == 1) {
+      # top row: no tick marks; labels placed as in the published figure
+      theme(axis.ticks.x = element_blank(),
+            axis.ticks.length.x = unit(0, "pt"),
+            axis.text.x = element_text(size = 15, color = "black", margin = margin(t = 1.7, b = -1.7)))
+    } else theme()
+}
 
-p_mean_pm_pc <- wrap_plots(
-  plot_list_big,
-  ncol = length(mode_variable_levels),
-  byrow = TRUE,
+fig_s2 <- wrap_plots(
+  lapply(seq_len(12), function(i) make_panel(k = (i - 1) %/% 6 + 1, j = (i - 1) %% 6 + 1)),
+  ncol = 6,
   guides = "collect"
 ) +
   plot_annotation(
-    title = paste0(
-      "Mean curves plus and minus ",
-      MODE_METHOD,
-      " functional PCs"
-    ),
-    theme = theme(
-      plot.title = element_text(
-        face = "bold",
-        size = 27,
-        hjust = 0.5
-      )
-    )
+    title = "Mean curves plus and minus ReHPCA functional PCs",
+    theme = theme(plot.title = element_text(face = "bold", size = 27, hjust = 0.5))
   ) &
-  theme(
-    legend.position = "bottom",
-    legend.justification = "center",
-    legend.text = element_text(size = 21)
+  theme(legend.position = "bottom", legend.justification = "center")
+
+ggsave(file.path(out_dir, "appliances_ReHPCA_mean_plus_minus_PC1_PC2_symbols1.pdf"),
+       fig_s2, width = 23, height = 11, units = "in")
+
+## 12. Figure S3: u scores coloured by month, sized by daily energy ------------
+
+month_cols <- c(
+  "Jan" = "#E76F51", "Feb" = "#66A61E", "Mar" = "#00A6B4", "Apr" = "#B77CFF",
+  "May" = "#E69F00", "Jun" = "#56B4E9", "Jul" = "#009E73", "Aug" = "#CC79A7",
+  "Sep" = "#999999", "Oct" = "#D55E00", "Nov" = "#0072B2", "Dec" = "#F0E442"
+)
+
+daily_energy_df <- appliance_complete |>
+  group_by(date = day) |>
+  summarize(
+    Daily_energy = sum(Appliances),
+    Month = month(first(day), label = TRUE, abbr = TRUE),
+    .groups = "drop"
   )
 
-print(p_mean_pm_pc)
+u_score_df <- score_long |>
+  left_join(daily_energy_df, by = "date") |>
+  mutate(Month = factor(Month, levels = unique(Month)))
 
-# ggsave(
-#   "Appliances_Mean_Plus_Minus_PC.pdf",
-#   plot = p_mean_pm_pc,
-#   device = "pdf",
-#   width = 23,
-#   height = 11,
-#   units = "in",
-#   bg = "white",
-#   useDingbats = FALSE
-# )
+fig_s3 <- ggplot(u_score_df, aes(date, Score)) +
+  geom_hline(yintercept = 0, linewidth = 0.25, color = "grey55") +
+  geom_line(aes(group = interaction(Method, PC)),
+            color = "grey45", linewidth = 0.35, alpha = 0.65) +
+  geom_point(aes(color = Month, size = Daily_energy), alpha = 0.85) +
+  facet_grid(PC ~ Method, scales = "free_y") +
+  scale_color_manual(values = month_cols, drop = FALSE,
+                     guide = guide_legend(order = 1)) +
+  scale_size_continuous(range = c(1.0, 3.5),
+                        breaks = pretty(u_score_df$Daily_energy, n = 4),
+                        name = "Daily energy", guide = guide_legend(order = 2)) +
+  scale_x_date(date_breaks = "2 months", date_labels = "%Y-%m",
+               expand = expansion(mult = c(0.01, 0.01))) +
+  labs(title = "Ordered-day scores in the u direction",
+       x = "Date", y = "u score", color = "Month") +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", size = 30, hjust = 0.5, margin = margin(b = 15)),
+    strip.text = element_text(face = "bold", size = 26),
+    axis.title.x = element_text(face = "bold", size = 26, margin = margin(t = 12)),
+    axis.title.y = element_text(face = "bold", size = 26, margin = margin(r = 12)),
+    axis.text.x = element_text(size = 21, color = "black"),
+    axis.text.y = element_text(size = 21, color = "black"),
+    legend.title = element_text(face = "bold", size = 25),
+    legend.text = element_text(size = 22),
+    legend.key.height = unit(0.9, "cm"),
+    legend.key.width = unit(1.0, "cm"),
+    legend.position = "right",
+    panel.spacing = unit(0.25, "cm"),
+    panel.grid.minor = element_blank(),
+    plot.margin = margin(15, 15, 15, 15)
+  )
+
+ggsave(file.path(out_dir, "appliances_u_scores_HPCA_vs_ReHPCA1.pdf"),
+       fig_s3, width = 19, height = 12, units = "in")
+
+## 13. Session information ----------------------------------------------------
+
+cat("Elapsed:", round(as.numeric(difftime(Sys.time(), t_start, units = "secs")), 1), "s\n")
+writeLines(capture.output(sessionInfo()), file.path(out_dir, "appliances_sessionInfo.txt"))
