@@ -406,7 +406,7 @@ p_u_time <- ggplot(score_long, aes(date, Score, color = Method, group = Method))
     axis.text.x = element_text(size = 13, color = "black"),
     axis.text.y = element_text(size = 14, color = "black"),
     axis.text.y.left = element_text(margin = margin(r = 1)),
-    axis.ticks.length.y = unit(1.2, "pt"),
+    axis.ticks.length.y = grid::unit(1.2, "pt"),
     panel.spacing.x = unit(0.05, "cm"),
     plot.margin = margin(2, 2, 1, 0)
   )
@@ -496,7 +496,7 @@ fig_s1 <- ((p_legend | p_u_time) + plot_layout(widths = c(0.17, 1))) /
      plot_layout(widths = c(1.65, 1.00))) +
   plot_layout(heights = c(0.55, 1.80))
 
-ggsave(file.path(out_dir, "appliances_compare_u_and_v_HPCA_ReHPCA_PC_specific1.pdf"),
+ggsave(file.path(out_dir, "appliances_compare_u_and_v.pdf"),
        fig_s1, width = 19, height = 13, units = "in")
 
 ## 11. Figure S2: mean curves plus/minus the ReHPCA functional PCs -------------
@@ -586,7 +586,7 @@ fig_s2 <- wrap_plots(
   ) &
   theme(legend.position = "bottom", legend.justification = "center")
 
-ggsave(file.path(out_dir, "appliances_ReHPCA_mean_plus_minus_PC1_PC2_symbols1.pdf"),
+ggsave(file.path(out_dir, "appliances_ReHPCA_mean_plus_minus_PC1_PC2.pdf"),
        fig_s2, width = 23, height = 11, units = "in")
 
 ## 12. Figure S3: u scores coloured by month, sized by daily energy ------------
@@ -642,7 +642,7 @@ fig_s3 <- ggplot(u_score_df, aes(date, Score)) +
     plot.margin = margin(15, 15, 15, 15)
   )
 
-ggsave(file.path(out_dir, "appliances_u_scores_HPCA_vs_ReHPCA1.pdf"),
+ggsave(file.path(out_dir, "appliances_u_scores_HPCA_vs_ReHPCA.pdf"),
        fig_s3, width = 19, height = 12, units = "in")
 
 ## 13. Session information ----------------------------------------------------

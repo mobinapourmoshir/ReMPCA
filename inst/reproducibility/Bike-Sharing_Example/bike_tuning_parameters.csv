@@ -1,0 +1,19 @@
+fit,direction_or_block,alpha_smoothness,gamma_sparsity,n_entries
+HPCA,u (days),0,0,655
+HPCA,Count,0,0,24
+HPCA,Temperature,0,0,24
+HPCA,Humidity,0,0,24
+HPCA,Wind,0,0,24
+HPCA,Daily covariates,0,0,30
+ReHPCA_PC1,u (days),0.015625,1,655
+ReHPCA_PC1,Count,0.25,0,24
+ReHPCA_PC1,Temperature,0.015625,2,24
+ReHPCA_PC1,Humidity,0.03125,0,24
+ReHPCA_PC1,Wind,0.0625,0,24
+ReHPCA_PC1,Daily covariates,0,8,30
+ReHPCA_PC2,u (days),0.0078125,0,655
+ReHPCA_PC2,Count,0.125,1,24
+ReHPCA_PC2,Temperature,0.0625,0,24
+ReHPCA_PC2,Humidity,0.0625,10,24
+ReHPCA_PC2,Wind,0.0625,0,24
+ReHPCA_PC2,Daily covariates,0,11,30

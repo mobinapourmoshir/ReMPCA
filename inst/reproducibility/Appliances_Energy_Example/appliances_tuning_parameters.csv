@@ -1,0 +1,25 @@
+fit,direction_or_block,alpha_smoothness,gamma_sparsity,n_entries
+HPCA,u (days),0,0,136
+HPCA,Appliances,0,0,144
+HPCA,Lights,0,0,144
+HPCA,Indoor temp.,0,0,144
+HPCA,Indoor humidity,0,0,144
+HPCA,Outdoor temp.,0,0,144
+HPCA,Outdoor humidity,0,0,144
+HPCA,Daily covariates,0,0,11
+ReHPCA_PC1,u (days),2.44140625e-4,45,136
+ReHPCA_PC1,Appliances,1,8,144
+ReHPCA_PC1,Lights,2,50,144
+ReHPCA_PC1,Indoor temp.,0.125,0,144
+ReHPCA_PC1,Indoor humidity,0.125,0,144
+ReHPCA_PC1,Outdoor temp.,0.125,0,144
+ReHPCA_PC1,Outdoor humidity,0.125,0,144
+ReHPCA_PC1,Daily covariates,0,3,11
+ReHPCA_PC2,u (days),9.765625e-4,55,136
+ReHPCA_PC2,Appliances,4,20,144
+ReHPCA_PC2,Lights,4,60,144
+ReHPCA_PC2,Indoor temp.,0.25,0,144
+ReHPCA_PC2,Indoor humidity,0.25,0,144
+ReHPCA_PC2,Outdoor temp.,0.25,0,144
+ReHPCA_PC2,Outdoor humidity,0.25,0,144
+ReHPCA_PC2,Daily covariates,0,5,11
